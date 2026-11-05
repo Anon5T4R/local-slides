@@ -31,6 +31,10 @@ format plus PPTX), scriptable by agents (CLI, JSON control channel, MCP), and av
 [docs/target-app-parity.md](docs/target-app-parity.md) and the work list in
 [docs/gaps.md](docs/gaps.md).
 
+Local Slides is an independent fork of DeckCraft v0.15.1 (`9bac60ff`); the history and numbers below
+come from that baseline and continue here. The native `.deckcraft` format stays byte-for-byte
+compatible, so decks move between the two.
+
 ## Headline numbers
 
 | | Value | Kind |
