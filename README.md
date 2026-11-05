@@ -15,15 +15,10 @@
   (through MCP) can drive.
 </p>
 
-<p align="center">
-  <a href="https://github.com/Anon5T4R/local-slides"><b>Local Slides on GitHub</b></a>
-</p>
 
 <br>
 
-<p align="center">
-  <img alt="Local Slides editing a slide: ribbon, slide thumbnails with sections, a process diagram on the canvas, notes and status bar" src="docs/images/editor.png" width="900">
-</p>
+
 
 <p align="center">
   <a href="#what-works-today">What works</a> ·
@@ -58,21 +53,6 @@ Today it can:
 - **Automate**: 200+ commands with undo, all scriptable from the CLI, a JSON control channel and an
   MCP server for AI agents.
 
-<table>
-  <tr>
-    <td width="50%"><img alt="A selected shape with the Shape Format tab" src="docs/images/shape-format.png"><br><sub>Shape Format contextual tab and selection handles</sub></td>
-    <td width="50%"><img alt="The Format Shape pane editing a gradient fill" src="docs/images/format-pane.png"><br><sub>Format Shape pane: gradient type, direction and stops</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img alt="Slide Sorter view with transitions under each slide" src="docs/images/slide-sorter.png"><br><sub>Slide Sorter with each slide's transition</sub></td>
-    <td width="50%"><img alt="Local Slides in dark mode showing a chart slide" src="docs/images/dark-mode.png"><br><sub>Dark mode, with a native chart</sub></td>
-  </tr>
-</table>
-
-<p align="center">
-  <img alt="All eight slides of the Northern Lights sample deck" src="docs/images/sample-deck.png" width="900"><br>
-  <sub>The built-in sample deck, rendered by <code>localslides-cli render --sample --all</code></sub>
-</p>
 
 The honest picture, area by area, is in [ROADMAP.md](ROADMAP.md),
 [docs/target-app-parity.md](docs/target-app-parity.md),
