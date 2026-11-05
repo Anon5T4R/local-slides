@@ -27,6 +27,16 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Fontes CJK/coreanas (craft-fonts)
+        # O build de localslides-fonts procura ../craft-fonts/fonts/manifest.txt; sem elas,
+        # os testes de texto vertical CJK e IME coreano falham no runner Linux (sem fontes do SO).
+        # Mesmo pin do upstream (deckcraft@9bac60ff .github/workflows/ci.yml).
+        uses: actions/checkout@v7
+        with:
+          repository: storytold/craft-fonts
+          ref: 37827adc41fd165f9a9234ac40f94dbad353aa69
+          path: ../craft-fonts
+          persist-credentials: false
       - name: Dependências de build (Linux)
         if: runner.os == 'Linux'
         run: |
