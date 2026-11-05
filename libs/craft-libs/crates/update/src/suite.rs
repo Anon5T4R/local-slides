@@ -25,11 +25,8 @@ pub const LOCALSLIDES: App = App {
     publisher: "Local Slides contributors",
     ..App::new("localslides", "Local Slides", "Slide decks and presentations", "Anon5T4R/local-slides")
 };
-pub const LOCALSHEETS: App = App {
-    developer: "Anon5T4R",
-    publisher: "Anon5T4R",
-    ..App::new("localsheets", "Local Sheets", "Spreadsheets and data", "Anon5T4R/local-sheets")
-};
+pub const LOCALSHEETS: App =
+    App { developer: "Anon5T4R", publisher: "Anon5T4R", ..App::new("localsheets", "Local Sheets", "Spreadsheets and data", "Anon5T4R/local-sheets") };
 pub const CADCRAFT: App = App::new("cadcraft", "CADCraft", "Computer-aided design and drafting", "storytold/cadcraft");
 pub const GRIDCRAFT: App = App::new("gridcraft", "GridCraft", "Spreadsheets and data", "storytold/gridcraft");
 
