@@ -823,12 +823,10 @@ dependencies = [
 [[package]]
 name = "craft-fonts-build"
 version = "0.1.0"
-source = "git+https://github.com/storytold/craft-libs?rev=c5a1cbfb5f9049f9270955caffb5bee5997aebf7#c5a1cbfb5f9049f9270955caffb5bee5997aebf7"
 
 [[package]]
 name = "craft-i18n"
 version = "0.1.0"
-source = "git+https://github.com/storytold/craft-libs?rev=c5a1cbfb5f9049f9270955caffb5bee5997aebf7#c5a1cbfb5f9049f9270955caffb5bee5997aebf7"
 dependencies = [
  "fixed_decimal",
  "icu_decimal",
@@ -851,7 +849,6 @@ dependencies = [
 [[package]]
 name = "craft-media"
 version = "0.1.0"
-source = "git+https://github.com/storytold/craft-libs?rev=c5a1cbfb5f9049f9270955caffb5bee5997aebf7#c5a1cbfb5f9049f9270955caffb5bee5997aebf7"
 dependencies = [
  "thiserror 2.0.21",
 ]
@@ -859,7 +856,6 @@ dependencies = [
 [[package]]
 name = "craft-pdf"
 version = "0.1.0"
-source = "git+https://github.com/storytold/craft-libs?rev=c5a1cbfb5f9049f9270955caffb5bee5997aebf7#c5a1cbfb5f9049f9270955caffb5bee5997aebf7"
 dependencies = [
  "krilla",
  "thiserror 2.0.21",
@@ -868,7 +864,6 @@ dependencies = [
 [[package]]
 name = "craft-ui"
 version = "0.1.0"
-source = "git+https://github.com/storytold/craft-libs?rev=c5a1cbfb5f9049f9270955caffb5bee5997aebf7#c5a1cbfb5f9049f9270955caffb5bee5997aebf7"
 dependencies = [
  "craft-fonts-build",
  "craft-i18n",
@@ -888,7 +883,6 @@ dependencies = [
 [[package]]
 name = "craft-update"
 version = "0.1.0"
-source = "git+https://github.com/storytold/craft-libs?rev=c5a1cbfb5f9049f9270955caffb5bee5997aebf7#c5a1cbfb5f9049f9270955caffb5bee5997aebf7"
 dependencies = [
  "chrono",
  "dunce",
@@ -981,334 +975,6 @@ name = "dasp_sample"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c87e182de0887fd5361989c677c4e8f5000cd9491d6d563161a8f3a5519fc7f"
-
-[[package]]
-name = "deckcraft"
-version = "0.15.1"
-dependencies = [
- "arboard",
- "chrono",
- "cpal",
- "craft-update",
- "deckcraft-engine",
- "deckcraft-media",
- "deckcraft-ui-egui",
- "eframe",
- "egui",
- "fmv-macos-events",
- "image",
- "log",
- "rfd",
- "serde_json",
- "winit",
- "winresource",
-]
-
-[[package]]
-name = "deckcraft-anim"
-version = "0.15.1"
-dependencies = [
- "deckcraft-geom",
- "deckcraft-model",
- "serde",
-]
-
-[[package]]
-name = "deckcraft-av1"
-version = "0.15.1"
-dependencies = [
- "deckcraft-bitstream",
- "rayon",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "deckcraft-bitstream"
-version = "0.15.1"
-dependencies = [
- "craft-media",
-]
-
-[[package]]
-name = "deckcraft-cli"
-version = "0.15.1"
-dependencies = [
- "deckcraft-engine",
- "deckcraft-mcp",
- "serde_json",
- "zip 3.0.0",
-]
-
-[[package]]
-name = "deckcraft-color"
-version = "0.15.1"
-dependencies = [
- "serde",
-]
-
-[[package]]
-name = "deckcraft-engine"
-version = "0.15.1"
-dependencies = [
- "chrono",
- "deckcraft-anim",
- "deckcraft-color",
- "deckcraft-fonts",
- "deckcraft-format",
- "deckcraft-geom",
- "deckcraft-media",
- "deckcraft-model",
- "deckcraft-pdf",
- "deckcraft-pptx",
- "deckcraft-render",
- "deckcraft-text",
- "i_overlay",
- "image",
- "js-sys",
- "log",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
- "zip 3.0.0",
-]
-
-[[package]]
-name = "deckcraft-fonts"
-version = "0.15.1"
-dependencies = [
- "epaint_default_fonts",
- "harfrust 0.13.3",
- "kurbo",
- "log",
- "skrifa 0.47.0",
- "unicode-bidi",
-]
-
-[[package]]
-name = "deckcraft-format"
-version = "0.15.1"
-dependencies = [
- "deckcraft-model",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
- "zip 3.0.0",
-]
-
-[[package]]
-name = "deckcraft-geom"
-version = "0.15.1"
-dependencies = [
- "kurbo",
- "serde",
-]
-
-[[package]]
-name = "deckcraft-h264"
-version = "0.15.1"
-dependencies = [
- "deckcraft-bitstream",
- "rayon",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "deckcraft-hevc"
-version = "0.15.1"
-dependencies = [
- "deckcraft-bitstream",
- "rayon",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "deckcraft-isobmff"
-version = "0.15.1"
-dependencies = [
- "craft-media",
-]
-
-[[package]]
-name = "deckcraft-matroska"
-version = "0.15.1"
-dependencies = [
- "craft-media",
-]
-
-[[package]]
-name = "deckcraft-mcp"
-version = "0.15.1"
-dependencies = [
- "deckcraft-engine",
- "deckcraft-render",
- "log",
- "serde_json",
-]
-
-[[package]]
-name = "deckcraft-media"
-version = "0.15.1"
-dependencies = [
- "deckcraft-av1",
- "deckcraft-h264",
- "deckcraft-hevc",
- "deckcraft-isobmff",
- "deckcraft-matroska",
- "deckcraft-ogg",
- "deckcraft-opus",
- "deckcraft-vp9",
- "image",
- "log",
- "symphonia",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "deckcraft-metafile"
-version = "0.15.1"
-dependencies = [
- "image",
- "kurbo",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "deckcraft-model"
-version = "0.15.1"
-dependencies = [
- "deckcraft-color",
- "deckcraft-geom",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
- "unicode-segmentation",
-]
-
-[[package]]
-name = "deckcraft-ogg"
-version = "0.15.1"
-
-[[package]]
-name = "deckcraft-opus"
-version = "0.15.1"
-
-[[package]]
-name = "deckcraft-pdf"
-version = "0.15.1"
-dependencies = [
- "craft-pdf",
- "deckcraft-fonts",
- "deckcraft-model",
- "deckcraft-render",
- "deckcraft-text",
- "hayro-syntax",
- "krilla",
- "kurbo",
- "log",
- "serde",
- "thiserror 2.0.21",
- "wasm-bindgen-test",
-]
-
-[[package]]
-name = "deckcraft-pptx"
-version = "0.15.1"
-dependencies = [
- "deckcraft-color",
- "deckcraft-engine",
- "deckcraft-geom",
- "deckcraft-model",
- "image",
- "log",
- "quick-xml 0.41.0",
- "serde_json",
- "thiserror 2.0.21",
- "zip 3.0.0",
-]
-
-[[package]]
-name = "deckcraft-render"
-version = "0.15.1"
-dependencies = [
- "deckcraft-anim",
- "deckcraft-color",
- "deckcraft-fonts",
- "deckcraft-geom",
- "deckcraft-metafile",
- "deckcraft-model",
- "deckcraft-text",
- "image",
- "kurbo",
- "log",
- "skrifa 0.47.0",
- "vello_common",
- "vello_cpu",
-]
-
-[[package]]
-name = "deckcraft-text"
-version = "0.15.1"
-dependencies = [
- "chrono",
- "deckcraft-color",
- "deckcraft-fonts",
- "deckcraft-geom",
- "deckcraft-model",
- "unicode-bidi",
- "unicode-linebreak",
- "unicode-segmentation",
-]
-
-[[package]]
-name = "deckcraft-ui-egui"
-version = "0.15.1"
-dependencies = [
- "craft-ui",
- "craft-update",
- "deckcraft-anim",
- "deckcraft-color",
- "deckcraft-engine",
- "deckcraft-fonts",
- "deckcraft-geom",
- "deckcraft-media",
- "deckcraft-model",
- "deckcraft-render",
- "deckcraft-text",
- "egui",
- "egui_kittest",
- "log",
- "serde",
- "serde_json",
- "skrifa 0.47.0",
- "toml",
- "web-time",
-]
-
-[[package]]
-name = "deckcraft-vp9"
-version = "0.15.1"
-dependencies = [
- "deckcraft-bitstream",
- "rayon",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "deckcraft-web"
-version = "0.15.1"
-dependencies = [
- "deckcraft-engine",
- "deckcraft-ui-egui",
- "eframe",
- "egui",
- "js-sys",
- "log",
- "rfd",
- "serde_json",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
-]
 
 [[package]]
 name = "deranged"
@@ -1418,7 +1084,6 @@ checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 [[package]]
 name = "ecolor"
 version = "0.37.0"
-source = "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a"
 dependencies = [
  "bytemuck",
  "emath",
@@ -1427,7 +1092,6 @@ dependencies = [
 [[package]]
 name = "eframe"
 version = "0.37.0"
-source = "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a"
 dependencies = [
  "ahash",
  "bytemuck",
@@ -1462,7 +1126,6 @@ dependencies = [
 [[package]]
 name = "egui"
 version = "0.37.0"
-source = "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a"
 dependencies = [
  "accesskit",
  "ahash",
@@ -1481,7 +1144,6 @@ dependencies = [
 [[package]]
 name = "egui-wgpu"
 version = "0.37.0"
-source = "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a"
 dependencies = [
  "ahash",
  "bytemuck",
@@ -1500,7 +1162,6 @@ dependencies = [
 [[package]]
 name = "egui-winit"
 version = "0.37.0"
-source = "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a"
 dependencies = [
  "accesskit_winit",
  "arboard",
@@ -1523,7 +1184,6 @@ dependencies = [
 [[package]]
 name = "egui_glow"
 version = "0.37.0"
-source = "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a"
 dependencies = [
  "bytemuck",
  "egui",
@@ -1536,7 +1196,6 @@ dependencies = [
 [[package]]
 name = "egui_kittest"
 version = "0.37.0"
-source = "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a"
 dependencies = [
  "dify",
  "eframe",
@@ -1562,7 +1221,6 @@ checksum = "0e9c71c2167ca323c882b99918929403426e2373ea17242ff5653e0d5e1058be"
 [[package]]
 name = "emath"
 version = "0.37.0"
-source = "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a"
 dependencies = [
  "bytemuck",
 ]
@@ -1611,7 +1269,6 @@ dependencies = [
 [[package]]
 name = "epaint"
 version = "0.37.0"
-source = "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a"
 dependencies = [
  "ahash",
  "bytemuck",
@@ -1637,7 +1294,6 @@ dependencies = [
 [[package]]
 name = "epaint_default_fonts"
 version = "0.37.0"
-source = "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a"
 
 [[package]]
 name = "equivalent"
@@ -2708,7 +2364,6 @@ dependencies = [
 [[package]]
 name = "krilla"
 version = "0.8.2"
-source = "git+https://github.com/storytold/craft-libs?rev=c5a1cbfb5f9049f9270955caffb5bee5997aebf7#c5a1cbfb5f9049f9270955caffb5bee5997aebf7"
 dependencies = [
  "base64 0.22.1",
  "bumpalo",
@@ -2818,6 +2473,334 @@ name = "litrs"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "11d3d7f243d5c5a8b9bb5d6dd2b1602c0cb0b9db1621bafc7ed66e35ff9fe092"
+
+[[package]]
+name = "localslides"
+version = "0.15.1"
+dependencies = [
+ "arboard",
+ "chrono",
+ "cpal",
+ "craft-update",
+ "eframe",
+ "egui",
+ "fmv-macos-events",
+ "image",
+ "localslides-engine",
+ "localslides-media",
+ "localslides-ui-egui",
+ "log",
+ "rfd",
+ "serde_json",
+ "winit",
+ "winresource",
+]
+
+[[package]]
+name = "localslides-anim"
+version = "0.15.1"
+dependencies = [
+ "localslides-geom",
+ "localslides-model",
+ "serde",
+]
+
+[[package]]
+name = "localslides-av1"
+version = "0.15.1"
+dependencies = [
+ "localslides-bitstream",
+ "rayon",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "localslides-bitstream"
+version = "0.15.1"
+dependencies = [
+ "craft-media",
+]
+
+[[package]]
+name = "localslides-cli"
+version = "0.15.1"
+dependencies = [
+ "localslides-engine",
+ "localslides-mcp",
+ "serde_json",
+ "zip 3.0.0",
+]
+
+[[package]]
+name = "localslides-color"
+version = "0.15.1"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "localslides-engine"
+version = "0.15.1"
+dependencies = [
+ "chrono",
+ "i_overlay",
+ "image",
+ "js-sys",
+ "localslides-anim",
+ "localslides-color",
+ "localslides-fonts",
+ "localslides-format",
+ "localslides-geom",
+ "localslides-media",
+ "localslides-model",
+ "localslides-pdf",
+ "localslides-pptx",
+ "localslides-render",
+ "localslides-text",
+ "log",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "zip 3.0.0",
+]
+
+[[package]]
+name = "localslides-fonts"
+version = "0.15.1"
+dependencies = [
+ "epaint_default_fonts",
+ "harfrust 0.13.3",
+ "kurbo",
+ "log",
+ "skrifa 0.47.0",
+ "unicode-bidi",
+]
+
+[[package]]
+name = "localslides-format"
+version = "0.15.1"
+dependencies = [
+ "localslides-model",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "zip 3.0.0",
+]
+
+[[package]]
+name = "localslides-geom"
+version = "0.15.1"
+dependencies = [
+ "kurbo",
+ "serde",
+]
+
+[[package]]
+name = "localslides-h264"
+version = "0.15.1"
+dependencies = [
+ "localslides-bitstream",
+ "rayon",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "localslides-hevc"
+version = "0.15.1"
+dependencies = [
+ "localslides-bitstream",
+ "rayon",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "localslides-isobmff"
+version = "0.15.1"
+dependencies = [
+ "craft-media",
+]
+
+[[package]]
+name = "localslides-matroska"
+version = "0.15.1"
+dependencies = [
+ "craft-media",
+]
+
+[[package]]
+name = "localslides-mcp"
+version = "0.15.1"
+dependencies = [
+ "localslides-engine",
+ "localslides-render",
+ "log",
+ "serde_json",
+]
+
+[[package]]
+name = "localslides-media"
+version = "0.15.1"
+dependencies = [
+ "image",
+ "localslides-av1",
+ "localslides-h264",
+ "localslides-hevc",
+ "localslides-isobmff",
+ "localslides-matroska",
+ "localslides-ogg",
+ "localslides-opus",
+ "localslides-vp9",
+ "log",
+ "symphonia",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "localslides-metafile"
+version = "0.15.1"
+dependencies = [
+ "image",
+ "kurbo",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "localslides-model"
+version = "0.15.1"
+dependencies = [
+ "localslides-color",
+ "localslides-geom",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "unicode-segmentation",
+]
+
+[[package]]
+name = "localslides-ogg"
+version = "0.15.1"
+
+[[package]]
+name = "localslides-opus"
+version = "0.15.1"
+
+[[package]]
+name = "localslides-pdf"
+version = "0.15.1"
+dependencies = [
+ "craft-pdf",
+ "hayro-syntax",
+ "krilla",
+ "kurbo",
+ "localslides-fonts",
+ "localslides-model",
+ "localslides-render",
+ "localslides-text",
+ "log",
+ "serde",
+ "thiserror 2.0.21",
+ "wasm-bindgen-test",
+]
+
+[[package]]
+name = "localslides-pptx"
+version = "0.15.1"
+dependencies = [
+ "image",
+ "localslides-color",
+ "localslides-engine",
+ "localslides-geom",
+ "localslides-model",
+ "log",
+ "quick-xml 0.41.0",
+ "serde_json",
+ "thiserror 2.0.21",
+ "zip 3.0.0",
+]
+
+[[package]]
+name = "localslides-render"
+version = "0.15.1"
+dependencies = [
+ "image",
+ "kurbo",
+ "localslides-anim",
+ "localslides-color",
+ "localslides-fonts",
+ "localslides-geom",
+ "localslides-metafile",
+ "localslides-model",
+ "localslides-text",
+ "log",
+ "skrifa 0.47.0",
+ "vello_common",
+ "vello_cpu",
+]
+
+[[package]]
+name = "localslides-text"
+version = "0.15.1"
+dependencies = [
+ "chrono",
+ "localslides-color",
+ "localslides-fonts",
+ "localslides-geom",
+ "localslides-model",
+ "unicode-bidi",
+ "unicode-linebreak",
+ "unicode-segmentation",
+]
+
+[[package]]
+name = "localslides-ui-egui"
+version = "0.15.1"
+dependencies = [
+ "craft-ui",
+ "craft-update",
+ "egui",
+ "egui_kittest",
+ "localslides-anim",
+ "localslides-color",
+ "localslides-engine",
+ "localslides-fonts",
+ "localslides-geom",
+ "localslides-media",
+ "localslides-model",
+ "localslides-render",
+ "localslides-text",
+ "log",
+ "serde",
+ "serde_json",
+ "skrifa 0.47.0",
+ "toml",
+ "web-time",
+]
+
+[[package]]
+name = "localslides-vp9"
+version = "0.15.1"
+dependencies = [
+ "localslides-bitstream",
+ "rayon",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "localslides-web"
+version = "0.15.1"
+dependencies = [
+ "eframe",
+ "egui",
+ "js-sys",
+ "localslides-engine",
+ "localslides-ui-egui",
+ "log",
+ "rfd",
+ "serde_json",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
 
 [[package]]
 name = "lock_api"
@@ -5972,7 +5955,6 @@ checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
 [[package]]
 name = "winit"
 version = "0.30.13"
-source = "git+https://github.com/storytold/winit.git?rev=a517b3846ee8457d84ee4975110bfda6797c44dc#a517b3846ee8457d84ee4975110bfda6797c44dc"
 dependencies = [
  "ahash",
  "android-activity",
@@ -6509,19 +6491,15 @@ dependencies = [
 [[patch.unused]]
 name = "egui_demo_lib"
 version = "0.37.0"
-source = "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a"
 
 [[patch.unused]]
 name = "egui_extras"
 version = "0.37.0"
-source = "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a"
 
 [[patch.unused]]
 name = "egui_inspection"
 version = "0.37.0"
-source = "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a"
 
 [[patch.unused]]
 name = "egui_system_font_provider"
 version = "0.37.0"
-source = "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a"
