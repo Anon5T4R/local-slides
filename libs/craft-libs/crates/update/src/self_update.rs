@@ -783,13 +783,26 @@ fn same_cache_as_helper(app: &App, paths: &Paths, exe: &Path) -> Result<(), Stri
 
 /// Accepts `file` when it carries a valid Authenticode signature from the same publisher as
 /// `reference`, this program. Refuses an unsigned file, another publisher's, and every file when
-/// `reference` itself isn't signed.
+/// `reference` itself isn't signed — unless both are unsigned: the Local suite's releases are
+/// unsigned, and the downloader already verified the download against the release's SHA-256
+/// (GitHub's per-asset digest) over HTTPS, which is then the channel's trust anchor. A signed
+/// file offered to an unsigned copy is still refused: it would be another channel's.
 #[cfg(windows)]
 fn signed_like(app: &App, reference: &Path, file: &Path) -> Result<(), String> {
     let publisher = |path: &Path| verifysign::verify_file(path).map(|signature| signature.subject_name());
-    let ours = publisher(reference).map_err(|e| format!("this copy of {} isn't signed ({e}), so it doesn't install updates", app.name))?;
-    let theirs = publisher(file).map_err(|e| format!("{} isn't signed ({e})", file.display()))?;
-    if ours == theirs { Ok(()) } else { Err(format!("{} isn't signed by {}'s publisher", file.display(), app.name)) }
+    match publisher(reference) {
+        // A signed copy updates only through its own publisher.
+        Ok(ours) => {
+            let theirs = publisher(file).map_err(|e| format!("{} isn't signed ({e})", file.display()))?;
+            if ours == theirs { Ok(()) } else { Err(format!("{} isn't signed by {}'s publisher", file.display(), app.name)) }
+        }
+        // An unsigned copy (this suite's releases): the release's checksum already verified the
+        // download, so an unsigned file is this channel's own update.
+        Err(_) => match publisher(file) {
+            Ok(_) => Err(format!("{} is signed, but this copy of {} isn't, so it looks like another channel's file", file.display(), app.name)),
+            Err(_) => Ok(()),
+        },
+    }
 }
 
 /// Whether `file` is a Windows program or library (it starts with the `MZ` header), whatever its
@@ -1327,7 +1340,8 @@ mod tests {
         gone.id()
     }
 
-    /// A catalog-signed program matches itself; an unsigned one never does, on either side.
+    /// A catalog-signed program matches itself; an unsigned one never does, on either side — but
+    /// two unsigned files are this suite's own channel, which the release's checksum vouches for.
     #[cfg(windows)]
     #[test]
     fn a_file_must_be_signed_by_the_launchers_own_publisher() {
@@ -1336,20 +1350,22 @@ mod tests {
         let unsigned = std::env::current_exe().unwrap();
         assert_eq!(signed_like(&crate::suite::LAUNCHER, &cmd, &cmd), Ok(()));
         assert!(signed_like(&crate::suite::LAUNCHER, &cmd, &unsigned).is_err_and(|e| e.contains("isn't signed")));
-        assert!(signed_like(&crate::suite::LAUNCHER, &unsigned, &cmd).is_err_and(|e| e.contains("doesn't install updates")));
+        assert!(signed_like(&crate::suite::LAUNCHER, &unsigned, &cmd).is_err_and(|e| e.contains("is signed, but this copy")));
+        assert_eq!(signed_like(&crate::suite::LAUNCHER, &unsigned, &unsigned), Ok(()), "an unsigned channel updates itself");
     }
 
-    /// An unsigned launcher says so before it quits for an update. `cargo test` binaries are
-    /// unsigned, like a package built without the signing secrets.
+    /// An unsigned copy (a package built without the signing secrets, like a `cargo test` binary)
+    /// refuses a signed file: it would be another channel's. Its own, unsigned downloads pass the
+    /// check, since the release's SHA-256 already vouched for them.
     #[cfg(windows)]
     #[test]
-    fn an_unsigned_launcher_refuses_to_update_before_it_quits() {
+    fn an_unsigned_copy_refuses_a_signed_install() {
         let dir = tempfile::tempdir().unwrap();
         let msi = dir.path().join("artcraft-launcher-0.2.0-windows-x64.msi");
         std::fs::write(&msi, "not a package").unwrap();
         for install in [Install::Msi(system_program("msiexec.exe")), Install::Portable(system_program("msiexec.exe"))] {
             let error = windows_precheck(&crate::suite::LAUNCHER, &install, &Paths::under(dir.path()), &msi).unwrap_err();
-            assert!(error.contains("isn't signed"), "{error}");
+            assert!(error.contains("is signed, but this copy"), "{error}");
         }
     }
 
