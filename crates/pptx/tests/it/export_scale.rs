@@ -3,8 +3,8 @@
 
 use std::sync::Arc;
 
-use deckcraft_model::style::PictureFill;
-use deckcraft_model::{Section, Shape, ShapeId, ShapeKind, defaults};
+use localslides_model::style::PictureFill;
+use localslides_model::{Section, Shape, ShapeId, ShapeKind, defaults};
 
 #[test]
 fn many_media_sections_and_table_styles_export() {
@@ -25,7 +25,7 @@ fn many_media_sections_and_table_styles_export() {
     let id = p.slides[0].id;
     p.sections = (0..2_000).map(|i| Section { name: format!("s{i}"), slides: vec![] }).collect();
     p.sections.push(Section { name: "last".into(), slides: vec![id; 50_000] });
-    let bytes = deckcraft_pptx::export(&p).expect("export");
-    let q = deckcraft_pptx::import(&bytes).expect("import");
+    let bytes = localslides_pptx::export(&p).expect("export");
+    let q = localslides_pptx::import(&bytes).expect("import");
     assert_eq!(q.slides[0].shapes.iter().filter(|s| matches!(s.kind, ShapeKind::Picture { .. })).count(), 5_000);
 }

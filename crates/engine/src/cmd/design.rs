@@ -4,10 +4,10 @@
 use std::collections::BTreeSet;
 use std::sync::Arc;
 
-use deckcraft_geom::Size;
-use deckcraft_model::text::{Run, RunKind, TextBody};
-use deckcraft_model::theme::{builtin_color_schemes, builtin_font_schemes, builtin_format_schemes, builtin_themes};
-use deckcraft_model::{Background, Fill, PhType, Presentation, Shape, ShapeId, defaults};
+use localslides_geom::Size;
+use localslides_model::text::{Run, RunKind, TextBody};
+use localslides_model::theme::{builtin_color_schemes, builtin_font_schemes, builtin_format_schemes, builtin_themes};
+use localslides_model::{Background, Fill, PhType, Presentation, Shape, ShapeId, defaults};
 use serde_json::{Value, json};
 
 use super::{
@@ -176,7 +176,7 @@ fn browse_theme(s: &mut Session, p: &Value) -> Result<Value> {
         #[cfg(target_arch = "wasm32")]
         return Err(bad("design.browseTheme", "give `data`"));
     };
-    if !deckcraft_pptx::sniff(&bytes) {
+    if !localslides_pptx::sniff(&bytes) {
         return Err(bad("design.browseTheme", "not a theme or PowerPoint file"));
     }
     // A presentation or template brings its slide master and layouts, as in PowerPoint; a .thmx
@@ -186,7 +186,7 @@ fn browse_theme(s: &mut Session, p: &Value) -> Result<Value> {
     {
         return apply_master(s, &src);
     }
-    let (theme, media) = deckcraft_pptx::import_theme(&bytes).map_err(|e| bad("design.browseTheme", e.to_string()))?;
+    let (theme, media) = localslides_pptx::import_theme(&bytes).map_err(|e| bad("design.browseTheme", e.to_string()))?;
     let name = theme.name.clone();
     s.edit(|doc, sel| {
         // The theme's pictures (format-scheme blip fills) get ids of this deck.
@@ -224,7 +224,7 @@ fn apply_master(s: &mut Session, src: &Presentation) -> Result<Value> {
                 scale_shapes(&mut l.shapes, sx, sy, 1.0, 0.0, 0.0);
             }
         }
-        let moves: Vec<(usize, deckcraft_model::LayoutId)> =
+        let moves: Vec<(usize, localslides_model::LayoutId)> =
             doc.slides.iter().enumerate().filter_map(|(i, sl)| old.layout(sl.layout).and_then(|l| matching_layout(&m, l)).map(|l| (i, l))).collect();
         let layouts = m.layouts.len();
         if old.preserve {
@@ -246,8 +246,8 @@ fn apply_master(s: &mut Session, src: &Presentation) -> Result<Value> {
 
 /// The layout of `m` a slide on `from` moves to: same name, else same kind (not for custom
 /// layouts), else Title and Content, else the first.
-fn matching_layout(m: &deckcraft_model::Master, from: &deckcraft_model::Layout) -> Option<deckcraft_model::LayoutId> {
-    use deckcraft_model::LayoutType;
+fn matching_layout(m: &localslides_model::Master, from: &localslides_model::Layout) -> Option<localslides_model::LayoutId> {
+    use localslides_model::LayoutType;
     let ls = &m.layouts;
     ls.iter()
         .find(|l| !from.name.is_empty() && l.name.trim().eq_ignore_ascii_case(from.name.trim()))
@@ -258,7 +258,7 @@ fn matching_layout(m: &deckcraft_model::Master, from: &deckcraft_model::Layout) 
 }
 
 /// `theme` with every `media` id field rewritten through `map` (format-scheme picture fills).
-fn remap_media_ids(theme: &deckcraft_model::theme::Theme, map: &std::collections::HashMap<u32, u32>) -> Result<deckcraft_model::theme::Theme> {
+fn remap_media_ids(theme: &localslides_model::theme::Theme, map: &std::collections::HashMap<u32, u32>) -> Result<localslides_model::theme::Theme> {
     fn rec(v: &mut Value, map: &std::collections::HashMap<u32, u32>, depth: usize) {
         if depth > 64 {
             return;

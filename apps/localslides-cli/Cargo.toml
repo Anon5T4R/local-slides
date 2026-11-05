@@ -1,0 +1,22 @@
+[package]
+name = "localslides-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Local Slides on the command line: render, convert, run commands, inspect, and serve MCP"
+publish = false
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "localslides-cli"
+path = "src/main.rs"
+
+[dependencies]
+localslides-engine = { workspace = true }
+localslides-mcp = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+zip = { workspace = true }

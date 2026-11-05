@@ -1,23 +1,23 @@
 [package]
-name = "deckcraft-ui-egui"
+name = "localslides-ui-egui"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "DeckCraft egui frontend (PowerPoint-style UI); swappable — nothing below depends on it"
+description = "Local Slides egui frontend (PowerPoint-style UI); swappable — nothing below depends on it"
 
 [lints]
 workspace = true
 
 [dependencies]
-deckcraft-geom = { workspace = true }
-deckcraft-color = { workspace = true }
-deckcraft-model = { workspace = true }
-deckcraft-fonts = { workspace = true }
-deckcraft-text = { workspace = true }
-deckcraft-render = { workspace = true }
-deckcraft-anim = { workspace = true }
-deckcraft-engine = { workspace = true }
-deckcraft-media = { workspace = true }
+localslides-geom = { workspace = true }
+localslides-color = { workspace = true }
+localslides-model = { workspace = true }
+localslides-fonts = { workspace = true }
+localslides-text = { workspace = true }
+localslides-render = { workspace = true }
+localslides-anim = { workspace = true }
+localslides-engine = { workspace = true }
+localslides-media = { workspace = true }
 egui = { workspace = true, features = ["default_fonts", "monochrome_emoji_fonts"] }
 craft-ui = { workspace = true }
 serde = { workspace = true }

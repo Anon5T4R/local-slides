@@ -2,8 +2,8 @@
 //! to the slide and several to each other, until the other choice is picked for that selection.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use deckcraft_engine::Session;
-use deckcraft_model::ShapeId;
+use localslides_engine::Session;
+use localslides_model::ShapeId;
 use egui::accesskit::Toggled;
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};

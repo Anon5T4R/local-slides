@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <?ifndef HasCraftFontLicences ?>
+  <?define HasCraftFontLicences=0 ?>
+  <?endif?>
+  <Package Name="Local Slides" Manufacturer="Local Slides contributors" Version="$(var.Version)" UpgradeCode="8C3D9B21-6E4A-4F57-9B0C-2A7E5D4F1B63" Scope="perUserOrMachine" Compressed="yes" Language="1033">
+    <SummaryInformation Description="Local Slides presentations and slide shows" Manufacturer="Local Slides contributors" />
+    <?include $(sys.SOURCEFILEDIR)install-policy.wxi?>
+    <!-- Same-version upgrades let successive pre-releases of one X.Y.Z replace each other
+         (MSI versions are numeric, so 1.2.3-rc.1 and 1.2.3-rc.2 are both 1.2.3). -->
+    <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of Local Slides is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="LocalSlidesIcon.ico" SourceFile="$(var.IconPath)" />
+    <Property Id="ARPPRODUCTICON" Value="LocalSlidesIcon.ico" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/Anon5T4R/local-slides" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/Anon5T4R/local-slides" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/Anon5T4R/local-slides/issues" />
+
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="CraftSuiteFolder" Name="ArtCraft">
+        <Directory Id="INSTALLFOLDER" Name="Local Slides" />
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder" />
+
+    <Feature Id="Main" Title="Local Slides" Level="1">
+      <?if $(var.HasCraftFontLicences) = 1 ?>
+      <ComponentGroupRef Id="CraftFontLicences" />
+      <?endif?>
+      <ComponentGroupRef Id="LocalSlidesFiles" />
+    </Feature>
+  <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+    <UI>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg" Order="2" Condition="NOT Installed" />
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2" Condition="NOT Installed" />
+    </UI>
+  </Package>
+
+  <Fragment>
+    <?if $(var.HasCraftFontLicences) = 1 ?>
+    <ComponentGroup Id="CraftFontLicences" Directory="INSTALLFOLDER">
+      <Files Include="$(var.DocsDir)\**" />
+    </ComponentGroup>
+    <?endif?>
+    <ComponentGroup Id="LocalSlidesFiles" Directory="INSTALLFOLDER">
+      <Component Id="LocalSlidesApp" Guid="D87EA444-41A4-4C19-922E-66D1A29461FF">
+        <File Id="LocalSlidesNotice" Source="$(var.BinDir)\NOTICE" KeyPath="no" />
+        <File Id="LocalSlidesExe" Source="$(var.BinDir)\localslides.exe" KeyPath="yes">
+          <!-- No Icon here, so the shortcut shows the icon embedded in localslides.exe (build.rs). An
+               MSI Icon is cached under %APPDATA%\Microsoft\Installer\{ProductCode}\, and every
+               update is a major upgrade with a new ProductCode that deletes the old folder. A
+               taskbar pin is a copy of this shortcut that the update never touches, so it kept
+               pointing at the deleted file and lost its icon (#1114). The exe's path survives
+               updates; the shortcut is not advertised, so it targets that path and its icon is the
+               exe's own. The Icon above stays for ARPPRODUCTICON (Apps and features). -->
+          <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="Local Slides" Description="Local Slides presentations and slide shows" WorkingDirectory="INSTALLFOLDER" Advertise="no" />
+        </File>
+
+        <!-- .deckcraft: Local Slides' own format. -->
+        <ProgId Id="LocalSlides.Presentation" Description="Local Slides Presentation" Icon="LocalSlidesExe" IconIndex="0">
+          <Extension Id="deckcraft" ContentType="application/x-deckcraft">
+            <Verb Id="open" Command="Open" TargetFile="LocalSlidesExe" Argument="&quot;%1&quot;" />
+          </Extension>
+        </ProgId>
+
+        <!-- "Open with" for PowerPoint formats, without becoming the default. -->
+        <RegistryValue Root="HKMU" Key="Software\Classes\Applications\localslides.exe" Name="FriendlyAppName" Value="Local Slides" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\Applications\localslides.exe\shell\open\command" Value="&quot;[#LocalSlidesExe]&quot; &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\Applications\localslides.exe\SupportedTypes" Name=".deckcraft" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\Applications\localslides.exe\SupportedTypes" Name=".pptx" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\Applications\localslides.exe\SupportedTypes" Name=".potx" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\Applications\localslides.exe\SupportedTypes" Name=".ppsx" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.pptx\OpenWithProgids" Name="LocalSlides.Presentation" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.potx\OpenWithProgids" Name="LocalSlides.Presentation" Value="" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\Classes\.ppsx\OpenWithProgids" Name="LocalSlides.Presentation" Value="" Type="string" />
+
+        <RegistryValue Root="HKMU" Key="Software\Microsoft\Windows\CurrentVersion\App Paths\localslides.exe" Value="[#LocalSlidesExe]" Type="string" />
+      <RegistryValue Root="HKMU" Key="Software\Anon5T4R\LocalSlides" Name="InstallDir" Value="[INSTALLFOLDER]" Type="string" />
+      </Component>
+
+      <Component Id="LocalSlidesCli">
+        <File Id="LocalSlidesCliExe" Source="$(var.BinDir)\localslides-cli.exe" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

@@ -100,7 +100,7 @@ mod tests {
 
     #[test]
     fn write_file_preserves_permissions_and_writes_content() {
-        let tmp_dir = std::env::temp_dir().join("deckcraft_io_test");
+        let tmp_dir = std::env::temp_dir().join("localslides_io_test");
         let _ = std::fs::create_dir_all(&tmp_dir);
         let test_file = tmp_dir.join("test_write.txt");
         let path_str = test_file.to_str().unwrap();
@@ -126,7 +126,7 @@ mod tests {
 
     #[test]
     fn write_file_overwrites_file_with_name_near_the_length_limit() {
-        let dir = std::env::temp_dir().join("deckcraft_io_long_name_test");
+        let dir = std::env::temp_dir().join("localslides_io_long_name_test");
         let _ = std::fs::create_dir_all(&dir);
         let file = dir.join(format!("{}.pptx", "a".repeat(250)));
         std::fs::write(&file, b"old").unwrap();
@@ -140,7 +140,7 @@ mod tests {
 
     #[test]
     fn write_file_to_the_write_root_itself_creates_no_sibling_outside_it() {
-        let base = std::env::temp_dir().join(format!("deckcraft_io_root_test_{}", std::process::id()));
+        let base = std::env::temp_dir().join(format!("localslides_io_root_test_{}", std::process::id()));
         let root = base.join("root");
         std::fs::create_dir_all(&root).unwrap();
         let roots = crate::file_access::AutomationRoots::new(&[], std::slice::from_ref(&root)).unwrap().unwrap();

@@ -2,12 +2,12 @@
 
 use std::collections::HashMap;
 
-use deckcraft_color::{ColorTransform, Rgba, SchemeSlot};
-use deckcraft_model::Shape;
-use deckcraft_model::chart::{Chart, ChartType, TrendlineType, axis_scale};
-use deckcraft_model::resolve::Ctx;
-use deckcraft_model::style::{ColorRef, Fill};
-use deckcraft_model::text::{Align, Anchor, Bullet, TextBody};
+use localslides_color::{ColorTransform, Rgba, SchemeSlot};
+use localslides_model::Shape;
+use localslides_model::chart::{Chart, ChartType, TrendlineType, axis_scale};
+use localslides_model::resolve::Ctx;
+use localslides_model::style::{ColorRef, Fill};
+use localslides_model::text::{Align, Anchor, Bullet, TextBody};
 use kurbo::{Affine, BezPath, Point, Rect, Shape as _};
 use vello_cpu::RenderContext;
 
@@ -25,15 +25,15 @@ pub fn series_color(ctx: &Ctx, c: &Chart, i: usize) -> Rgba {
     let round = if mono { i } else { i / 6 };
     match round {
         0 => base,
-        1 => deckcraft_color::apply(base, &[ColorTransform::Shade(60000)]),
-        2 => deckcraft_color::apply(base, &[ColorTransform::Tint(60000)]),
-        n => deckcraft_color::apply(base, &[ColorTransform::LumMod(100000 - (n as i32 % 5) * 12000)]),
+        1 => localslides_color::apply(base, &[ColorTransform::Shade(60000)]),
+        2 => localslides_color::apply(base, &[ColorTransform::Tint(60000)]),
+        n => localslides_color::apply(base, &[ColorTransform::LumMod(100000 - (n as i32 % 5) * 12000)]),
     }
 }
 
 /// A series' one colour (lines, areas, markers): its solid fill, a pattern's foreground, else the
 /// palette's.
-pub(crate) fn series_fill(ctx: &Ctx, c: &Chart, i: usize, s: Option<&deckcraft_model::chart::Series>) -> Rgba {
+pub(crate) fn series_fill(ctx: &Ctx, c: &Chart, i: usize, s: Option<&localslides_model::chart::Series>) -> Rgba {
     match s.and_then(|s| s.fill.as_ref()) {
         Some(Fill::Solid { color: cc }) => ctx.color(cc, None),
         Some(Fill::Pattern(p)) => ctx.color(&p.fg, None),
@@ -76,7 +76,7 @@ fn fill_with(ctx: &mut RenderContext, p: &Paint, r: Rect, m: Affine) {
 }
 
 /// A bar series' outline (`c:spPr/a:ln`) where the file gives it a solid colour: colour and width.
-fn bar_outline(ctx: &Ctx, s: &deckcraft_model::chart::Series) -> Option<(Rgba, f64)> {
+fn bar_outline(ctx: &Ctx, s: &localslides_model::chart::Series) -> Option<(Rgba, f64)> {
     let l = s.line.as_ref()?;
     match l.fill.as_ref()? {
         Fill::Solid { color: cc } => Some((ctx.color(cc, None), l.width.unwrap_or(0.75).clamp(0.0, 20.0))),
@@ -87,7 +87,7 @@ fn bar_outline(ctx: &Ctx, s: &deckcraft_model::chart::Series) -> Option<(Rgba, f
 /// Paint of one bar: a `<c:dPt>` fill wins, and a single-series chart that varies colours by point uses one accent per point
 /// (not waterfalls, which are never read from a `<c:barChart>`). Pattern fills draw as patterns and
 /// `a:noFill` leaves the bar empty, as in PowerPoint.
-fn bar_paint(ctx: &Ctx, c: &Chart, si: usize, pi: usize, s: &deckcraft_model::chart::Series, fills: Option<&HashMap<usize, &Fill>>) -> Paint {
+fn bar_paint(ctx: &Ctx, c: &Chart, si: usize, pi: usize, s: &localslides_model::chart::Series, fills: Option<&HashMap<usize, &Fill>>) -> Paint {
     if let Some(f) = fills.and_then(|m| m.get(&pi)) {
         return paint_of(ctx, Some(*f), series_fill(ctx, c, si, Some(s)));
     }
@@ -128,7 +128,7 @@ pub(crate) fn smooth_path(pts: &[Point]) -> BezPath {
 
 /// A line series' colour: its line's own (where PowerPoint keeps it), else its fill's, else the
 /// palette's.
-pub(crate) fn series_line(ctx: &Ctx, c: &Chart, i: usize, s: &deckcraft_model::chart::Series) -> Rgba {
+pub(crate) fn series_line(ctx: &Ctx, c: &Chart, i: usize, s: &localslides_model::chart::Series) -> Rgba {
     match s.line.as_ref().and_then(|l| l.fill.as_ref()) {
         Some(Fill::Solid { color: cc }) => ctx.color(cc, None),
         _ => series_fill(ctx, c, i, Some(s)),
@@ -184,7 +184,7 @@ pub(crate) fn label(ctx: &mut RenderContext, rctx: &Ctx, m: Affine, text: &str, 
         &tmp,
         &body,
         m,
-        &deckcraft_text::Opts { rect: r, fields: &deckcraft_text::NoFields, prompt_color: None, no_shrink: false },
+        &localslides_text::Opts { rect: r, fields: &localslides_text::NoFields, prompt_color: None, no_shrink: false },
     );
 }
 
@@ -274,7 +274,7 @@ struct ChartFrame<'a> {
 /// PowerPoint's default chart text colour: `tx1` with `lumMod` 65000 and `lumOff` 35000, which
 /// is 595959 on a light theme and a light grey on a dark one.
 pub fn default_text_color() -> ColorRef {
-    use deckcraft_color::ColorTransform;
+    use localslides_color::ColorTransform;
     ColorRef::scheme(SchemeSlot::Tx1).with(ColorTransform::LumMod(65000)).with(ColorTransform::LumOff(35000))
 }
 
@@ -294,7 +294,7 @@ fn draw_inner(ctx: &mut RenderContext, rctx: &Ctx, c: &Chart, frame: ChartFrame<
             &Rect::new(0.0, 0.0, w, h).to_path(0.1),
             Rect::new(0.0, 0.0, w, h),
             m,
-            deckcraft_geom::preset::FillMode::Norm,
+            localslides_geom::preset::FillMode::Norm,
             1.0,
             rctx.pres,
         );
@@ -374,7 +374,7 @@ fn draw_inner(ctx: &mut RenderContext, rctx: &Ctx, c: &Chart, frame: ChartFrame<
         Rect::new(area.x0 + gutter, area.y0, area.x1 - gutter_r, area.y1 - base * 1.8)
     };
     if let Some(f) = &c.plot_fill {
-        crate::paint::fill_path(ctx, rctx, f, None, &plot.to_path(0.1), plot, m, deckcraft_geom::preset::FillMode::Norm, 1.0, rctx.pres);
+        crate::paint::fill_path(ctx, rctx, f, None, &plot.to_path(0.1), plot, m, localslides_geom::preset::FillMode::Norm, 1.0, rctx.pres);
     }
     let span = positive_span(max - min);
     // Values past the axis limits (fixed ones, or zero on an axis that starts above it) stop at
@@ -883,7 +883,7 @@ fn draw_lines(ctx: &mut RenderContext, draw: &mut LineDrawing<'_, '_>) {
         let stacked = kind.stacked();
         let area_kind = matches!(kind, ChartType::Area | ChartType::StackedArea | ChartType::FilledRadar);
         let col = if area_kind { series_fill(rctx, c, si, Some(s)) } else { series_line(rctx, c, si, s) };
-        let series_stats = s.error_bars.as_ref().map(|_| deckcraft_model::chart::SeriesStats::of(&s.values));
+        let series_stats = s.error_bars.as_ref().map(|_| localslides_model::chart::SeriesStats::of(&s.values));
         let mut pts = vec![];
         // Whether the series has any x value, found once rather than per point.
         let any_x = s.x_values.iter().flatten().next().is_some();
@@ -960,7 +960,7 @@ fn draw_bars(ctx: &mut RenderContext, draw: &BarDrawing<'_, '_>) -> Vec<(f64, f6
     let text_col = draw.text_color;
     let mut err_marks: Vec<(f64, f64, f64, f64, bool)> = vec![];
     if let Some(bk) = bar_kind {
-        let bars: Vec<(usize, &deckcraft_model::chart::Series)> =
+        let bars: Vec<(usize, &localslides_model::chart::Series)> =
             c.series.iter().enumerate().filter(|(_, s)| c.series_kind(s).is_bar_like()).collect();
         let ns = bars.len().max(1);
         // Gap width and overlap are fractions of one bar's width: a category's band holds its bars
@@ -973,7 +973,7 @@ fn draw_bars(ctx: &mut RenderContext, draw: &BarDrawing<'_, '_>) -> Vec<(f64, f6
         let step = bar * (1.0 - ov);
         let group = bar + step * (n - 1.0);
         // Error bars need each series' mean and spread: worked out once, not per point.
-        let stats: Vec<deckcraft_model::chart::SeriesStats> = bars.iter().map(|(_, s)| deckcraft_model::chart::SeriesStats::of(&s.values)).collect();
+        let stats: Vec<localslides_model::chart::SeriesStats> = bars.iter().map(|(_, s)| localslides_model::chart::SeriesStats::of(&s.values)).collect();
         // Each series' per-point fills by point (the first for a point wins), not searched per bar.
         let point_fills: Vec<HashMap<usize, &Fill>> = bars
             .iter()
@@ -1084,7 +1084,7 @@ fn draw_bars(ctx: &mut RenderContext, draw: &BarDrawing<'_, '_>) -> Vec<(f64, f6
     err_marks
 }
 
-fn bar_data_label(c: &Chart, s: &deckcraft_model::chart::Series, i: usize) -> Option<String> {
+fn bar_data_label(c: &Chart, s: &localslides_model::chart::Series, i: usize) -> Option<String> {
     if !c.series_data_labels(s) {
         return None;
     }
@@ -1094,7 +1094,7 @@ fn bar_data_label(c: &Chart, s: &deckcraft_model::chart::Series, i: usize) -> Op
 #[cfg(test)]
 mod bar_label_tests {
     use super::bar_data_label;
-    use deckcraft_model::chart::{Chart, Series};
+    use localslides_model::chart::{Chart, Series};
 
     #[test]
     fn missing_bar_values_have_no_label_but_explicit_zero_does() {
@@ -1427,7 +1427,7 @@ mod tests {
 
     #[test]
     fn tiny_data_gets_several_ticks() {
-        let sc = deckcraft_model::chart::axis_scale(1e-13, 5e-13, None, None, None, 8, true);
+        let sc = localslides_model::chart::axis_scale(1e-13, 5e-13, None, None, None, 8, true);
         assert!(axis_ticks(sc).count() >= 3, "{sc:?}");
     }
 
@@ -1490,7 +1490,7 @@ mod tests {
 
     #[test]
     fn forecast_reserves_at_most_three_category_slots() {
-        use deckcraft_model::chart::Trendline;
+        use localslides_model::chart::Trendline;
         let mut c = Chart::sample(ChartType::Line);
         c.series[0].trendlines.push(Trendline { forward: Some(10.0), backward: Some(0.5), ..Default::default() });
         assert_eq!(forecast_pad(&c), (0.5, 3.0));

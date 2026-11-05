@@ -4,7 +4,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use deckcraft_engine::Session;
+use localslides_engine::Session;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
 use serde_json::json;
@@ -18,7 +18,7 @@ fn deck_bytes(titles: &[&str]) -> Vec<u8> {
     }
     // Drop the new deck's empty first slide, so slide `i` is `titles[i]`.
     s.execute("slide.delete", &json!({"index": 0})).unwrap();
-    deckcraft_engine::cmd::file::save_bytes(&s.doc().unwrap().doc, "deckcraft").unwrap()
+    localslides_engine::cmd::file::save_bytes(&s.doc().unwrap().doc, "deckcraft").unwrap()
 }
 
 /// An app whose open dialog picks `src.deckcraft`, read from the shared `file` bytes.

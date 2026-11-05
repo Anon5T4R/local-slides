@@ -1,80 +1,80 @@
 {
-  "id": "deckcraft",
-  "name": "DeckCraft",
+  "id": "localslides",
+  "name": "Local Slides",
   "upgradeCode": "6F9C69E7-7825-40D2-BF26-C274DA676425",
   "sources": [
-    "deckcraft.wxs"
+    "localslides.wxs"
   ],
-  "icon": "assets/app-icon/deckcraft.ico",
+  "icon": "assets/app-icon/localslides.ico",
   "localization": [],
   "extensions": [
     "UI"
   ],
   "payloads": [
     "NOTICE",
-    "deckcraft-cli.exe",
-    "deckcraft.exe"
+    "localslides-cli.exe",
+    "localslides.exe"
   ],
   "registry": [
     [
       "-1",
-      "Software\\Classes\\Applications\\deckcraft.exe",
+      "Software\\Classes\\Applications\\localslides.exe",
       "FriendlyAppName",
-      "DeckCraft"
+      "Local Slides"
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\deckcraft.exe\\shell\\open\\command",
+      "Software\\Classes\\Applications\\localslides.exe\\shell\\open\\command",
       "",
-      "\"[#DeckcraftExe]\" \"%1\""
+      "\"[#LocalSlidesExe]\" \"%1\""
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\deckcraft.exe\\SupportedTypes",
+      "Software\\Classes\\Applications\\localslides.exe\\SupportedTypes",
       ".deckcraft",
       ""
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\deckcraft.exe\\SupportedTypes",
+      "Software\\Classes\\Applications\\localslides.exe\\SupportedTypes",
       ".pptx",
       ""
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\deckcraft.exe\\SupportedTypes",
+      "Software\\Classes\\Applications\\localslides.exe\\SupportedTypes",
       ".potx",
       ""
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\deckcraft.exe\\SupportedTypes",
+      "Software\\Classes\\Applications\\localslides.exe\\SupportedTypes",
       ".ppsx",
       ""
     ],
     [
       "-1",
       "Software\\Classes\\.pptx\\OpenWithProgids",
-      "DeckCraft.Presentation",
+      "Local Slides.Presentation",
       ""
     ],
     [
       "-1",
       "Software\\Classes\\.potx\\OpenWithProgids",
-      "DeckCraft.Presentation",
+      "Local Slides.Presentation",
       ""
     ],
     [
       "-1",
       "Software\\Classes\\.ppsx\\OpenWithProgids",
-      "DeckCraft.Presentation",
+      "Local Slides.Presentation",
       ""
     ],
     [
       "-1",
-      "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\deckcraft.exe",
+      "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\localslides.exe",
       "",
-      "[#DeckcraftExe]"
+      "[#LocalSlidesExe]"
     ]
   ],
   "mode": "dualScope"

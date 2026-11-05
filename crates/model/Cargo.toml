@@ -1,16 +1,16 @@
 [package]
-name = "deckcraft-model"
+name = "localslides-model"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "DeckCraft document model: presentations, masters, layouts, slides, shapes, text, themes, transitions, animations"
+description = "Local Slides document model: presentations, masters, layouts, slides, shapes, text, themes, transitions, animations"
 
 [lints]
 workspace = true
 
 [dependencies]
-deckcraft-geom = { workspace = true }
-deckcraft-color = { workspace = true }
+localslides-geom = { workspace = true }
+localslides-color = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

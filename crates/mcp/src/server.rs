@@ -20,7 +20,7 @@ const RESOURCE_NOT_FOUND: i64 = -32002;
 /// Keep request frames in step with the connected backend's reply limit.
 const MAX_FRAME_BYTES: usize = 16 * 1024 * 1024;
 
-const INSTRUCTIONS: &str = "DeckCraft is a presentation app (a PowerPoint clone). Coordinates are points on the \
+const INSTRUCTIONS: &str = "Local Slides is a presentation app (a PowerPoint clone). Coordinates are points on the \
 current slide (y down; the default 16:9 slide is 960×540). Every action is a command: find ids and parameters with \
 list_commands and run them with run_command (or several with batch). Typical flow: new_presentation → add_slide \
 {layout:\"titleAndContent\", title, body} → add_shape / add_text_box / insert_picture / insert_chart → \
@@ -30,8 +30,8 @@ the selected text or shapes; shape.fill, shape.line and the other shape commands
 those shapes, else on the selected ones. Save with save_presentation (.deckcraft or .pptx).";
 
 /// Resource URIs.
-pub const DOC_URI: &str = "deckcraft://document";
-pub const COMMANDS_URI: &str = "deckcraft://commands";
+pub const DOC_URI: &str = "localslides://document";
+pub const COMMANDS_URI: &str = "localslides://commands";
 
 /// An MCP server bound to one backend.
 pub struct Server {
@@ -145,13 +145,13 @@ impl Server {
                 Ok(json!({
                     "protocolVersion": version,
                     "capabilities": {"tools": {}, "resources": {}},
-                    "serverInfo": {"name": "deckcraft", "title": "DeckCraft", "version": env!("CARGO_PKG_VERSION"), "websiteUrl": deckcraft_engine::links::APP_PAGE},
+                    "serverInfo": {"name": "localslides", "title": "Local Slides", "version": env!("CARGO_PKG_VERSION"), "websiteUrl": localslides_engine::links::APP_PAGE},
                     "instructions": format!(
                         "{INSTRUCTIONS} Backend: {}. Community: {} (Discord), {} (app page), {} (source). The `app.links` command returns these links.",
                         self.backend.describe(),
-                        deckcraft_engine::links::DISCORD,
-                        deckcraft_engine::links::APP_PAGE,
-                        deckcraft_engine::links::GITHUB
+                        localslides_engine::links::DISCORD,
+                        localslides_engine::links::APP_PAGE,
+                        localslides_engine::links::GITHUB
                     ),
                 }))
             }

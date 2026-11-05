@@ -1,42 +1,42 @@
 [workspace]
 resolver = "3"
 members = ["crates/*", "apps/*", "xtask"]
-default-members = ["crates/*", "apps/deckcraft", "apps/deckcraft-cli"]
+default-members = ["crates/*", "apps/localslides", "apps/localslides-cli"]
 
 [workspace.package]
 version = "0.15.1"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 rust-version = "1.95"
-repository = "https://github.com/storytold/deckcraft"
+repository = "https://github.com/Anon5T4R/local-slides"
 
 [workspace.dependencies]
 # internal
-deckcraft-geom = { path = "crates/geom" }
-deckcraft-color = { path = "crates/color" }
-deckcraft-metafile = { path = "crates/metafile" }
-deckcraft-model = { path = "crates/model" }
-deckcraft-fonts = { path = "crates/fonts" }
-deckcraft-text = { path = "crates/text" }
-deckcraft-render = { path = "crates/render" }
-deckcraft-pdf = { path = "crates/pdf" }
-deckcraft-pptx = { path = "crates/pptx" }
-deckcraft-format = { path = "crates/format" }
-deckcraft-anim = { path = "crates/anim" }
-deckcraft-engine = { path = "crates/engine" }
-deckcraft-mcp = { path = "crates/mcp" }
-deckcraft-ui-egui = { path = "crates/ui-egui" }
-deckcraft-media = { path = "crates/media" }
+localslides-geom = { path = "crates/geom" }
+localslides-color = { path = "crates/color" }
+localslides-metafile = { path = "crates/metafile" }
+localslides-model = { path = "crates/model" }
+localslides-fonts = { path = "crates/fonts" }
+localslides-text = { path = "crates/text" }
+localslides-render = { path = "crates/render" }
+localslides-pdf = { path = "crates/pdf" }
+localslides-pptx = { path = "crates/pptx" }
+localslides-format = { path = "crates/format" }
+localslides-anim = { path = "crates/anim" }
+localslides-engine = { path = "crates/engine" }
+localslides-mcp = { path = "crates/mcp" }
+localslides-ui-egui = { path = "crates/ui-egui" }
+localslides-media = { path = "crates/media" }
 # codecs (ported from FilmCraft, same owner and licence)
-deckcraft-bitstream = { path = "crates/bitstream" }
-deckcraft-h264 = { path = "crates/h264" }
-deckcraft-hevc = { path = "crates/hevc" }
-deckcraft-vp9 = { path = "crates/vp9" }
-deckcraft-av1 = { path = "crates/av1" }
-deckcraft-isobmff = { path = "crates/isobmff" }
-deckcraft-matroska = { path = "crates/matroska" }
-deckcraft-ogg = { path = "crates/ogg" }
-deckcraft-opus = { path = "crates/opus" }
+localslides-bitstream = { path = "crates/bitstream" }
+localslides-h264 = { path = "crates/h264" }
+localslides-hevc = { path = "crates/hevc" }
+localslides-vp9 = { path = "crates/vp9" }
+localslides-av1 = { path = "crates/av1" }
+localslides-isobmff = { path = "crates/isobmff" }
+localslides-matroska = { path = "crates/matroska" }
+localslides-ogg = { path = "crates/ogg" }
+localslides-opus = { path = "crates/opus" }
 
 # foundation
 kurbo = { version = "0.13", features = ["serde"] }

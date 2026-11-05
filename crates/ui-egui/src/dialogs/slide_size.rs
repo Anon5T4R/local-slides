@@ -19,11 +19,11 @@ pub(super) fn slide_dim_points(d: &Dialog, key: &str, ppu: f64, default: f64) ->
 }
 
 /// The unit's abbreviation in a field label, "Width (cm):".
-pub(super) fn unit_abbr(unit: deckcraft_geom::Unit) -> &'static str {
+pub(super) fn unit_abbr(unit: localslides_geom::Unit) -> &'static str {
     match unit {
-        deckcraft_geom::Unit::Inches => "in",
-        deckcraft_geom::Unit::Centimeters => "cm",
-        deckcraft_geom::Unit::Points => "pt",
-        deckcraft_geom::Unit::Pixels => "px",
+        localslides_geom::Unit::Inches => "in",
+        localslides_geom::Unit::Centimeters => "cm",
+        localslides_geom::Unit::Points => "pt",
+        localslides_geom::Unit::Pixels => "px",
     }
 }

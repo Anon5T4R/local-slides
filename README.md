@@ -8,10 +8,10 @@
 </p>
 
 <p align="center">
-  <img src="assets/app-icon/hicolor/256x256/apps/ai.storyteller.deckcraft.png" width="128" height="128" alt="DeckCraft icon: a presentation screen with a bar chart on an orange tile">
+  <img src="assets/app-icon/hicolor/256x256/apps/com.local.localslides.png" width="128" height="128" alt="Local Slides icon: a presentation screen with a bar chart on an orange tile">
 </p>
 
-<h1 align="center">DeckCraft</h1>
+<h1 align="center">Local Slides</h1>
 
 <p align="center">
   <b>Presentations and slide shows; an open-source, modern presentation and slide designer, built in pure Rust.</b>
@@ -30,7 +30,7 @@
   <img alt="Written in Rust" src="https://img.shields.io/badge/written%20in-Rust-b7410e?style=flat-square">
   <img alt="Platforms" src="https://img.shields.io/badge/platforms-macOS%20%C2%B7%20Windows%20%C2%B7%20Linux%20%C2%B7%20BSD%20%C2%B7%20Web-555?style=flat-square">
   <br>
-  <a href="https://sonarcloud.io/project/overview?id=storytold_deckcraft"><img alt="Scanned by SonarCloud" src="https://img.shields.io/badge/Scanned_by-SonarCloud-4b9fd5?style=flat-square&logo=sonarqubecloud&logoColor=white"></a>
+  <a href="https://sonarcloud.io/project/overview?id=storytold_localslides"><img alt="Scanned by SonarCloud" src="https://img.shields.io/badge/Scanned_by-SonarCloud-4b9fd5?style=flat-square&logo=sonarqubecloud&logoColor=white"></a>
   <a href="https://coderabbit.ai"><img alt="Reviewed by CodeRabbit" src="https://img.shields.io/coderabbit/prs/github/storytold/deckcraft?style=flat-square&label=Reviewed%20by%20CodeRabbit&logo=coderabbit"></a>
 </p>
 
@@ -39,7 +39,7 @@
 </p>
 
 <p align="center">
-  <a href="https://getartcraft.com/apps/deckcraft"><b>DeckCraft on getartcraft.com</b></a> ·
+  <a href="https://github.com/Anon5T4R/local-slides"><b>Local Slides on getartcraft.com</b></a> ·
   <a href="https://getartcraft.com/">ArtCraft</a> ·
   <a href="https://getartcraft.com/apps">All Crafting Apps</a>
 </p>
@@ -50,7 +50,7 @@
 > last week. If you make things, you're one of us. **[Come say hi on Discord](https://discord.gg/artcraft).**
 
 <p align="center">
-  <img alt="DeckCraft editing a slide: ribbon, slide thumbnails with sections, a process diagram on the canvas, notes and status bar" src="docs/images/editor.png" width="900">
+  <img alt="Local Slides editing a slide: ribbon, slide thumbnails with sections, a process diagram on the canvas, notes and status bar" src="docs/images/editor.png" width="900">
 </p>
 
 <p align="center">
@@ -65,7 +65,7 @@
 
 ## What works today
 
-DeckCraft is in alpha, heading for beta (see the [roadmap](ROADMAP.md)).
+Local Slides is in alpha, heading for beta (see the [roadmap](ROADMAP.md)).
 Today it can:
 
 - **Make decks**: slide masters and eleven layouts with placeholders that inherit position and
@@ -93,13 +93,13 @@ Today it can:
   </tr>
   <tr>
     <td width="50%"><img alt="Slide Sorter view with transitions under each slide" src="docs/images/slide-sorter.png"><br><sub>Slide Sorter with each slide's transition</sub></td>
-    <td width="50%"><img alt="DeckCraft in dark mode showing a chart slide" src="docs/images/dark-mode.png"><br><sub>Dark mode, with a native chart</sub></td>
+    <td width="50%"><img alt="Local Slides in dark mode showing a chart slide" src="docs/images/dark-mode.png"><br><sub>Dark mode, with a native chart</sub></td>
   </tr>
 </table>
 
 <p align="center">
   <img alt="All eight slides of the Northern Lights sample deck" src="docs/images/sample-deck.png" width="900"><br>
-  <sub>The built-in sample deck, rendered by <code>deckcraft-cli render --sample --all</code></sub>
+  <sub>The built-in sample deck, rendered by <code>localslides-cli render --sample --all</code></sub>
 </p>
 
 ## Getting started
@@ -108,64 +108,64 @@ PDF export uses the shared `craft-pdf` writer with import features disabled. See
 [`crates/pdf/README.md`](crates/pdf/README.md) for the dependency and validation requirements.
 
 ```sh
-git clone https://github.com/storytold/deckcraft
-cd deckcraft
-cargo run --release -p deckcraft-cli -- render --sample --all --scale 1 out/
+git clone https://github.com/Anon5T4R/local-slides
+cd localslides
+cargo run --release -p localslides-cli -- render --sample --all --scale 1 out/
 ```
 
 On Linux, the build also needs the ALSA headers for slide-show sound: `alsa-lib-devel` on Fedora,
 `libasound2-dev` on Debian and Ubuntu, `alsa-lib` on Arch. Without them it stops at `alsa-sys`.
 
 Fonts come from [craft-fonts](https://github.com/storytold/craft-fonts): clone it next to this repo
-(`../craft-fonts`) and local builds pick it up automatically; without it DeckCraft uses your system
+(`../craft-fonts`) and local builds pick it up automatically; without it Local Slides uses your system
 fonts.
 
-Each [GitHub release](https://github.com/storytold/deckcraft/releases) has ready-made builds, on Linux as
+Each [GitHub release](https://github.com/Anon5T4R/local-slides/releases) has ready-made builds, on Linux as
 an AppImage, a `.deb`, an `.rpm` and a tarball. On Gentoo, the community [::snakebyte
 overlay](https://github.com/switch87/snakebyte-overlay) packages the Linux release as
-`app-office/deckcraft-bin` (not maintained by the DeckCraft team):
+`app-office/localslides-bin` (not maintained by the Local Slides team):
 
 ```sh
 eselect repository add snakebyte git https://github.com/switch87/snakebyte-overlay.git
 emaint sync -r snakebyte
-echo 'app-office/deckcraft-bin ~amd64' >> /etc/portage/package.accept_keywords/deckcraft
-emerge --ask app-office/deckcraft-bin
+echo 'app-office/localslides-bin ~amd64' >> /etc/portage/package.accept_keywords/localslides
+emerge --ask app-office/localslides-bin
 ```
 
 ### Logs
 
-The desktop app writes its `log` records to standard error and to `logs/deckcraft.log` in the
-settings directory, beside `ui.json` and `prefs.json` (Linux `~/.config/deckcraft/logs/`, or
-`$XDG_CONFIG_HOME/deckcraft/logs/`; macOS `~/Library/Application Support/DeckCraft/logs/`; Windows
-`%APPDATA%\DeckCraft\logs\`). A start from a desktop menu or the Dock has no terminal, so this file
+The desktop app writes its `log` records to standard error and to `logs/localslides.log` in the
+settings directory, beside `ui.json` and `prefs.json` (Linux `~/.config/localslides/logs/`, or
+`$XDG_CONFIG_HOME/localslides/logs/`; macOS `~/Library/Application Support/Local Slides/logs/`; Windows
+`%APPDATA%\Local Slides\logs\`). A start from a desktop menu or the Dock has no terminal, so this file
 is what to attach to a bug report: the crash guard's panic report, a failed crash-recovery save,
 Parts skipped on import and audio output problems land there. Each launch moves the
-previous log to `deckcraft.1.log` (and that one to `deckcraft.2.log`), so the log of a run that
+previous log to `localslides.1.log` (and that one to `localslides.2.log`), so the log of a run that
 crashed survives the next start. The file stops growing at 16 MiB. `--version` writes no file.
 
 | Variable | Effect |
 |---|---|
-| `RUST_LOG` | Log levels for standard error and the log file. Default: `info` for DeckCraft's own crates, `warn` for everything else. env_logger-style directives replace that, e.g. `RUST_LOG=debug`, `RUST_LOG=warn,deckcraft_pptx=trace` or `RUST_LOG=info,wgpu_core=warn`; a directive ending in `*` covers every target starting with it (`deckcraft*=debug`). |
+| `RUST_LOG` | Log levels for standard error and the log file. Default: `info` for Local Slides' own crates, `warn` for everything else. env_logger-style directives replace that, e.g. `RUST_LOG=debug`, `RUST_LOG=warn,localslides_pptx=trace` or `RUST_LOG=info,wgpu_core=warn`; a directive ending in `*` covers every target starting with it (`localslides*=debug`). |
 
-The logger is `apps/deckcraft/src/logging.rs`; the realtime audio callback does not log. The web
+The logger is `apps/localslides/src/logging.rs`; the realtime audio callback does not log. The web
 app logs to the browser console instead.
 
 ## Agents, CLI and MCP
 
-Every action in DeckCraft is a command with a stable id, so people, scripts and AI agents use the
+Every action in Local Slides is a command with a stable id, so people, scripts and AI agents use the
 same verbs:
 
 ```sh
-deckcraft-cli commands format.          # list commands
-deckcraft-cli run --sample --cmd 'slide.new={"layout":"titleOnly","title":"Hello"}' --save hello.deckcraft
-deckcraft-cli mcp                       # MCP server over stdio (headless)
-deckcraft-cli mcp --connect 7990        # drive the running app (deckcraft --control 7990)
-deckcraft-cli mcp --automation-read-root DIR --automation-write-root DIR   # confine the headless agent to folders
+localslides-cli commands format.          # list commands
+localslides-cli run --sample --cmd 'slide.new={"layout":"titleOnly","title":"Hello"}' --save hello.deckcraft
+localslides-cli mcp                       # MCP server over stdio (headless)
+localslides-cli mcp --connect 7990        # drive the running app (localslides --control 7990)
+localslides-cli mcp --automation-read-root DIR --automation-write-root DIR   # confine the headless agent to folders
 ```
 
 ## Roadmap
 
-DeckCraft is in **alpha**. It covers **84% of the features tracked in [`docs/target-app-parity.md`](docs/target-app-parity.md) by breadth** (92% of the core
+Local Slides is in **alpha**. It covers **84% of the features tracked in [`docs/target-app-parity.md`](docs/target-app-parity.md) by breadth** (92% of the core
 ones, measured) and is about **55% ready for real work across all tracked capabilities** (estimated).
 See [ROADMAP.md](ROADMAP.md) for the stage, numbers by dimension and what's next,
 [docs/target-app-parity.md](docs/target-app-parity.md) for the full assessment,
@@ -174,15 +174,15 @@ See [ROADMAP.md](ROADMAP.md) for the stage, numbers by dimension and what's next
 
 ## Downloads
 
-**Download DeckCraft** from GitHub: the [latest release](https://github.com/storytold/deckcraft/releases/latest) has every build listed below, and [all releases](https://github.com/storytold/deckcraft/releases) has earlier versions and their notes. `<ver>` in the file names is the version number, and `SHA256SUMS.txt` lists a checksum for every file.
+**Download Local Slides** from GitHub: the [latest release](https://github.com/Anon5T4R/local-slides/releases/latest) has every build listed below, and [all releases](https://github.com/Anon5T4R/local-slides/releases) has earlier versions and their notes. `<ver>` in the file names is the version number, and `SHA256SUMS.txt` lists a checksum for every file.
 
 ### Windows
 
 | Build | Installer | Portable |
 |---|---|---|
-| x64 (64-bit Intel/AMD) | `deckcraft-<ver>-windows-x64.msi` | `deckcraft-<ver>-windows-x64-portable.zip` |
-| arm64 (Snapdragon and other ARM PCs) | `deckcraft-<ver>-windows-arm64.msi` | `deckcraft-<ver>-windows-arm64-portable.zip` |
-| x86 (32-bit) | `deckcraft-<ver>-windows-x86.msi` | `deckcraft-<ver>-windows-x86-portable.zip` |
+| x64 (64-bit Intel/AMD) | `localslides-<ver>-windows-x64.msi` | `localslides-<ver>-windows-x64-portable.zip` |
+| arm64 (Snapdragon and other ARM PCs) | `localslides-<ver>-windows-arm64.msi` | `localslides-<ver>-windows-arm64-portable.zip` |
+| x86 (32-bit) | `localslides-<ver>-windows-x86.msi` | `localslides-<ver>-windows-x86-portable.zip` |
 
 Installers and executables are code-signed.
 
@@ -194,7 +194,7 @@ PowerShell, from the folder containing the executable:
 
 ```powershell
 $env:WGPU_BACKEND = "vulkan"
-& .\deckcraft.exe
+& .\localslides.exe
 Remove-Item Env:WGPU_BACKEND                     # restore the default for later launches
 ```
 
@@ -209,27 +209,27 @@ DirectX 12 shaders are compiled with FXC, which is part of Windows, so no `dxcom
 
 | Build | File | Notes |
 |---|---|---|
-| App, universal (Apple silicon + Intel) | `deckcraft-<ver>-macos-universal.dmg` | Signed and notarized |
-| Command-line tool, universal | `deckcraft-cli-<ver>-macos-universal.zip` | Signed and notarized |
+| App, universal (Apple silicon + Intel) | `localslides-<ver>-macos-universal.dmg` | Signed and notarized |
+| Command-line tool, universal | `localslides-cli-<ver>-macos-universal.zip` | Signed and notarized |
 
 ### Linux
 
 | Format | x86_64 | aarch64 (ARM64) | Notes |
 |---|---|---|---|
-| AppImage | `deckcraft-<ver>-linux-x86_64.AppImage` | `deckcraft-<ver>-linux-aarch64.AppImage` | Runs anywhere; updates itself with [AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate) (`.zsync` files) |
-| Flatpak | `deckcraft-<ver>-linux-x86_64.flatpak` | `deckcraft-<ver>-linux-aarch64.flatpak` | Sandboxed; `flatpak install --user <file>` |
-| Debian/Ubuntu | `deckcraft-<ver>-linux-x86_64.deb` | `deckcraft-<ver>-linux-aarch64.deb` | |
-| Fedora/RHEL/openSUSE | `deckcraft-<ver>-linux-x86_64.rpm` | `deckcraft-<ver>-linux-aarch64.rpm` | |
-| Tarball | `deckcraft-<ver>-linux-x86_64.tar.gz` | `deckcraft-<ver>-linux-aarch64.tar.gz` | Unpack anywhere |
+| AppImage | `localslides-<ver>-linux-x86_64.AppImage` | `localslides-<ver>-linux-aarch64.AppImage` | Runs anywhere; updates itself with [AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate) (`.zsync` files) |
+| Flatpak | `localslides-<ver>-linux-x86_64.flatpak` | `localslides-<ver>-linux-aarch64.flatpak` | Sandboxed; `flatpak install --user <file>` |
+| Debian/Ubuntu | `localslides-<ver>-linux-x86_64.deb` | `localslides-<ver>-linux-aarch64.deb` | |
+| Fedora/RHEL/openSUSE | `localslides-<ver>-linux-x86_64.rpm` | `localslides-<ver>-linux-aarch64.rpm` | |
+| Tarball | `localslides-<ver>-linux-x86_64.tar.gz` | `localslides-<ver>-linux-aarch64.tar.gz` | Unpack anywhere |
 
-RISC-V 64 (riscv64): `deckcraft-<ver>-linux-riscv64.tar.gz`, a tarball only (cross-compiled; needs glibc 2.39+, e.g. Ubuntu 24.04+).
+RISC-V 64 (riscv64): `localslides-<ver>-linux-riscv64.tar.gz`, a tarball only (cross-compiled; needs glibc 2.39+, e.g. Ubuntu 24.04+).
 
-**Runtime libraries.** The window-system, GPU and file-dialog libraries DeckCraft needs are opened
+**Runtime libraries.** The window-system, GPU and file-dialog libraries Local Slides needs are opened
 when the app starts (`dlopen` through `x11-dl`, `xkbcommon-dl`, `ash`, `glutin` and `rfd`) instead
 of being linked in, so `ldd` shows none of them: an install that satisfies the linked dependencies
 can still fail at start-up with a loader error and no hint of what to install. Only
-`libasound.so.2` (slide-show sound) is a hard link-time dependency, and only of the `deckcraft`
-GUI — `deckcraft-cli` uses neither sound nor a display. The `.deb` and `.rpm` declare the set in
+`libasound.so.2` (slide-show sound) is a hard link-time dependency, and only of the `localslides`
+GUI — `localslides-cli` uses neither sound nor a display. The `.deb` and `.rpm` declare the set in
 `packaging/linux/nfpm.yaml`; a tarball install or a musl system has to provide it itself:
 
 ```sh
@@ -250,10 +250,10 @@ artifact will need (#954).
   included. On a real GPU install your vendor's driver instead (`mesa-vulkan-intel`,
   `mesa-vulkan-ati`, `mesa-vulkan-nouveau`, …).
 - Without Vulkan the app falls back to CPU rendering through Mesa's GL drivers. It works, but
-  slowly — a driver limit, not a DeckCraft bug.
+  slowly — a driver limit, not a Local Slides bug.
 - `xdg-desktop-portal` (with `xdg-desktop-portal-gtk` or `-kde`; `-wlr` has no file chooser, so
   on wlroots compositors install `zenity`) is what the Open and Save dialogs talk to; `xkeyboard-config` holds the XKB keyboard data `libxkbcommon` reads.
-- fontconfig and freetype are not needed: DeckCraft reads `/usr/share/fonts` itself and embeds its
+- fontconfig and freetype are not needed: Local Slides reads `/usr/share/fonts` itself and embeds its
   presentation fonts.
 
 Building from source on musl also needs `build-base pkgconf alsa-lib-dev` (`alsa-lib-dev` is the
@@ -263,17 +263,17 @@ ALSA headers).
 
 | Build | File |
 |---|---|
-| x86_64 | `deckcraft-<ver>-freebsd-x86_64.tar.gz` |
+| x86_64 | `localslides-<ver>-freebsd-x86_64.tar.gz` |
 
 ### Web (WebAssembly)
 
 | Build | File | Notes |
 |---|---|---|
-| Static site | `deckcraft-web-<ver>.zip` | Runs in a modern browser; host it on any static server |
+| Static site | `localslides-web-<ver>.zip` | Runs in a modern browser; host it on any static server |
 
 ## The Crafting Apps
 
-DeckCraft is one of the **Crafting Apps**: free, open-source creative tools from the
+Local Slides is one of the **Crafting Apps**: free, open-source creative tools from the
 [ArtCraft](https://getartcraft.com/) team, each written from scratch in Rust and each able to
 stand on its own.
 
@@ -289,7 +289,7 @@ stand on its own.
 | <img src="https://raw.githubusercontent.com/storytold/figcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.figcraft.png" alt="" width="32" height="32"> | **FigCraft** | Interface design and prototyping | [GitHub](https://github.com/storytold/figcraft) | [Website](https://getartcraft.com/apps/figcraft) |
 | <img src="https://raw.githubusercontent.com/storytold/wordcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.wordcraft.png" alt="" width="32" height="32"> | **WordCraft** | Word processing and documents | [GitHub](https://github.com/storytold/wordcraft) | [Website](https://getartcraft.com/apps/wordcraft) |
 | <img src="https://raw.githubusercontent.com/storytold/soundcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.soundcraft.png" alt="" width="32" height="32"> | **SoundCraft** | Audio recording and editing | [GitHub](https://github.com/storytold/soundcraft) | [Website](https://getartcraft.com/apps/soundcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/deckcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.deckcraft.png" alt="" width="32" height="32"> | **DeckCraft** | Presentations and slide decks | [GitHub](https://github.com/storytold/deckcraft) | [Website](https://getartcraft.com/apps/deckcraft) |
+| <img src="https://raw.githubusercontent.com/storytold/deckcraft/main/assets/app-icon/hicolor/64x64/apps/com.local.localslides.png" alt="" width="32" height="32"> | **Local Slides** | Presentations and slide decks | [GitHub](https://github.com/Anon5T4R/local-slides) | [Website](https://github.com/Anon5T4R/local-slides) |
 | <img src="https://raw.githubusercontent.com/storytold/cadcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.cadcraft.png" alt="" width="32" height="32"> | **CADCraft** | Computer-aided design | [GitHub](https://github.com/storytold/cadcraft) | [Website](https://getartcraft.com/apps/cadcraft) |
 | <img src="https://raw.githubusercontent.com/storytold/gridcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.gridcraft.png" alt="" width="32" height="32"> | **GridCraft** | Spreadsheets and data | [GitHub](https://github.com/storytold/gridcraft) | [Website](https://getartcraft.com/apps/gridcraft) |
 | <img src="https://raw.githubusercontent.com/storytold/texturecraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.texturecraft.png" alt="" width="32" height="32"> | **TextureCraft** | 3D texture painting | [GitHub](https://github.com/storytold/texturecraft) | [Website](https://getartcraft.com/apps/texturecraft) |
@@ -317,23 +317,23 @@ And [**ArtCraft**](https://getartcraft.com/) itself, our AI image and video stud
   <a href="https://discord.gg/artcraft"><b>discord.gg/artcraft</b></a> ·
   <a href="https://getartcraft.com/">getartcraft.com</a> ·
   <a href="https://getartcraft.com/apps">The Crafting Apps</a> ·
-  <a href="https://getartcraft.com/apps/deckcraft">DeckCraft</a>
+  <a href="https://github.com/Anon5T4R/local-slides">Local Slides</a>
 </p>
 
 ## License and credits
 
-DeckCraft is dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your option.
-Copyright (c) 2026 ArtCraft Team and the DeckCraft contributors. Required notices are in [NOTICE](NOTICE).
+Local Slides is dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your option.
+Copyright (c) 2026 ArtCraft Team and the Local Slides contributors. Required notices are in [NOTICE](NOTICE).
 
 Bundled fonts, icons, images and other assets keep their own open licenses; each one is listed
 with its author, source and license in [ATTRIBUTION.md](ATTRIBUTION.md).
 
-DeckCraft's themes, layouts, shape geometry, icons and sample decks are original work, drawn or
+Local Slides' themes, layouts, shape geometry, icons and sample decks are original work, drawn or
 generated in code; no proprietary artwork, fonts, themes or templates are used.
 
 The ArtCraft name, wordmark and logos in [`docs/brand/`](docs/brand/) are trademarks of the
 ArtCraft Team and are not covered by this license. They may be used only unmodified, and only as
-part of this repository and DeckCraft, under [`docs/brand/LICENSE-brand.txt`](docs/brand/LICENSE-brand.txt).
+part of this repository and Local Slides, under [`docs/brand/LICENSE-brand.txt`](docs/brand/LICENSE-brand.txt).
 Forks and modified versions must remove them.
 
 <p align="center">

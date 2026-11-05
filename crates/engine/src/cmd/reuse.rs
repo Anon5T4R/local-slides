@@ -9,9 +9,9 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
-use deckcraft_model::table::TableStyleDef;
-use deckcraft_model::text::{Action, Hyperlink, ListStyle, RunProps, Spacing, TextBody};
-use deckcraft_model::{LayoutId, Master, MasterId, MediaId, Presentation, ShapeId, ShapeKind, Slide, SlideId};
+use localslides_model::table::TableStyleDef;
+use localslides_model::text::{Action, Hyperlink, ListStyle, RunProps, Spacing, TextBody};
+use localslides_model::{LayoutId, Master, MasterId, MediaId, Presentation, ShapeId, ShapeKind, Slide, SlideId};
 use serde_json::{Value, json};
 
 use super::{CommandSpec, NO_ID_SPACE, bad, bool_or, cmd, has_doc, usize_param};
@@ -78,7 +78,7 @@ fn scale_run(run: &mut RunProps, factor: f64) {
     }
 }
 
-fn scale_shapes(shapes: &mut [deckcraft_model::Shape], sx: f64, sy: f64, depth: usize) {
+fn scale_shapes(shapes: &mut [localslides_model::Shape], sx: f64, sy: f64, depth: usize) {
     if depth > 64 {
         return;
     }
@@ -195,14 +195,14 @@ fn remap(map: &HashMap<MediaId, MediaId>) -> impl FnMut(&mut MediaId) + '_ {
     }
 }
 
-fn shape_ids(shapes: &[deckcraft_model::Shape]) -> Vec<ShapeId> {
+fn shape_ids(shapes: &[localslides_model::Shape]) -> Vec<ShapeId> {
     let mut v = vec![];
-    deckcraft_model::walk(shapes, &mut |sh, _| v.push(sh.id));
+    localslides_model::walk(shapes, &mut |sh, _| v.push(sh.id));
     v
 }
 
 /// Point connector ends at the renumbered shapes.
-fn remap_connectors(shapes: &mut [deckcraft_model::Shape], map: &HashMap<ShapeId, ShapeId>, depth: usize) {
+fn remap_connectors(shapes: &mut [localslides_model::Shape], map: &HashMap<ShapeId, ShapeId>, depth: usize) {
     if depth > 64 {
         return;
     }
@@ -250,7 +250,7 @@ fn relink_text(t: &mut TextBody, map: &HashMap<SlideId, SlideId>) {
 }
 
 /// Point the slide links under `shapes` (click and hover actions, text links) at the copies.
-fn relink_shapes(shapes: &mut [deckcraft_model::Shape], map: &HashMap<SlideId, SlideId>, depth: usize) {
+fn relink_shapes(shapes: &mut [localslides_model::Shape], map: &HashMap<SlideId, SlideId>, depth: usize) {
     if depth > 64 {
         return;
     }
@@ -272,7 +272,7 @@ fn relink_shapes(shapes: &mut [deckcraft_model::Shape], map: &HashMap<SlideId, S
 }
 
 /// Fresh shape ids for `shapes`, and the old → new map.
-fn renumber(cmd: &str, doc: &mut Presentation, shapes: &mut [deckcraft_model::Shape]) -> Result<HashMap<ShapeId, ShapeId>> {
+fn renumber(cmd: &str, doc: &mut Presentation, shapes: &mut [localslides_model::Shape]) -> Result<HashMap<ShapeId, ShapeId>> {
     let old = shape_ids(shapes);
     super::edit::reid(cmd, doc, shapes)?;
     let map: HashMap<ShapeId, ShapeId> = old.into_iter().zip(shape_ids(shapes)).collect();
@@ -281,7 +281,7 @@ fn renumber(cmd: &str, doc: &mut Presentation, shapes: &mut [deckcraft_model::Sh
 }
 
 /// The destination layout a reused slide moves to: same name, else same kind, else the first.
-fn matching_layout(doc: &Presentation, name: &str, kind: deckcraft_model::LayoutType) -> LayoutId {
+fn matching_layout(doc: &Presentation, name: &str, kind: localslides_model::LayoutType) -> LayoutId {
     let all = || doc.masters.iter().flat_map(|m| m.layouts.iter());
     all()
         .find(|l| !name.is_empty() && l.name.eq_ignore_ascii_case(name))
@@ -291,7 +291,7 @@ fn matching_layout(doc: &Presentation, name: &str, kind: deckcraft_model::Layout
         .unwrap_or_default()
 }
 
-fn collect_table_styles(shapes: &[deckcraft_model::Shape], styles: &mut Vec<String>, seen: &mut HashSet<String>, depth: usize) {
+fn collect_table_styles(shapes: &[localslides_model::Shape], styles: &mut Vec<String>, seen: &mut HashSet<String>, depth: usize) {
     if depth > 64 {
         return;
     }
@@ -305,7 +305,7 @@ fn collect_table_styles(shapes: &[deckcraft_model::Shape], styles: &mut Vec<Stri
     }
 }
 
-fn remap_table_styles(shapes: &mut [deckcraft_model::Shape], styles: &HashMap<String, String>, depth: usize) {
+fn remap_table_styles(shapes: &mut [localslides_model::Shape], styles: &HashMap<String, String>, depth: usize) {
     if depth > 64 {
         return;
     }
@@ -525,11 +525,11 @@ fn copy_media(cmd: &str, doc: &mut Presentation, src: &Presentation, used: &[Med
 
 #[cfg(test)]
 mod tests {
-    use deckcraft_geom::{Size, Xfrm};
-    use deckcraft_model::style::{Artistic, Fill, PictureFill};
-    use deckcraft_model::table::TableStyleDef;
-    use deckcraft_model::text::{Action, Bullet, Hyperlink, TextBody};
-    use deckcraft_model::{Background, MediaClip, Shape, ShapeKind, Table, defaults};
+    use localslides_geom::{Size, Xfrm};
+    use localslides_model::style::{Artistic, Fill, PictureFill};
+    use localslides_model::table::TableStyleDef;
+    use localslides_model::text::{Action, Bullet, Hyperlink, TextBody};
+    use localslides_model::{Background, MediaClip, Shape, ShapeKind, Table, defaults};
     use serde_json::json;
 
     use super::*;
@@ -537,14 +537,14 @@ mod tests {
     const CUSTOM_STYLE: &str = "{11111111-2222-4333-8444-555555555555}";
 
     fn styled_table_presentation(id: &str, color: &str) -> Presentation {
-        let mut p = deckcraft_model::defaults::new_presentation(None);
+        let mut p = localslides_model::defaults::new_presentation(None);
         let raw = format!(
             r#"<a:tblStyle xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" styleId="{id}" styleName="Owned"><a:wholeTbl><a:tcStyle><a:fill><a:solidFill><a:srgbClr val="{color}"/></a:solidFill></a:fill></a:tcStyle></a:wholeTbl></a:tblStyle>"#
         );
         p.table_styles.push(TableStyleDef { id: id.into(), name: "Owned".into(), raw, ..Default::default() });
-        let table = deckcraft_model::Table { style: id.into(), ..deckcraft_model::Table::new(1, 1, 100.0, 24.0) };
-        let child = deckcraft_model::Shape { id: ShapeId(p.alloc_id().expect("shape id")), kind: ShapeKind::Table(table), ..Default::default() };
-        let group = deckcraft_model::Shape {
+        let table = localslides_model::Table { style: id.into(), ..localslides_model::Table::new(1, 1, 100.0, 24.0) };
+        let child = localslides_model::Shape { id: ShapeId(p.alloc_id().expect("shape id")), kind: ShapeKind::Table(table), ..Default::default() };
+        let group = localslides_model::Shape {
             id: ShapeId(p.alloc_id().expect("group id")),
             kind: ShapeKind::Group { children: vec![child], child: Default::default() },
             ..Default::default()
@@ -554,7 +554,7 @@ mod tests {
         p
     }
 
-    fn first_table_style(shapes: &[deckcraft_model::Shape]) -> Option<String> {
+    fn first_table_style(shapes: &[localslides_model::Shape]) -> Option<String> {
         for shape in shapes {
             if let ShapeKind::Table(table) = &shape.kind {
                 return Some(table.style.clone());
@@ -569,8 +569,8 @@ mod tests {
     #[test]
     fn reused_grouped_table_styles_survive_native_and_pptx_round_trips_and_undo() {
         for (name, bytes) in [
-            ("source.deckcraft", deckcraft_format::save(&styled_table_presentation(CUSTOM_STYLE, "FF0000")).expect("native source")),
-            ("source.pptx", deckcraft_pptx::export(&styled_table_presentation(CUSTOM_STYLE, "FF0000")).expect("pptx source")),
+            ("source.deckcraft", localslides_format::save(&styled_table_presentation(CUSTOM_STYLE, "FF0000")).expect("native source")),
+            ("source.pptx", localslides_pptx::export(&styled_table_presentation(CUSTOM_STYLE, "FF0000")).expect("pptx source")),
         ] {
             let data = super::super::base64_encode(&bytes);
             let mut session = Session::with_new();
@@ -594,7 +594,7 @@ mod tests {
     #[test]
     fn reused_table_style_definitions_are_deduplicated_or_remapped_on_collision() {
         let source = styled_table_presentation(CUSTOM_STYLE, "FF0000");
-        let source_bytes = deckcraft_format::save(&source).expect("save source");
+        let source_bytes = localslides_format::save(&source).expect("save source");
 
         let mut identical = Session::with_new();
         identical
@@ -616,7 +616,7 @@ mod tests {
                 let mut own = source.table_styles.first().cloned().unwrap_or_default();
                 own.raw = own.raw.replace("FF0000", "0000FF");
                 doc.table_styles.push(own);
-                let table = deckcraft_model::Table { style: CUSTOM_STYLE.into(), ..deckcraft_model::Table::new(1, 1, 100.0, 24.0) };
+                let table = localslides_model::Table { style: CUSTOM_STYLE.into(), ..localslides_model::Table::new(1, 1, 100.0, 24.0) };
                 let id = ShapeId(doc.alloc_id().expect("destination table id"));
                 if let Some(slide) = doc.slides.first_mut() {
                     Arc::make_mut(slide).shapes.push(Shape { id, kind: ShapeKind::Table(table), ..Default::default() });
@@ -680,7 +680,7 @@ mod tests {
                 layout.shapes = vec![Shape { xfrm: Some(Xfrm::new(700.0, 300.0, 100.0, 50.0)), ..Default::default() }];
             }
         }
-        let bytes = deckcraft_format::save(&src).expect("source save");
+        let bytes = localslides_format::save(&src).expect("source save");
         let data = super::super::base64_encode(&bytes);
         let mut session = Session::with_new();
         session
@@ -718,7 +718,7 @@ mod tests {
         assert_eq!(imported_master.layouts.first().and_then(|l| l.shapes.first()).and_then(|s| s.xfrm), Some(Xfrm::new(350.0, 150.0, 50.0, 25.0)));
         assert_ne!(reused.id, slide_id);
 
-        let saved = deckcraft_format::save(&doc.clone()).expect("destination save");
+        let saved = localslides_format::save(&doc.clone()).expect("destination save");
         let reopened = crate::cmd::file::open_presentation("destination.deckcraft", &saved).expect("destination reopen");
         let reopened_shape = reopened.slides.get(1).and_then(|s| s.shapes.first()).and_then(|s| s.xfrm);
         assert_eq!(reopened_shape, Some(Xfrm::new(400.0, 200.0, 100.0, 50.0)));
@@ -773,8 +773,8 @@ mod tests {
             },
         ];
         slide.background = Some(Background::Fill { fill: Fill::Picture(PictureFill { media: id(4), ..Default::default() }) });
-        slide.transition = Some(deckcraft_model::anim::Transition { sound: Some(id(7)), ..Default::default() });
-        let bytes = deckcraft_format::save(&src).expect("save");
+        slide.transition = Some(localslides_model::anim::Transition { sound: Some(id(7)), ..Default::default() });
+        let bytes = localslides_format::save(&src).expect("save");
 
         let mut s = Session::with_new();
         let own = vec![1u8, 2, 3];
@@ -833,7 +833,7 @@ mod tests {
         if let Some(sl) = src.slides.get_mut(1).map(Arc::make_mut) {
             sl.shapes = vec![Shape { id: ShapeId(9004), click: Some(link_to(id(0))), ..Default::default() }];
         }
-        let bytes = deckcraft_format::save(&src).expect("save");
+        let bytes = localslides_format::save(&src).expect("save");
         let reopened = crate::cmd::file::open_presentation("src.deckcraft", &bytes).expect("open");
         let left_behind = reopened.slides.get(2).map(|s| s.id).expect("third slide");
 

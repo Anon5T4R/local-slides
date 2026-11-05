@@ -23,7 +23,7 @@ fn emoji_clusters_are_recognised() {
 fn colour_fonts_are_recognised() {
     let db = FontDb::with_font_dirs(Vec::new());
     assert!(db.add_font(include_bytes!("../../render/tests/fixtures/colr-squares.ttf").to_vec()) > 0);
-    assert!(db.face("DeckCraft Colr Squares", "Regular").is_color());
+    assert!(db.face("Local Slides Colr Squares", "Regular").is_color());
     assert!(!fontdb::last_resort_face().is_color());
 }
 
@@ -88,7 +88,7 @@ fn concurrent_lookups_all_find_an_installed_family() {
     // Threads resolving an installed family nobody had loaded yet used to fall back to
     // another face when a different thread finished loading it first, so the same text was
     // laid out in different fonts depending on timing.
-    let dir = std::env::temp_dir().join(format!("deckcraft-fonts-concurrent-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("localslides-fonts-concurrent-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("Hack-Regular.ttf"), epaint_default_fonts::HACK_REGULAR).unwrap();
     for _ in 0..20 {
@@ -195,7 +195,7 @@ fn faces_without_outlines_are_not_cataloged() {
     // under both of its names.
     #[cfg(not(target_arch = "wasm32"))]
     {
-        let dir = std::env::temp_dir().join(format!("deckcraft-fonts-outlines-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("localslides-fonts-outlines-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         std::fs::write(dir.join("legacy-semibold.ttf"), &semibold).unwrap();
         std::fs::write(dir.join("legacy-regular.ttf"), include_bytes!("../tests/fixtures/legacy-regular.ttf")).unwrap();
@@ -227,7 +227,7 @@ fn missing_document_fonts_are_drawn_in_calibri() {
             assert_eq!(db.document_face(missing, "Regular").family, db.face(twin, "Regular").family, "{missing}");
         }
     }
-    // Metric-compatible stand-ins and DeckCraft's default keep their own fallbacks.
+    // Metric-compatible stand-ins and Local Slides' default keep their own fallbacks.
     // So do Office's cloud fonts, which PowerPoint downloads and draws as themselves.
     for kept in ["Arial", "Times New Roman", "Cambria", "Courier New", FALLBACK_FAMILY, "Aptos", "Aptos Display", "Grandview"] {
         assert_eq!(db.document_face(kept, "Regular").family, db.face(kept, "Regular").family, "{kept}");
@@ -406,7 +406,7 @@ fn embedded_open_type_yields_the_font() {
 #[cfg(unix)]
 #[test]
 fn the_font_scan_skips_fifos_folders_and_link_loops() {
-    let dir = std::env::temp_dir().join(format!("deckcraft-fontscan-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("localslides-fontscan-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(dir.join("sub")).unwrap();
     std::fs::copy(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/legacy-semibold.ttf"), dir.join("sub/real.ttf")).unwrap();

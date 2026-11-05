@@ -1,10 +1,10 @@
 //! Format Shape and Format Background ▸ Pattern fill: the preset gallery and the Foreground and
 //! Background color menus.
 
-use deckcraft_color::Rgba;
-use deckcraft_engine::Session;
-use deckcraft_model::style::PatternFill;
-use deckcraft_model::{Background, ColorBase, ColorRef, Fill, ShapeId};
+use localslides_color::Rgba;
+use localslides_engine::Session;
+use localslides_model::style::PatternFill;
+use localslides_model::{Background, ColorBase, ColorRef, Fill, ShapeId};
 use egui::accesskit::Role;
 use egui::{Event, Key, Modifiers, PointerButton};
 use egui_kittest::Harness;
@@ -82,7 +82,7 @@ fn shape_pattern_fill_picks_a_preset_from_the_gallery() {
     assert!(h.query_by_label("Transparency").is_none(), "a pattern has no solid-fill transparency");
     assert_eq!(crate::fillui::pattern_gallery().count(), 48);
     for name in crate::fillui::pattern_gallery() {
-        assert!(deckcraft_render::pattern_presets().any(|p| p == name), "{name}");
+        assert!(localslides_render::pattern_presets().any(|p| p == name), "{name}");
         let _ = h.get_by_label(crate::fillui::pattern_label(name));
     }
     for label in ["Horizontal", "Vertical", "Cross", "Downward diagonal", "Upward diagonal", "Diagonal cross"] {
@@ -93,7 +93,7 @@ fn shape_pattern_fill_picks_a_preset_from_the_gallery() {
     h.run_steps(2);
     let pt = shape_pattern(&h, id);
     assert_eq!(pt.preset, "dkDnDiag");
-    assert_eq!((pt.fg, pt.bg), (ColorRef::scheme(deckcraft_color::SchemeSlot::Accent1), ColorRef::scheme(deckcraft_color::SchemeSlot::Bg1)));
+    assert_eq!((pt.fg, pt.bg), (ColorRef::scheme(localslides_color::SchemeSlot::Accent1), ColorRef::scheme(localslides_color::SchemeSlot::Bg1)));
     assert_eq!(h.state().session.active().unwrap().history.undo.len(), undo + 1, "one undo step");
 }
 

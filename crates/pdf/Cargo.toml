@@ -1,18 +1,18 @@
 [package]
-name = "deckcraft-pdf"
+name = "localslides-pdf"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "DeckCraft PDF export (craft-pdf/Krilla): slides, notes pages and handouts with a selectable text layer, links and bookmarks"
+description = "Local Slides PDF export (craft-pdf/Krilla): slides, notes pages and handouts with a selectable text layer, links and bookmarks"
 
 [lints]
 workspace = true
 
 [dependencies]
-deckcraft-model = { workspace = true }
-deckcraft-fonts = { workspace = true }
-deckcraft-text = { workspace = true }
-deckcraft-render = { workspace = true }
+localslides-model = { workspace = true }
+localslides-fonts = { workspace = true }
+localslides-text = { workspace = true }
+localslides-render = { workspace = true }
 craft-pdf = { workspace = true }
 kurbo = { workspace = true }
 serde = { workspace = true }

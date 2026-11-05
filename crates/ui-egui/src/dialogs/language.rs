@@ -4,7 +4,7 @@ use super::SlideApp;
 /// the caret, else the first run of the first selected shape; US English when none says.
 pub fn selected_language(app: &SlideApp) -> (String, bool) {
     let Some(st) = app.session.active() else { return ("en-US".into(), false) };
-    let run = |sh: &deckcraft_model::Shape, at: Option<(usize, usize)>| -> Option<deckcraft_model::RunProps> {
+    let run = |sh: &localslides_model::Shape, at: Option<(usize, usize)>| -> Option<localslides_model::RunProps> {
         let t = sh.text.as_ref()?;
         if let Some((p, c)) = at {
             let para = t.paragraphs.get(p)?;

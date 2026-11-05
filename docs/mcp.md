@@ -1,7 +1,7 @@
 # MCP server
 
-`deckcraft-cli mcp` runs a Model Context Protocol server on stdio. By default it drives its own
-headless engine (no window); with `--connect PORT` it drives a running DeckCraft started with
+`localslides-cli mcp` runs a Model Context Protocol server on stdio. By default it drives its own
+headless engine (no window); with `--connect PORT` it drives a running Local Slides started with
 `--control PORT`, so an agent and a person can work on the same deck. `--sample` opens the sample
 deck. Stdio request frames are limited to 16 MiB including the newline; oversized frames receive a
 JSON-RPC error and are drained so the next request can still be handled. Invalid UTF-8 frames receive
@@ -22,7 +22,7 @@ lost-reply and reconnect tests.
 ```json
 {
   "mcpServers": {
-    "deckcraft": { "command": "deckcraft-cli", "args": ["mcp", "--connect", "7990"] }
+    "localslides": { "command": "localslides-cli", "args": ["mcp", "--connect", "7990"] }
   }
 }
 ```
@@ -30,11 +30,11 @@ lost-reply and reconnect tests.
 ## Confining file access
 
 ```sh
-deckcraft-cli mcp --automation-read-root /work/project --automation-write-root /work/project/out
+localslides-cli mcp --automation-read-root /work/project --automation-write-root /work/project/out
 ```
 
 ```json
-{"mcpServers": {"deckcraft": {"command": "deckcraft-cli",
+{"mcpServers": {"localslides": {"command": "localslides-cli",
   "args": ["mcp", "--automation-read-root", "/work/project", "--automation-write-root", "/work/project/out"]}}}
 ```
 
@@ -65,8 +65,8 @@ folders:
   to allow access to another folder; both `--flag <dir>` and `--flag=<dir>` forms work.
 
 The flags confine the in-process server, so `--connect` together with them is an error: the server
-would otherwise talk to an app that isn't confined. DeckCraft's desktop app has no equivalent flags
-yet, so a running app (`deckcraft --control`) is not confined. `--sample` is the operator's own
+would otherwise talk to an app that isn't confined. Local Slides' desktop app has no equivalent flags
+yet, so a running app (`localslides --control`) is not confined. `--sample` is the operator's own
 choice and is opened before the roots apply.
 
 What the roots do not cover: commands that take no path still read and change the open deck, and
@@ -102,5 +102,5 @@ Useful commands for building decks: `slide.new {layout, title, body}`, `shape.in
 rect, text}`, `shape.connect {from, to, preset}`, `shape.freeform {points, closed, smooth}`,
 `shape.merge {op, ids}`, `format.*`, `design.theme`, `transition.set`, `animation.set`,
 `chart.*` (`chart.options {textColor}` colours a chart's title, axes, legend and labels), `table.*`, `file.export {path, layout}` (PDF) or `{path, width, secondsPerSlide, loop}`
-(GIF). `deckcraft-cli describe COMMAND` prints any
+(GIF). `localslides-cli describe COMMAND` prints any
 command's parameters.

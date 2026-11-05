@@ -7,13 +7,13 @@
   <key>CFBundleDevelopmentRegion</key>
   <string>en</string>
   <key>CFBundleDisplayName</key>
-  <string>DeckCraft</string>
+  <string>Local Slides</string>
   <key>CFBundleName</key>
-  <string>DeckCraft</string>
+  <string>Local Slides</string>
   <key>CFBundleExecutable</key>
-  <string>DeckCraft</string>
+  <string>localslides</string>
   <key>CFBundleIdentifier</key>
-  <string>ai.storyteller.deckcraft</string>
+  <string>com.local.localslides</string>
   <key>CFBundleInfoDictionaryVersion</key>
   <string>6.0</string>
   <key>CFBundlePackageType</key>
@@ -24,12 +24,12 @@
   <string>@SHORT_VERSION@</string>
   <key>CFBundleVersion</key>
   <string>@SHORT_VERSION@</string>
-  <key>DeckCraftVersion</key>
+  <key>LocalSlidesVersion</key>
   <string>@VERSION@</string>
-  <key>DeckCraftBuildCommit</key>
+  <key>LocalSlidesBuildCommit</key>
   <string>@BUILD_SHA@</string>
   <key>CFBundleIconFile</key>
-  <string>DeckCraft</string>
+  <string>localslides</string>
   <key>LSApplicationCategoryType</key>
   <string>public.app-category.productivity</string>
   <!-- Must match MACOSX_DEPLOYMENT_TARGET in package.sh. Big Sur is the first release on
@@ -43,27 +43,27 @@
   <key>NSRequiresAquaSystemAppearance</key>
   <false/>
   <key>NSHumanReadableCopyright</key>
-  <string>Copyright © the DeckCraft authors. MIT OR Apache-2.0.</string>
+  <string>Copyright © the Local Slides authors. MIT OR Apache-2.0.</string>
 
-  <!-- The documents DeckCraft opens, so Finder's Open With and "Change All" can offer it (the
-       Apple events arrive through apps/deckcraft/src/apple_events.rs). PowerPoint stays the
-       preferred app for its formats unless the user picks DeckCraft. The same set as the Windows
-       installer (deckcraft.wxs) and the Linux desktop file; a test in apps/deckcraft keeps
+  <!-- The documents Local Slides opens, so Finder's Open With and "Change All" can offer it (the
+       Apple events arrive through apps/localslides/src/apple_events.rs). PowerPoint stays the
+       preferred app for its formats unless the user picks Local Slides. The same set as the Windows
+       installer (localslides.wxs) and the Linux desktop file; a test in apps/localslides keeps
        them equal. -->
   <key>CFBundleDocumentTypes</key>
   <array>
     <dict>
       <key>CFBundleTypeName</key>
-      <string>DeckCraft Presentation</string>
+      <string>Local Slides Presentation</string>
       <key>CFBundleTypeRole</key>
       <string>Editor</string>
       <key>LSHandlerRank</key>
       <string>Owner</string>
       <key>CFBundleTypeIconFile</key>
-      <string>DeckCraft</string>
+      <string>localslides</string>
       <key>LSItemContentTypes</key>
       <array>
-        <string>ai.storyteller.deckcraft.presentation</string>
+        <string>com.local.localslides.presentation</string>
       </array>
     </dict>
     <dict>
@@ -116,21 +116,21 @@
     </dict>
   </array>
 
-  <!-- DeckCraft's own format: a zip of a JSON manifest plus media. -->
+  <!-- Local Slides' own format: a zip of a JSON manifest plus media. -->
   <key>UTExportedTypeDeclarations</key>
   <array>
     <dict>
       <key>UTTypeIdentifier</key>
-      <string>ai.storyteller.deckcraft.presentation</string>
+      <string>com.local.localslides.presentation</string>
       <key>UTTypeDescription</key>
-      <string>DeckCraft Presentation</string>
+      <string>Local Slides Presentation</string>
       <key>UTTypeConformsTo</key>
       <array>
         <string>public.data</string>
         <string>public.presentation</string>
       </array>
       <key>UTTypeIconFile</key>
-      <string>DeckCraft</string>
+      <string>localslides</string>
       <key>UTTypeTagSpecification</key>
       <dict>
         <key>public.filename-extension</key>

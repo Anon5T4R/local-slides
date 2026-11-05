@@ -44,7 +44,7 @@ fn create_private_print_dir(base: &std::path::Path) -> std::io::Result<std::path
 
     for _ in 0..128 {
         let id = NEXT_DIR.fetch_add(1, Ordering::Relaxed);
-        let path = base.join(format!("deckcraft-print-{}-{id}", std::process::id()));
+        let path = base.join(format!("localslides-print-{}-{id}", std::process::id()));
         #[cfg(unix)]
         let mut builder = std::fs::DirBuilder::new();
         #[cfg(not(unix))]
@@ -100,7 +100,7 @@ fn infer_command(name: &str, bytes: &[u8]) -> Option<&'static str> {
     if is_presentation_name(&lower) {
         return Some("file.openBytes");
     }
-    let ct = deckcraft_engine::cmd::insert::content_type(name, bytes);
+    let ct = localslides_engine::cmd::insert::content_type(name, bytes);
     if ct.starts_with("image/") {
         Some("insert.picture")
     } else if ct.starts_with("audio/") {
@@ -119,11 +119,11 @@ fn command_for(purpose: FilePurpose, name: &str, bytes: &[u8]) -> Result<&'stati
         FilePurpose::Picture => Some("insert.picture"),
         FilePurpose::Audio => Some("insert.audio"),
         FilePurpose::Video => Some("insert.video"),
-        FilePurpose::ChangePicture => deckcraft_engine::cmd::insert::content_type(name, bytes).starts_with("image/").then_some("picture.change"),
+        FilePurpose::ChangePicture => localslides_engine::cmd::insert::content_type(name, bytes).starts_with("image/").then_some("picture.change"),
         FilePurpose::Open => open_command(name),
         FilePurpose::Infer => infer_command(name, bytes),
     };
-    cmd.ok_or_else(|| format!("{name}: DeckCraft can't open this kind of file"))
+    cmd.ok_or_else(|| format!("{name}: Local Slides can't open this kind of file"))
 }
 
 impl SlideApp {
@@ -183,7 +183,7 @@ impl SlideApp {
     }
 
     /// Exports the active presentation as `fmt` (`pdf`, `png`, `pngAll`, `jpeg`, `pptx`,
-    /// `deckcraft`, `outline`) through `file.export`: the save picker on the desktop, a download
+    /// `localslides`, `outline`) through `file.export`: the save picker on the desktop, a download
     /// on the web. `extra` adds `file.export` params (the PDF's layout, slides…). The
     /// presentation keeps its own file. Returns whether a file was written or handed over.
     pub fn export_as(&mut self, fmt: &str, extra: Value) -> bool {
@@ -199,7 +199,7 @@ impl SlideApp {
             "deckcraft" => ("deckcraft", "deckcraft", false),
             "gif" => ("gif", "gif", false),
             other => {
-                self.set_status(format!("DeckCraft can't export “{other}”"));
+                self.set_status(format!("Local Slides can't export “{other}”"));
                 return false;
             }
         };
@@ -230,16 +230,16 @@ impl SlideApp {
                 }
                 return any;
             }
-            "pdf" => deckcraft_engine::cmd::file::pdf_bytes(&doc, &extra),
-            "gif" => deckcraft_engine::cmd::file::gif_bytes(&doc, &extra),
-            other => deckcraft_engine::cmd::file::save_bytes(&doc, other),
+            "pdf" => localslides_engine::cmd::file::pdf_bytes(&doc, &extra),
+            "gif" => localslides_engine::cmd::file::gif_bytes(&doc, &extra),
+            other => localslides_engine::cmd::file::save_bytes(&doc, other),
         };
         self.download(&suggested, bytes)
     }
 
     /// Hands `bytes` to the browser as a download (web); false (with the reason in the status
     /// bar) when there are no bytes or no way to download.
-    fn download(&mut self, name: &str, bytes: deckcraft_engine::Result<Vec<u8>>) -> bool {
+    fn download(&mut self, name: &str, bytes: localslides_engine::Result<Vec<u8>>) -> bool {
         match (bytes, self.services.download.as_mut()) {
             (Ok(b), Some(dl)) => {
                 dl(name, &b);
@@ -256,7 +256,7 @@ impl SlideApp {
         }
     }
 
-    /// File › Print: DeckCraft prints through a PDF. On the desktop the PDF (with the Print page's
+    /// File › Print: Local Slides prints through a PDF. On the desktop the PDF (with the Print page's
     /// layout, slides and options) is written to the temporary folder and opened in the system's
     /// PDF viewer, which has the printers; on the web it downloads.
     pub fn print_pdf(&mut self, params: Value) -> bool {
@@ -264,7 +264,7 @@ impl SlideApp {
         let mut params = if params.is_object() { params } else { json!({}) };
         if self.services.pick_save.is_none() {
             // Web: the browser hands the PDF to the user.
-            let bytes = deckcraft_engine::cmd::file::pdf_bytes(&doc, &params);
+            let bytes = localslides_engine::cmd::file::pdf_bytes(&doc, &params);
             return self.download(&format!("{title}.pdf"), bytes);
         }
         let preview_path = match self.print_previews.create(&title) {
@@ -363,7 +363,7 @@ impl SlideApp {
             Some(Ok(bytes)) => {
                 let name = std::path::Path::new(&path).file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
                 source["name"] = json!(name);
-                source["data"] = json!(deckcraft_engine::cmd::base64_encode(&bytes));
+                source["data"] = json!(localslides_engine::cmd::base64_encode(&bytes));
             }
             Some(Err(e)) => {
                 self.set_status(e.to_string());
@@ -421,7 +421,7 @@ impl SlideApp {
                     Some(Ok(bytes)) => {
                         let name = std::path::Path::new(&path).file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
                         args["name"] = json!(name);
-                        args["data"] = json!(deckcraft_engine::cmd::base64_encode(&bytes));
+                        args["data"] = json!(localslides_engine::cmd::base64_encode(&bytes));
                         self.session.execute(cmd, &args)
                     }
                     _ => {
@@ -465,7 +465,7 @@ impl SlideApp {
         } else if let Some(dl) = self.services.download.as_mut()
             && let Some(d) = self.session.active()
         {
-            match deckcraft_engine::cmd::file::save_bytes(&d.doc, ext) {
+            match localslides_engine::cmd::file::save_bytes(&d.doc, ext) {
                 Ok(bytes) => dl(&suggested, &bytes),
                 Err(e) => self.set_status(e.to_string()),
             }
@@ -612,9 +612,9 @@ impl SlideApp {
             }
         };
         let params = if cmd == "slide.fromOutline" {
-            json!({"text": deckcraft_engine::cmd::file::outline_text(bytes), "markdown": name.to_ascii_lowercase().ends_with(".md")})
+            json!({"text": localslides_engine::cmd::file::outline_text(bytes), "markdown": name.to_ascii_lowercase().ends_with(".md")})
         } else {
-            json!({"name": name, "data": deckcraft_engine::cmd::base64_encode(bytes)})
+            json!({"name": name, "data": localslides_engine::cmd::base64_encode(bytes)})
         };
         let result = if cmd == "file.openBytes" || self.viewing_target(&req.target) {
             self.session.execute(cmd, &params).map(|_| ()).map_err(|e| e.to_string())
@@ -711,7 +711,7 @@ impl SlideApp {
 /// `<name>2.png`... like the native export) when `all`. `transparent` leaves the slide
 /// background out (PNG only, #784).
 pub(crate) fn web_image_files(
-    doc: &deckcraft_model::Presentation,
+    doc: &localslides_model::Presentation,
     current: usize,
     all: bool,
     name: &str,
@@ -721,13 +721,13 @@ pub(crate) fn web_image_files(
     let slides: Vec<usize> = if all { (0..doc.slides.len()).collect() } else { vec![current] };
     let single = slides.len() == 1;
     let scale = 2.0;
-    let dpi = deckcraft_render::dpi_for_scale(scale);
+    let dpi = localslides_render::dpi_for_scale(scale);
     slides
         .into_iter()
         .enumerate()
         .map(|(k, i)| {
-            let opts = deckcraft_render::RenderOpts { scale, transparent_background: transparent && ext == "png", ..Default::default() };
-            let img = deckcraft_render::render_slide(doc, i, &opts);
+            let opts = localslides_render::RenderOpts { scale, transparent_background: transparent && ext == "png", ..Default::default() };
+            let img = localslides_render::render_slide(doc, i, &opts);
             let bytes = if ext == "png" { img.to_png_at(dpi) } else { img.to_jpeg_at(92, Some(dpi)) };
             let file = if single { format!("{name}.{ext}") } else { format!("{name}{}.{ext}", k + 1) };
             (file, bytes)
@@ -743,7 +743,7 @@ mod print_preview_tests {
     #[test]
     fn same_title_gets_distinct_private_paths_and_drop_cleans_them() {
         let stamp = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or_default();
-        let base = std::env::temp_dir().join(format!("deckcraft-print-test-{}-{stamp}", std::process::id()));
+        let base = std::env::temp_dir().join(format!("localslides-print-test-{}-{stamp}", std::process::id()));
         std::fs::create_dir(&base).unwrap();
         let (first, second) = {
             let mut previews = PrintPreviews::default();
@@ -768,7 +768,7 @@ mod print_preview_tests {
     #[test]
     fn explicit_cleanup_removes_previews() {
         let stamp = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or_default();
-        let base = std::env::temp_dir().join(format!("deckcraft-print-cleanup-test-{}-{stamp}", std::process::id()));
+        let base = std::env::temp_dir().join(format!("localslides-print-cleanup-test-{}-{stamp}", std::process::id()));
         std::fs::create_dir(&base).unwrap();
         let mut previews = PrintPreviews::default();
         let path = previews.create_in(&base, "Explicit cleanup").unwrap();

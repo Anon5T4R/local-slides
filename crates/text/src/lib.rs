@@ -25,13 +25,13 @@ pub mod datetime;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use deckcraft_color::Rgba;
-use deckcraft_fonts::script::{self, joins_following, joins_preceding};
-use deckcraft_fonts::{FontDb, FontFace, FontSlot, ScriptTag, ShapeParams};
-use deckcraft_geom::{Point, Rect};
-use deckcraft_model::resolve::{self, Ctx};
-use deckcraft_model::text::{Align, Anchor, AutoFit, BodyProps, Bullet, Caps, ParaProps, RunKind, RunProps, Spacing, Strike, TextBody, TextDir};
-use deckcraft_model::{Fill, Shape};
+use localslides_color::Rgba;
+use localslides_fonts::script::{self, joins_following, joins_preceding};
+use localslides_fonts::{FontDb, FontFace, FontSlot, ScriptTag, ShapeParams};
+use localslides_geom::{Point, Rect};
+use localslides_model::resolve::{self, Ctx};
+use localslides_model::text::{Align, Anchor, AutoFit, BodyProps, Bullet, Caps, ParaProps, RunKind, RunProps, Spacing, Strike, TextBody, TextDir};
+use localslides_model::{Fill, Shape};
 use unicode_segmentation::UnicodeSegmentation;
 
 mod autonum;

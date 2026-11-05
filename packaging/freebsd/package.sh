@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Build and package DeckCraft for FreeBSD:
+# Build and package Local Slides for FreeBSD:
 #
-#   $DIST/deckcraft-<version>-freebsd-<arch>.tar.gz   bin/, share/ (desktop entry, icons, AppStream)
+#   $DIST/localslides-<version>-freebsd-<arch>.tar.gz   bin/, share/ (desktop entry, icons, AppStream)
 #
 # Usage: packaging/freebsd/package.sh [--skip-build]
 #
@@ -12,7 +12,7 @@ set -euo pipefail
 # shellcheck source=../common.sh
 . "$(dirname "${BASH_SOURCE[0]}")/../common.sh"
 LINUX="$ROOT/packaging/linux"
-APP_ID=ai.storyteller.deckcraft
+APP_ID=com.local.localslides
 
 TARGET_ARGS=()
 BIN="$CARGO_TARGET_DIR/release"
@@ -39,7 +39,7 @@ else
 fi
 
 if [[ "${1:-}" != "--skip-build" ]]; then
-  (cd "$ROOT" && cargo build --release --locked "${TARGET_ARGS[@]}" -p deckcraft -p deckcraft-cli)
+  (cd "$ROOT" && cargo build --release --locked "${TARGET_ARGS[@]}" -p localslides -p localslides-cli)
 fi
 
 # Refuse placeholder, wrong-arch or non-FreeBSD binaries (also with --skip-build). Bytes: ELF magic,
@@ -51,29 +51,29 @@ case "$ARCH" in
 esac
 # FreeBSD's od pads its columns differently from GNU od, so compare the hex digits alone.
 hex() { od -An -tx1 "$@" | tr -d ' \n'; }
-for f in "$BIN/deckcraft" "$BIN/deckcraft-cli"; do
+for f in "$BIN/localslides" "$BIN/localslides-cli"; do
   [[ -f "$f" ]] || { echo "error: $f was not built" >&2; exit 1; }
   [[ "$(hex -N6 "$f")" == 7f454c460201 ]] || { echo "error: $f is not a 64-bit little-endian ELF (starts $(hex -N6 "$f"))" >&2; exit 1; }
   [[ "$(hex -j7 -N1 "$f")" =~ ^(00|09)$ ]] || { echo "error: $f is not a FreeBSD ELF (OSABI $(hex -j7 -N1 "$f"))" >&2; exit 1; }
   [[ "$(hex -j18 -N2 "$f")" == "$MACHINE" ]] || { echo "error: $f is not an ELF for $ARCH (e_machine $(hex -j18 -N2 "$f"))" >&2; exit 1; }
 done
 
-NAME="deckcraft-$VERSION-freebsd-$ARCH"
+NAME="localslides-$VERSION-freebsd-$ARCH"
 WORK="$CARGO_TARGET_DIR/freebsd-package"
 STAGE="$WORK/$NAME"
 rm -rf "$WORK"
-mkdir -p "$STAGE/bin" "$STAGE/share/applications" "$STAGE/share/metainfo" "$STAGE/share/mime/packages" "$STAGE/share/icons" "$STAGE/share/doc/deckcraft"
+mkdir -p "$STAGE/bin" "$STAGE/share/applications" "$STAGE/share/metainfo" "$STAGE/share/mime/packages" "$STAGE/share/icons" "$STAGE/share/doc/localslides"
 
-install -m 755 "$BIN/deckcraft" "$BIN/deckcraft-cli" "$STAGE/bin/"
-strip "$STAGE/bin/deckcraft" "$STAGE/bin/deckcraft-cli" 2>/dev/null || true
+install -m 755 "$BIN/localslides" "$BIN/localslides-cli" "$STAGE/bin/"
+strip "$STAGE/bin/localslides" "$STAGE/bin/localslides-cli" 2>/dev/null || true
 install -m 644 "$LINUX/$APP_ID.desktop" "$STAGE/share/applications/"
 install -m 644 "$LINUX/$APP_ID.mime.xml" "$STAGE/share/mime/packages/$APP_ID.xml"
-sed -e "s/@VERSION@/$VERSION/g" -e "s/@DATE@/$DECKCRAFT_BUILD_DATE/g" \
+sed -e "s/@VERSION@/$VERSION/g" -e "s/@DATE@/$LOCALSLIDES_BUILD_DATE/g" \
   "$LINUX/$APP_ID.metainfo.xml.in" >"$STAGE/share/metainfo/$APP_ID.metainfo.xml"
 cp -R "$ROOT/assets/app-icon/hicolor" "$STAGE/share/icons/"
-copy_docs "$STAGE/share/doc/deckcraft"
+copy_docs "$STAGE/share/doc/localslides"
 
 tar -C "$WORK" -czf "$DIST/$NAME.tar.gz" "$NAME"
-if [[ -z "${CARGO_BUILD_TARGET:-}" || "$CARGO_BUILD_TARGET" == "$(rustc -vV | sed -n 's/^host: //p')" ]]; then "$STAGE/bin/deckcraft-cli" --version; fi # a cross-built binary cannot run on the build host
+if [[ -z "${CARGO_BUILD_TARGET:-}" || "$CARGO_BUILD_TARGET" == "$(rustc -vV | sed -n 's/^host: //p')" ]]; then "$STAGE/bin/localslides-cli" --version; fi # a cross-built binary cannot run on the build host
 echo "wrote $DIST/$NAME.tar.gz"
 ls -lh "$DIST/$NAME.tar.gz"
