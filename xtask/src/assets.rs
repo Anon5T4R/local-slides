@@ -50,6 +50,15 @@ const ASSET_EXT: &[&str] = &[
 ];
 const ASSET_DIRS: &[&str] = &["assets/", "docs/images/", "docs/brand/", "examples/"];
 
+/// Paths whose files this repo does not attribute: the vendored trees under `libs/` keep their own
+/// licences and attribution files (egui, winit, craft-libs), and build output is not shipped.
+const EXCLUDE: &[&str] = &["libs/", "target/", "dist/"];
+
+/// Whether `path` is out of the scan (vendored tree or build output).
+pub fn excluded(path: &str) -> bool {
+    EXCLUDE.iter().any(|dir| path.starts_with(dir))
+}
+
 pub fn is_asset(path: &str) -> bool {
     let ext = Path::new(path).extension().and_then(std::ffi::OsStr::to_str).map(str::to_ascii_lowercase).unwrap_or_default();
     ASSET_DIRS.iter().any(|d| path.starts_with(d)) || ASSET_EXT.contains(&ext.as_str())
@@ -58,7 +67,7 @@ pub fn is_asset(path: &str) -> bool {
 /// Paths that need an ATTRIBUTION.md entry but lack one.
 pub fn missing(files: &[String], assets_md: &str) -> Vec<String> {
     let patterns: Vec<&str> = assets_md.split('`').skip(1).step_by(2).collect();
-    files.iter().filter(|f| is_asset(f) && !patterns.iter().any(|p| glob(p, f))).cloned().collect()
+    files.iter().filter(|f| !excluded(f) && is_asset(f) && !patterns.iter().any(|p| glob(p, f))).cloned().collect()
 }
 
 /// `*` matches any run of characters except `/`; everything else literally.
@@ -88,7 +97,7 @@ pub fn run(root: &Path) -> Result<(), String> {
     let md = std::fs::read_to_string(root.join("ATTRIBUTION.md")).map_err(|e| format!("ATTRIBUTION.md: {e}"))?;
     let miss = missing(&files, &md);
     if miss.is_empty() {
-        println!("assets: all {} asset files attributed in ATTRIBUTION.md", files.iter().filter(|f| is_asset(f)).count());
+        println!("assets: all {} asset files attributed in ATTRIBUTION.md", files.iter().filter(|f| !excluded(f) && is_asset(f)).count());
         Ok(())
     } else {
         Err(format!("{} asset file(s) lack an ATTRIBUTION.md entry (author, source, licence):\n  {}", miss.len(), miss.join("\n  ")))
@@ -109,6 +118,16 @@ mod tests {
         let md = "`assets/app-icon/hicolor/*/apps/x.png`";
         assert!(missing(&["assets/app-icon/hicolor/16x16/apps/x.png".into()], md).is_empty());
         assert_eq!(missing(&["assets/app-icon/hicolor/a/b/apps/x.png".into()], md).len(), 1);
+    }
+
+    /// The vendored trees under `libs/` are read-only third-party sources with their own licence
+    /// files; the repo attributes its own assets only.
+    #[test]
+    fn vendored_trees_are_out_of_the_scan() {
+        assert!(excluded("libs/winit/examples/data/icon.png"));
+        assert!(excluded("libs/egui/web_demo/favicon.ico"));
+        assert!(!excluded("assets/app-icon/localslides.ico"));
+        assert!(missing(&["libs/winit/examples/data/icon.png".into()], "").is_empty());
     }
 
     #[test]

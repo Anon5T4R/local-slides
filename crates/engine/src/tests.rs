@@ -4739,8 +4739,8 @@ fn spelling_checks_each_run_in_its_language_and_learns_words() {
         .iter()
         .map(|w| (w["word"].as_str().unwrap().to_string(), w["lang"].as_str().unwrap().to_string(), w["start"].as_u64().unwrap()))
         .collect();
-    assert_eq!(words, vec![("deckcraft".to_string(), "xx-ONE".to_string(), 12)]);
-    s.execute("review.addToDictionary", &json!({"word": "deckcraft"})).unwrap();
+    assert_eq!(words, vec![("localslides".to_string(), "xx-ONE".to_string(), 12)]);
+    s.execute("review.addToDictionary", &json!({"word": "localslides"})).unwrap();
     assert!(s.execute("review.spelling", &json!({})).unwrap().as_array().unwrap().is_empty());
     assert_eq!(std::fs::read_to_string(dir.join("user.dic")).unwrap(), "localslides\n");
     let _ = std::fs::remove_dir_all(&dir);
