@@ -1,7 +1,7 @@
 {
   "id": "localslides",
   "name": "Local Slides",
-  "upgradeCode": "6F9C69E7-7825-40D2-BF26-C274DA676425",
+  "upgradeCode": "8C3D9B21-6E4A-4F57-9B0C-2A7E5D4F1B63",
   "sources": [
     "localslides.wxs"
   ],
@@ -55,19 +55,19 @@
     [
       "-1",
       "Software\\Classes\\.pptx\\OpenWithProgids",
-      "Local Slides.Presentation",
+      "LocalSlides.Presentation",
       ""
     ],
     [
       "-1",
       "Software\\Classes\\.potx\\OpenWithProgids",
-      "Local Slides.Presentation",
+      "LocalSlides.Presentation",
       ""
     ],
     [
       "-1",
       "Software\\Classes\\.ppsx\\OpenWithProgids",
-      "Local Slides.Presentation",
+      "LocalSlides.Presentation",
       ""
     ],
     [
