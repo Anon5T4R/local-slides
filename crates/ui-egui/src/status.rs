@@ -312,13 +312,13 @@ pub fn notes_pane(app: &mut SlideApp, ui: &mut Ui) {
 mod tests {
     #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-    use localslides_engine::Session;
     use egui::accesskit::{Role, Toggled};
     use egui::{Event, Modifiers, PointerButton};
     use egui_kittest::{
         Harness,
         kittest::{NodeT, Queryable},
     };
+    use localslides_engine::Session;
     use serde_json::json;
 
     use crate::{Services, SlideApp, ViewMode};

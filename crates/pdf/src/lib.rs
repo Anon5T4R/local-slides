@@ -15,10 +15,6 @@ use std::collections::HashMap;
 
 use craft_pdf::write::{self, Metadata, Writer, backend as krilla};
 
-use localslides_fonts::FontDb;
-use localslides_model::Presentation;
-use localslides_model::text::{Action as ClickAction, safe_url};
-use localslides_render::{PlacedText, RenderOpts};
 use krilla::action::{Action, LinkAction};
 use krilla::annotation::{Annotation, LinkAnnotation, Target};
 use krilla::destination::XyzDestination;
@@ -31,6 +27,10 @@ use krilla::paint::Fill;
 use krilla::surface::Surface;
 use krilla::text::{Font, GlyphId, KrillaGlyph, TextDirection};
 use kurbo::{Affine, Rect};
+use localslides_fonts::FontDb;
+use localslides_model::Presentation;
+use localslides_model::text::{Action as ClickAction, safe_url};
+use localslides_render::{PlacedText, RenderOpts};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, thiserror::Error)]

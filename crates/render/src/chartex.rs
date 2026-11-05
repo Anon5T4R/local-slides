@@ -2,11 +2,11 @@
 //! boxes of a box and whisker chart (waterfall bars are drawn by [`crate::chart`], histograms as
 //! the column chart of their bins).
 
+use kurbo::{Affine, BezPath, Point, Rect, Shape as _};
 use localslides_color::Rgba;
 use localslides_model::chart::{BoxStats, Chart, ChartType, TreeNode};
 use localslides_model::resolve::Ctx;
 use localslides_model::text::{Align, Anchor};
-use kurbo::{Affine, BezPath, Point, Rect, Shape as _};
 use vello_cpu::RenderContext;
 
 use crate::chart::{label, series_color};

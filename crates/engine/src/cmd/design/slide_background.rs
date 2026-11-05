@@ -23,8 +23,12 @@ pub(super) fn background(s: &mut Session, p: &Value) -> Result<Value> {
         BgOp::Set(Some(Background::Fill { fill: Fill::solid(c) }))
     } else if let Some(i) = style {
         // Background styles: 3 theme bg fills × 4 colours (bg1, bg2, tx1, tx2).
-        let slots =
-            [localslides_color::SchemeSlot::Bg1, localslides_color::SchemeSlot::Bg2, localslides_color::SchemeSlot::Tx2, localslides_color::SchemeSlot::Tx1];
+        let slots = [
+            localslides_color::SchemeSlot::Bg1,
+            localslides_color::SchemeSlot::Bg2,
+            localslides_color::SchemeSlot::Tx2,
+            localslides_color::SchemeSlot::Tx1,
+        ];
         let i = i.clamp(1, 12) - 1;
         BgOp::Set(Some(Background::Ref {
             idx: 1001 + (i / 4) as u32,

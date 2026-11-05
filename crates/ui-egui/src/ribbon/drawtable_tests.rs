@@ -1,10 +1,10 @@
 //! Draw Table driven like a person: Insert › Table › Draw Table, drag out a table, draw a border
 //! across it, then the Table Eraser merges the cells back.
 
-use localslides_engine::Session;
 use egui::{Modifiers, PointerButton};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
+use localslides_engine::Session;
 use serde_json::json;
 
 use crate::{Services, SlideApp};

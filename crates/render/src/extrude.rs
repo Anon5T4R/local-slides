@@ -6,10 +6,10 @@
 //! rig and material, and the sides are drawn farthest first. Without a turned camera an extrusion
 //! points at the viewer and nothing of it shows.
 
+use kurbo::{Affine, BezPath, Vec2};
 use localslides_color::{Rgba, SchemeSlot};
 use localslides_model::ColorRef;
 use localslides_model::resolve::Ctx;
-use kurbo::{Affine, BezPath, Vec2};
 use vello_cpu::RenderContext;
 
 use crate::camera::{self, Camera};

@@ -1,7 +1,7 @@
 //! Home › Find (Ctrl+F): "Find what:" has the keyboard as soon as the dialog opens (#951).
 
-use localslides_engine::Session;
 use egui_kittest::Harness;
+use localslides_engine::Session;
 use serde_json::json;
 
 use crate::{Services, SlideApp};

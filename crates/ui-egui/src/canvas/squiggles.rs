@@ -107,10 +107,9 @@ impl Checker {
             while *at < job.paras.len() {
                 let (tag, p) = &job.paras[*at];
                 let k = hash_of(&(serde_json::to_string(&p.runs).unwrap_or_default(), &job.default_lang));
-                let r = self
-                    .cache
-                    .entry(k)
-                    .or_insert_with(|| localslides_engine::spell::misspelt(p, &job.default_lang, &[]).into_iter().map(|w| (w.start, w.end)).collect());
+                let r = self.cache.entry(k).or_insert_with(|| {
+                    localslides_engine::spell::misspelt(p, &job.default_lang, &[]).into_iter().map(|w| (w.start, w.end)).collect()
+                });
                 found.extend(r.iter().map(|(a, b)| (*tag, *a, *b)));
                 *at += 1;
                 if now_ms() - t0 > budget_ms {
@@ -334,8 +333,10 @@ impl Squiggles {
             return vec![];
         }
         self.receive(FRAME_BUDGET_MS);
-        let key =
-            Key { of: hash_of(&(Arc::as_ptr(&st.doc) as usize, st.revision, st.selection.slide)), user: localslides_engine::spell::user_generation() };
+        let key = Key {
+            of: hash_of(&(Arc::as_ptr(&st.doc) as usize, st.revision, st.selection.slide)),
+            user: localslides_engine::spell::user_generation(),
+        };
         let paras = || {
             let mut paras = vec![];
             if let Some(sl) = st.doc.slides.get(st.selection.slide) {

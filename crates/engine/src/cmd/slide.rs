@@ -789,7 +789,10 @@ mod tests {
                 name: "First".into(),
                 slides: vec![localslides_model::SlideId(ids[0]), localslides_model::SlideId(ids[1]), localslides_model::SlideId(ids[1])],
             },
-            localslides_model::CustomShow { name: "Second".into(), slides: vec![localslides_model::SlideId(ids[1]), localslides_model::SlideId(ids[2])] },
+            localslides_model::CustomShow {
+                name: "Second".into(),
+                slides: vec![localslides_model::SlideId(ids[1]), localslides_model::SlideId(ids[2])],
+            },
             localslides_model::CustomShow { name: "Empty after delete".into(), slides: vec![localslides_model::SlideId(ids[1])] },
         ];
         s.edit(|doc, _| {

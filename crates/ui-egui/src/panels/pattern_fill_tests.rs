@@ -1,14 +1,14 @@
 //! Format Shape and Format Background ▸ Pattern fill: the preset gallery and the Foreground and
 //! Background color menus.
 
-use localslides_color::Rgba;
-use localslides_engine::Session;
-use localslides_model::style::PatternFill;
-use localslides_model::{Background, ColorBase, ColorRef, Fill, ShapeId};
 use egui::accesskit::Role;
 use egui::{Event, Key, Modifiers, PointerButton};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
+use localslides_color::Rgba;
+use localslides_engine::Session;
+use localslides_model::style::PatternFill;
+use localslides_model::{Background, ColorBase, ColorRef, Fill, ShapeId};
 use serde_json::json;
 
 use crate::{Services, SlideApp};

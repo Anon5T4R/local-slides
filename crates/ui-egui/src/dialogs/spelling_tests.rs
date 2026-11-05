@@ -1,9 +1,9 @@
 //! The Spelling dialog with a dictionary: suggestions change the word, Ignore All hides it.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use localslides_engine::Session;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
+use localslides_engine::Session;
 use serde_json::json;
 
 use crate::{Services, SlideApp};

@@ -48,7 +48,8 @@ fn brand_template() -> (String, Vec<u8>, localslides_model::Xfrm) {
                 xfrm: Some(localslides_model::Xfrm { x: 600.0, y: 20.0, w: 100.0, h: 40.0, ..Default::default() }),
                 ..Default::default()
             });
-            m.background = Some(Background::Fill { fill: Fill::solid(localslides_model::ColorRef::rgb(localslides_color::Rgba::rgb(0x0A, 0x2B, 0x4C))) });
+            m.background =
+                Some(Background::Fill { fill: Fill::solid(localslides_model::ColorRef::rgb(localslides_color::Rgba::rgb(0x0A, 0x2B, 0x4C))) });
             for l in &mut m.layouts {
                 l.name = format!("Brand {}", l.name);
             }

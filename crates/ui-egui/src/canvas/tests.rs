@@ -2,10 +2,10 @@
 
 use std::sync::Arc;
 
-use localslides_engine::Session;
 use egui::{Event, Modifiers, MouseWheelUnit, Pos2, TouchPhase, pos2, vec2};
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
+use localslides_engine::Session;
 
 use super::*;
 use crate::{Services, SlideApp};
@@ -349,8 +349,11 @@ fn empty_bullet_preview_follows_click_type_enter_and_toggle() {
     h.state_mut().run("slide.new", json!({"layout": "titleAndContent"})).unwrap();
     h.run_steps(3);
     let st = h.state().session.active().unwrap();
-    let sh =
-        st.shapes().iter().find(|s| s.ph_type() == Some(localslides_model::PhType::Body) || s.ph_type() == Some(localslides_model::PhType::Obj)).unwrap();
+    let sh = st
+        .shapes()
+        .iter()
+        .find(|s| s.ph_type() == Some(localslides_model::PhType::Body) || s.ph_type() == Some(localslides_model::PhType::Obj))
+        .unwrap();
     let id = sh.id;
     let x = localslides_engine::cmd::xfrm_of(&st.doc, &st.selection, sh);
     let p = screen(h.state(), x.x + 40.0, x.y + 20.0);

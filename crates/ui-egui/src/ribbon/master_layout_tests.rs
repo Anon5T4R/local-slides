@@ -1,11 +1,11 @@
 //! Slide Master ribbon: Preserve, Title and Footers on the open layout.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use localslides_engine::Session;
-use localslides_model::PhType;
 use egui::accesskit::Role;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
+use localslides_engine::Session;
+use localslides_model::PhType;
 use serde_json::json;
 
 use crate::{Services, SlideApp};

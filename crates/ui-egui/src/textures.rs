@@ -7,10 +7,10 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use egui::{ColorImage, TextureFilter, TextureHandle, TextureOptions, TextureWrapMode};
 use localslides_geom::Rect;
 use localslides_model::{Master, Presentation, ShapeId, Slide};
 use localslides_render::{Image, Region, RenderOpts};
-use egui::{ColorImage, TextureFilter, TextureHandle, TextureOptions, TextureWrapMode};
 
 #[derive(Clone, PartialEq)]
 struct Key {

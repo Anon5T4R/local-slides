@@ -169,7 +169,9 @@ pub(super) fn ink_to_shape(s: &mut Session, _p: &Value) -> Result<Value> {
                 }
                 Recognized::Rect { x, y, w, h } => ("rect", localslides_geom::Xfrm::new(x, y, w, h)),
                 Recognized::Ellipse { x, y, w, h } => ("ellipse", localslides_geom::Xfrm::new(x, y, w, h)),
-                Recognized::Triangle { x, y, w, h, flip_v } => ("triangle", localslides_geom::Xfrm { flip_v, ..localslides_geom::Xfrm::new(x, y, w, h) }),
+                Recognized::Triangle { x, y, w, h, flip_v } => {
+                    ("triangle", localslides_geom::Xfrm { flip_v, ..localslides_geom::Xfrm::new(x, y, w, h) })
+                }
             };
             made.push((preset, xfrm, st.color, st.width));
         }

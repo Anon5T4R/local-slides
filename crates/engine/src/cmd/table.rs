@@ -412,7 +412,8 @@ fn target_cells(s: &Session, p: &Value) -> Result<impl Fn(&Table) -> Vec<(usize,
 }
 
 fn cell_fill(s: &mut Session, p: &Value) -> Result<Value> {
-    let fill = if bool_or(p, "none", false) { Some(localslides_model::Fill::None) } else { color_param(p, "color").map(localslides_model::Fill::solid) };
+    let fill =
+        if bool_or(p, "none", false) { Some(localslides_model::Fill::None) } else { color_param(p, "color").map(localslides_model::Fill::solid) };
     let targets = target_cells(s, p)?;
     with_table(s, p, "table.cellFill", move |t| {
         for (r, c) in targets(t) {

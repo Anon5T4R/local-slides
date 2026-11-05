@@ -4,11 +4,11 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
+use egui::{Align2, Color32, CornerRadius, Pos2, Rect, Sense, Stroke, TextureHandle, Ui, pos2, vec2};
 use localslides_engine::{MediaStatus, Session};
 use localslides_geom::Xfrm;
 use localslides_media::{AudioOut, ClipParams, Frame, PlayState, Player, VideoFeed, VoiceSpec, VoiceStatus};
 use localslides_model::{MediaClip, Presentation, Shape, ShapeId, ShapeKind};
-use egui::{Align2, Color32, CornerRadius, Pos2, Rect, Sense, Stroke, TextureHandle, Ui, pos2, vec2};
 
 use crate::icons::{self, Icon};
 

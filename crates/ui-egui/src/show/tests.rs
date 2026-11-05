@@ -193,7 +193,12 @@ fn show_with_clip() -> (egui_kittest::Harness<'static, SlideApp>, ShapeId, Pos2,
             let clip = localslides_model::MediaClip { media, video: true, volume: 1.0, duration_ms: 10_000, ..Default::default() };
             let xfrm = localslides_geom::Xfrm::new(w * 0.2, h * 0.2, w * 0.6, h * 0.6);
             let slide = std::sync::Arc::make_mut(&mut doc.slides[0]);
-            slide.shapes.push(localslides_model::Shape { id, xfrm: Some(xfrm), kind: localslides_model::ShapeKind::Media(clip), ..Default::default() });
+            slide.shapes.push(localslides_model::Shape {
+                id,
+                xfrm: Some(xfrm),
+                kind: localslides_model::ShapeKind::Media(clip),
+                ..Default::default()
+            });
             Ok(())
         })
         .unwrap();

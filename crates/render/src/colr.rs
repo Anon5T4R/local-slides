@@ -1,9 +1,9 @@
 //! Colour glyphs (OpenType `COLR` v0 and v1, colours from `CPAL`), as colour emoji fonts draw
 //! them: layers of glyph outlines filled with solid colours or gradients.
 
+use kurbo::{Affine, BezPath, Point, Rect};
 use localslides_color::Rgba;
 use localslides_fonts::FontFace;
-use kurbo::{Affine, BezPath, Point, Rect};
 use skrifa::color::{Brush, ColorPainter, ColorStop, CompositeMode, Extend, Transform};
 use skrifa::raw::types::BoundingBox;
 use skrifa::{GlyphId, MetadataProvider};

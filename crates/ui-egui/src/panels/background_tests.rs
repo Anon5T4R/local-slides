@@ -1,10 +1,10 @@
 //! Format Background pane: picture transparency, tiling, and Apply to All.
 
+use egui_kittest::Harness;
+use egui_kittest::kittest::Queryable;
 use localslides_engine::Session;
 use localslides_model::style::PictureMode;
 use localslides_model::{Background, Fill};
-use egui_kittest::Harness;
-use egui_kittest::kittest::Queryable;
 use serde_json::json;
 
 use crate::{Services, SlideApp};

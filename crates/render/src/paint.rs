@@ -1,11 +1,11 @@
 //! Fills: solid, gradient, picture and pattern paints.
 
+use kurbo::{Affine, BezPath, Point, Rect, Shape as _};
 use localslides_color::Rgba;
 use localslides_geom::preset::FillMode;
 use localslides_model::resolve::Ctx;
 use localslides_model::style::{ColorRef, Fill, GradientShape, PictureFill, PictureMode};
 use localslides_model::{PhType, Presentation};
-use kurbo::{Affine, BezPath, Point, Rect, Shape as _};
 use vello_cpu::{RenderContext, peniko};
 
 use crate::{color, images, shade};

@@ -1,10 +1,10 @@
 //! The Selection pane driven like a person would: clicks, Ctrl+click, drag and drop, the eye,
 //! the padlock, renaming and the keyboard.
 
-use localslides_engine::Session;
 use egui::{Modifiers, Pos2};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
+use localslides_engine::Session;
 use serde_json::json;
 
 use crate::{Services, SlideApp};

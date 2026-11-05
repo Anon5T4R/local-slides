@@ -1,9 +1,9 @@
 //! Photo Album dialog: the Insert ribbon opens it, and Create inserts the pictures in one step.
 
-use localslides_engine::Session;
-use localslides_model::ShapeKind;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
+use localslides_engine::Session;
+use localslides_model::ShapeKind;
 use serde_json::json;
 
 use crate::{Services, SlideApp};

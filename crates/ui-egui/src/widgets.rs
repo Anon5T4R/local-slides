@@ -1,9 +1,9 @@
 //! Ribbon widgets: large and small buttons, split buttons, groups, dropdowns, spinners, the colour
 //! picker and galleries.
 
+use egui::{Align2, Color32, CornerRadius, Rect, Response, Sense, Stroke, Ui, Vec2, pos2, vec2};
 use localslides_color::{ColorScheme, Rgba, SchemeSlot};
 use localslides_model::ColorRef;
-use egui::{Align2, Color32, CornerRadius, Rect, Response, Sense, Stroke, Ui, Vec2, pos2, vec2};
 
 use crate::icons::{self, Icon};
 use crate::theme::{self, Tokens};

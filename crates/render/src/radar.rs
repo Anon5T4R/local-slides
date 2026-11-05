@@ -1,11 +1,11 @@
 //! Radar charts: one spoke per category, the value axis running up the first spoke, a polygon
 //! of gridlines per major unit and each series a closed polygon (filled for a filled radar).
 
+use kurbo::{Affine, BezPath, Point, Rect, Shape as _};
 use localslides_color::Rgba;
 use localslides_model::chart::{Chart, ChartType};
 use localslides_model::resolve::Ctx;
 use localslides_model::text::{Align, Anchor};
-use kurbo::{Affine, BezPath, Point, Rect, Shape as _};
 use vello_cpu::RenderContext;
 
 use crate::chart::{label, series_fill, series_line};

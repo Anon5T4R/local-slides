@@ -4,7 +4,9 @@
 use std::collections::HashMap;
 
 use localslides_color::{ColorTransform, Rgba, SchemeSlot};
-use localslides_model::style::{Dash, Glow, Gradient, GradientShape, GradientStop, LineEnd, PatternFill, PictureFill, PictureMode, Reflection, Shadow};
+use localslides_model::style::{
+    Dash, Glow, Gradient, GradientShape, GradientStop, LineEnd, PatternFill, PictureFill, PictureMode, Reflection, Shadow,
+};
 use localslides_model::{ColorRef, Effects, Fill, Geom, Line, ShapeId, ShapeStyle};
 use serde_json::{Value, json};
 

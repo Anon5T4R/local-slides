@@ -181,7 +181,8 @@ mod tests {
             assert!(paths[0].d.contains('M') && paths[0].d.contains('C'));
             let width = sh.line.as_ref().and_then(|l| l.width).unwrap();
             assert!((width - 6.0).abs() < 1e-6, "{width}");
-            let img = localslides_render::render_slide(&st.doc, st.selection.slide, &localslides_render::RenderOpts { scale: 2.0, ..Default::default() });
+            let img =
+                localslides_render::render_slide(&st.doc, st.selection.slide, &localslides_render::RenderOpts { scale: 2.0, ..Default::default() });
             let ink = ink_in(&img, 100.0, 80.0, 72.0, 72.0, 2.0);
             assert!(ink > 40, "star stroke pixels {ink}");
             let mid = img.pixel((100.0 + 36.0) as u32 * 2, (80.0 + 36.0) as u32 * 2);
@@ -197,7 +198,8 @@ mod tests {
             let sh = st.shapes().iter().find(|s| s.name == "Arrow right").unwrap();
             let width = sh.line.as_ref().and_then(|l| l.width).unwrap();
             assert!((width - 8.0).abs() < 1e-6, "{width}");
-            let img = localslides_render::render_slide(&st.doc, st.selection.slide, &localslides_render::RenderOpts { scale: 2.0, ..Default::default() });
+            let img =
+                localslides_render::render_slide(&st.doc, st.selection.slide, &localslides_render::RenderOpts { scale: 2.0, ..Default::default() });
             assert!(ink_in(&img, 200.0, 200.0, 96.0, 96.0, 2.0) > 40);
         }
 

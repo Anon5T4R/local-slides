@@ -1,10 +1,10 @@
 //! The Eyedropper on the slide canvas through real egui input.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use localslides_engine::Session;
 use egui::{Event, Id, Key, Modifiers, PointerButton, Pos2};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
+use localslides_engine::Session;
 use serde_json::json;
 
 use crate::eyedropper::{note_open_menu, request, result_waits_for, take_result};

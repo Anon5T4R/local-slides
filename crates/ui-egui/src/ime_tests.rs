@@ -812,7 +812,8 @@ fn a_settling_batch_cannot_land_an_ime_event_in_the_next_target() {
 
     // A plain press on B settles the composition (PowerPoint does the same) and selects B. Its
     // queued pre-edit and commit travel in the same input batch as the settling pass.
-    let press = localslides_engine::tools::PointerEvent { kind: localslides_engine::tools::PointerKind::Down, x: 500.0, y: 450.0, ..Default::default() };
+    let press =
+        localslides_engine::tools::PointerEvent { kind: localslides_engine::tools::PointerKind::Down, x: 500.0, y: 450.0, ..Default::default() };
     h.state_mut().session.pointer(press).unwrap();
     h.input_mut().events.push(preedit("nihon"));
     h.input_mut().events.push(Event::Ime(ImeEvent::Commit("nihon".into())));

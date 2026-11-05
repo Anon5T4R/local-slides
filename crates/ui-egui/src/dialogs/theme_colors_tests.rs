@@ -1,9 +1,9 @@
 //! Design › Colors › Customize Colors… opens Create New Theme Colors and saves in one step.
 
-use localslides_color::SchemeSlot;
-use localslides_engine::Session;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
+use localslides_color::SchemeSlot;
+use localslides_engine::Session;
 
 use crate::{Services, SlideApp};
 

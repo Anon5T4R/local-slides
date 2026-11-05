@@ -2,11 +2,11 @@
 //! the outlines of the selected shapes. The result takes the formatting of the first selected
 //! shape, like PowerPoint.
 
-use localslides_geom::{PathEl, Rect, Xfrm};
-use localslides_model::{CustomPath, Geom, Shape, ShapeId, ShapeKind};
 use i_overlay::core::fill_rule::FillRule;
 use i_overlay::core::overlay_rule::OverlayRule;
 use i_overlay::float::single::SingleFloatOverlay;
+use localslides_geom::{PathEl, Rect, Xfrm};
+use localslides_model::{CustomPath, Geom, Shape, ShapeId, ShapeKind};
 use serde_json::{Value, json};
 
 use super::{CommandSpec, NO_ID_SPACE, bad, cmd, has_two, str_param, targets, xfrm_of};

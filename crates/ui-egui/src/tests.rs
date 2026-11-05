@@ -196,8 +196,10 @@ fn change_picture_replaces_the_selected_picture() {
         pics[0]
     };
     let insert = |app: &mut SlideApp| {
-        let id = app.session.execute("insert.picture", &json!({"name": "a.svg", "data": localslides_engine::cmd::base64_encode(&svg("red"))})).unwrap()
-            ["id"]
+        let id = app
+            .session
+            .execute("insert.picture", &json!({"name": "a.svg", "data": localslides_engine::cmd::base64_encode(&svg("red"))}))
+            .unwrap()["id"]
             .clone();
         app.session.execute("edit.select", &json!({"ids": [id]})).unwrap();
         media(app)

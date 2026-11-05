@@ -493,7 +493,12 @@ fn paste_picture(s: &mut Session) -> Result<Value> {
         sh.id = gid;
         sh
     } else {
-        Shape { id: gid, xfrm: Some(gx), kind: localslides_model::ShapeKind::Group { children: clip.shapes.clone(), child: gx }, ..Default::default() }
+        Shape {
+            id: gid,
+            xfrm: Some(gx),
+            kind: localslides_model::ShapeKind::Group { children: clip.shapes.clone(), child: gx },
+            ..Default::default()
+        }
     };
     slide.shapes = vec![one];
     const SCALE: f64 = 2.0;

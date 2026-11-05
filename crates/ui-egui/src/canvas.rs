@@ -6,10 +6,10 @@
 //! slide are drawn on the area around it (the pasteboard), where they can be selected and moved;
 //! the slide show, exports and thumbnails clip to the slide.
 
+use egui::{Align2, Color32, CornerRadius, Pos2, Rect, Sense, Stroke, Ui, pos2, vec2};
 use localslides_engine::tools::{Hit, box_handles};
 use localslides_engine::{Mods, PointerEvent, PointerKind, Target, ToolKind};
 use localslides_geom::{Point, Xfrm};
-use egui::{Align2, Color32, CornerRadius, Pos2, Rect, Sense, Stroke, Ui, pos2, vec2};
 use serde_json::json;
 
 use crate::SlideApp;

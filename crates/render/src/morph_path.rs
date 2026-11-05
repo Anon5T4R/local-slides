@@ -1,11 +1,11 @@
 //! Morph of an outline: a frame shape whose geometry turns from the old shape's into its own (a
 //! circle into a star), with the points aligned by `localslides_geom::morph`.
 
+use kurbo::Vec2;
 use localslides_geom::Xfrm;
 use localslides_geom::morph::{Fade, GeometryMorph};
 use localslides_geom::preset::Geometry;
 use localslides_model::{Geom, Shape, ShapeId};
-use kurbo::Vec2;
 
 use crate::shape_geometry;
 

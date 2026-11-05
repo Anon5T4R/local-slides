@@ -4,9 +4,9 @@
 //! is mapped through the warp, so straight glyph edges bend with the guides. Underlines and
 //! highlights are warped the same way.
 
+use kurbo::{Affine, BezPath, PathEl, Point, Rect, Shape as _};
 use localslides_geom::warp::{Warp, WarpLine};
 use localslides_text::{GlyphRun, TextLayout};
-use kurbo::{Affine, BezPath, PathEl, Point, Rect, Shape as _};
 use vello_cpu::{RenderContext, peniko};
 
 use crate::text_draw::LineIndex;

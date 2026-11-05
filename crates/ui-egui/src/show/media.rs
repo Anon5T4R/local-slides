@@ -299,8 +299,10 @@ mod hit_tests {
 
     #[test]
     fn parent_animation_does_not_move_child_hit_box() {
-        let shapes =
-            [shape(1, None, localslides_geom::Rect::new(0.0, 0.0, 100.0, 100.0)), shape(2, Some(0), localslides_geom::Rect::new(10.0, 10.0, 30.0, 30.0))];
+        let shapes = [
+            shape(1, None, localslides_geom::Rect::new(0.0, 0.0, 100.0, 100.0)),
+            shape(2, Some(0), localslides_geom::Rect::new(10.0, 10.0, 30.0, 30.0)),
+        ];
         let states = [AnimState { offset_x: 40.0, ..Default::default() }, AnimState::default()];
 
         let unchanged = hit_point((15.0, 20.0), &shapes, &states, 1);

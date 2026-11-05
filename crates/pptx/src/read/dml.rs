@@ -313,7 +313,8 @@ pub fn effects(el: &El) -> Effects {
                     "gradFill" => Some(Fill::Gradient(gradient(f))),
                     _ => None,
                 });
-                fx.fill_overlay = fill.map(|fill| localslides_model::style::FillOverlay { blend: e.attr("blend").unwrap_or("over").to_string(), fill });
+                fx.fill_overlay =
+                    fill.map(|fill| localslides_model::style::FillOverlay { blend: e.attr("blend").unwrap_or("over").to_string(), fill });
             }
             "reflection" => {
                 fx.reflection = Some(Reflection {

@@ -6,10 +6,10 @@
 
 use std::sync::Arc;
 
-use localslides_model::edit;
-use localslides_model::text::{Bullet, Paragraph, RunProps, Strike, TextBody};
 use egui::text::{CCursor, Galley, LayoutJob, TextFormat};
 use egui::{Align2, Color32, Stroke, Ui, vec2};
+use localslides_model::edit;
+use localslides_model::text::{Bullet, Paragraph, RunProps, Strike, TextBody};
 
 use crate::theme;
 

@@ -1,10 +1,10 @@
 //! Format Shape ▸ Effects: the Shadow, Glow and Soft Edges preset tiles.
 
-use localslides_engine::Session;
-use localslides_model::style::Effects;
 use egui::accesskit::Toggled;
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
+use localslides_engine::Session;
+use localslides_model::style::Effects;
 use serde_json::json;
 
 use crate::{Services, SlideApp};

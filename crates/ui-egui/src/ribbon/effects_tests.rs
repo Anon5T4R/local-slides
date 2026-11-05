@@ -1,8 +1,8 @@
 //! Design ▸ Effects: the menu applies a theme effect scheme.
 
-use localslides_engine::Session;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
+use localslides_engine::Session;
 
 use crate::{Services, SlideApp};
 

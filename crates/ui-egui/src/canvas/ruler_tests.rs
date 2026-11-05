@@ -1,8 +1,8 @@
 //! The ruler's indent and tab markers driven with the mouse while editing text.
 
-use localslides_engine::Session;
 use egui::{Modifiers, PointerButton, Pos2};
 use egui_kittest::Harness;
+use localslides_engine::Session;
 use serde_json::json;
 
 use crate::{Services, SlideApp};

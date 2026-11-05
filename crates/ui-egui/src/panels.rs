@@ -1,8 +1,8 @@
 //! Task panes on the right: Format Shape, Format Background, Animation, Selection, Comments and
 //! Design Ideas.
 
-use localslides_model::{AnimClass, AnimStart, Fill, ShapeKind};
 use egui::{Align2, Color32, CornerRadius, Rect, Sense, Stroke, Ui, pos2, vec2};
+use localslides_model::{AnimClass, AnimStart, Fill, ShapeKind};
 use serde_json::{Value, json};
 
 use crate::icons::{self, Icon};
@@ -132,11 +132,11 @@ mod pattern_fill_tests;
 mod tests {
     #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+    use egui_kittest::Harness;
+    use egui_kittest::kittest::{NodeT, Queryable};
     use localslides_color::{ColorTransform, SchemeSlot};
     use localslides_engine::Session;
     use localslides_model::{ColorRef, Fill, ShapeId};
-    use egui_kittest::Harness;
-    use egui_kittest::kittest::{NodeT, Queryable};
     use serde_json::json;
 
     use super::{fill_transparency_to_apply, solid_fill_transparency_percent};

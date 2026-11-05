@@ -2,10 +2,10 @@
 //! type, direction, angle and a stop bar (add, drag, recolour, set transparency, remove stops); and
 //! the pattern editor: a gallery of the preset patterns with foreground and background colors.
 
+use egui::{Color32, CornerRadius, Rect, Sense, Stroke, Ui, pos2, vec2};
 use localslides_color::{ColorScheme, ColorTransform, SchemeSlot};
 use localslides_model::ColorRef;
 use localslides_model::style::{Gradient, GradientFlip, GradientShape, GradientStop, PatternFill};
-use egui::{Color32, CornerRadius, Rect, Sense, Stroke, Ui, pos2, vec2};
 use serde_json::{Value, json};
 
 use crate::ribbon::cref_param;

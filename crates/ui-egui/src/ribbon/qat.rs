@@ -121,8 +121,9 @@ pub fn run_index(app: &mut SlideApp, index: usize) -> bool {
 }
 
 fn tip(q: &QatItem, index: usize, mac: bool) -> String {
-    let sc =
-        localslides_engine::find_command(&q.id).and_then(|c| c.shortcut).or_else(|| crate::UI_COMMANDS.iter().find(|c| c.0 == q.id).and_then(|c| c.2));
+    let sc = localslides_engine::find_command(&q.id)
+        .and_then(|c| c.shortcut)
+        .or_else(|| crate::UI_COMMANDS.iter().find(|c| c.0 == q.id).and_then(|c| c.2));
     let qat_sc = if !mac && index < 9 { Some(format!("Alt+{}", index + 1)) } else { None };
     match (sc, qat_sc) {
         (Some(s), Some(qsc)) => format!("{} ({}, {})", q.label, crate::ribbon::pretty_shortcut(s), qsc),

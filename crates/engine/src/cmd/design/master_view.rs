@@ -316,7 +316,8 @@ pub(super) fn insert_placeholder(s: &mut Session, p: &Value) -> Result<Value> {
         return Err(bad("master.insertPlaceholder", "select a layout in Slide Master view"));
     }
     let size = s.doc()?.doc.slide_size;
-    let rect = rect_param(p, "rect").unwrap_or(localslides_geom::Xfrm::new(size.width * 0.25, size.height * 0.3, size.width * 0.5, size.height * 0.4));
+    let rect =
+        rect_param(p, "rect").unwrap_or(localslides_geom::Xfrm::new(size.width * 0.25, size.height * 0.3, size.width * 0.5, size.height * 0.4));
     let idx = s.doc()?.shapes().iter().filter_map(|x| x.ph.as_ref().map(|p| p.idx)).max().unwrap_or(0) + 1;
     let shape = Shape {
         xfrm: Some(rect),

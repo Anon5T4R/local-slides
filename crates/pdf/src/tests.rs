@@ -2,9 +2,9 @@ use std::sync::Arc;
 
 use std::collections::HashMap;
 
+use kurbo::Rect;
 use localslides_fonts::FontDb;
 use localslides_render::RenderOpts;
-use kurbo::Rect;
 
 use super::{
     MAX_RASTER_PIXELS, PAPERS, PageLayout, PdfError, PdfOptions, Presentation, export, fill_clear, glyph_text_ranges, handout_boxes,
@@ -115,8 +115,8 @@ fn metadata_retains_values_and_omits_blank_fields() {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), test)]
 fn text_layer_links_and_bookmarks_survive_serialization() {
-    use localslides_model::text::{Action, Hyperlink};
     use hayro_syntax::object::{Array, Dict};
+    use localslides_model::text::{Action, Hyperlink};
     let mut p = deck(2);
     let last = p.slides[1].id;
     let slide = Arc::make_mut(&mut p.slides[0]);
@@ -145,9 +145,9 @@ fn text_layer_links_and_bookmarks_survive_serialization() {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), test)]
 fn unsafe_url_links_are_not_exported() {
+    use hayro_syntax::object::{Array, Dict, String as PdfString};
     use localslides_model::text::{Action, Hyperlink};
     use localslides_model::{Shape, ShapeId, Xfrm};
-    use hayro_syntax::object::{Array, Dict, String as PdfString};
     let safe = ["https://example.com/deck", "mailto:someone@example.com"];
     let refused = [
         "file:///C:/talks/notes.pdf",
@@ -557,8 +557,8 @@ fn master_text_wraps_and_keeps_mixed_formatting() {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test::wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), test)]
 fn slides_share_one_backdrop_raster_and_keep_their_pixels() {
-    use localslides_model::{Shape, ShapeId, Xfrm};
     use hayro_syntax::object::{Dict, Number, Stream};
+    use localslides_model::{Shape, ShapeId, Xfrm};
 
     /// The image XObjects the export stores, one entry per distinct object: the pages that draw
     /// it, its filters, color channel, alpha channel (the SMask) and pixel size.

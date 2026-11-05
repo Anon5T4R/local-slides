@@ -1,9 +1,9 @@
 //! Insert > Icons popup (#971): clicking inside it, e.g. in the "Search icons" box, must not close it.
 #![allow(clippy::expect_used)]
 
-use localslides_engine::Session;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
+use localslides_engine::Session;
 
 use crate::{Services, SlideApp};
 

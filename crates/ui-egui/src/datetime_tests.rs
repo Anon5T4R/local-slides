@@ -1,10 +1,10 @@
 //! Insert › Date and Time, driven like a person: the ribbon opens the dialog, a format is
 //! chosen, OK inserts it in one undo, Cancel leaves the slide alone.
 
-use localslides_engine::Session;
-use localslides_model::text::RunKind;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
+use localslides_engine::Session;
+use localslides_model::text::RunKind;
 use serde_json::json;
 
 use crate::{Services, SlideApp};

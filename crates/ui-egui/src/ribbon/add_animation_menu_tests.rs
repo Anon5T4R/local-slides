@@ -1,8 +1,8 @@
 //! Add Animation (#1370): the menu scrolls, so the last effect can be reached and added.
 
-use localslides_engine::Session;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
+use localslides_engine::Session;
 use serde_json::json;
 
 use crate::{Services, SlideApp};

@@ -101,9 +101,9 @@ pub(super) fn picture(s: &mut Session, p: &Value) -> Result<Value> {
         d.selected_shapes()
             .into_iter()
             .find(|x| {
-                x.ph_type()
-                    .is_some_and(|k| matches!(k, localslides_model::PhType::Picture | localslides_model::PhType::Obj | localslides_model::PhType::Body))
-                    && x.text.as_ref().is_none_or(|t| t.is_empty())
+                x.ph_type().is_some_and(|k| {
+                    matches!(k, localslides_model::PhType::Picture | localslides_model::PhType::Obj | localslides_model::PhType::Body)
+                }) && x.text.as_ref().is_none_or(|t| t.is_empty())
             })
             .map(|x| (x.id, xfrm_of(&d.doc, &d.selection, x)))
     });

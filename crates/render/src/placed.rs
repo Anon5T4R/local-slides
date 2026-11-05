@@ -1,11 +1,11 @@
 //! Laid-out text and click areas of a slide, in slide coordinates, without drawing — for exports
 //! that put real text over a raster (PDF text layer, links) and for text extraction.
 
+use kurbo::{Affine, Rect};
 use localslides_model::resolve::{self, Ctx};
 use localslides_model::text::{Hyperlink, RunKind, TextBody};
 use localslides_model::{Presentation, Shape, ShapeId, ShapeKind};
 use localslides_text::{Fields, Opts, TextLayout};
-use kurbo::{Affine, Rect};
 
 use crate::{SlideFields, shape_geometry, table};
 
@@ -210,7 +210,8 @@ pub fn text_outline(rctx: &Ctx, s: &Shape, m: Affine) -> (kurbo::BezPath, Option
     let Some(body) = s.text.as_ref().filter(|b| !b.is_empty()) else { return (out, None) };
     let x = resolve::xfrm(rctx, s);
     let tr = shape_geometry(s, x.w, x.h).text_rect;
-    let layout = localslides_text::layout(rctx, s, body, &Opts { rect: tr, fields: &localslides_text::NoFields, prompt_color: None, no_shrink: false });
+    let layout =
+        localslides_text::layout(rctx, s, body, &Opts { rect: tr, fields: &localslides_text::NoFields, prompt_color: None, no_shrink: false });
     let m = crate::text_transform(m, tr, layout.rotation);
     let mut first = None;
     for run in &layout.runs {

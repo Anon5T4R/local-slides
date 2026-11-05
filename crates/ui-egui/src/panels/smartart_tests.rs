@@ -1,9 +1,9 @@
 //! The SmartArt Text Pane driven like a person would: type in a line, Enter for a new line, Tab
 //! to demote.
 
-use localslides_engine::Session;
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
+use localslides_engine::Session;
 use serde_json::json;
 
 use crate::{Services, SlideApp};

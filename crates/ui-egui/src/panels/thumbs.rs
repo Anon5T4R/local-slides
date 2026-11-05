@@ -3,9 +3,9 @@
 
 use std::collections::HashSet;
 
+use egui::{Align2, Color32, CornerRadius, Rect, Role, Sense, Stroke, Ui, WidgetInfo, pos2, vec2};
 use localslides_engine::Target;
 use localslides_model::SlideId;
-use egui::{Align2, Color32, CornerRadius, Rect, Role, Sense, Stroke, Ui, WidgetInfo, pos2, vec2};
 use serde_json::json;
 
 use crate::SlideApp;

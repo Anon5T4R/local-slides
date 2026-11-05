@@ -8,9 +8,9 @@
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
 
-use localslides_engine::Session;
 use egui::{Event, Key, Modifiers, MouseWheelSource, MouseWheelUnit, Pos2, vec2};
 use egui_kittest::Harness;
+use localslides_engine::Session;
 
 use crate::{Services, SlideApp};
 

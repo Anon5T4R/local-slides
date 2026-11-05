@@ -2,11 +2,11 @@
 //! in the old text to their place in the new one, growing or shrinking to the new size; the rest
 //! of the old text fades out and the rest of the new one fades in, both riding the moving box.
 
+use kurbo::{Affine, Point, Vec2};
 use localslides_geom::Xfrm;
 use localslides_model::resolve::Ctx;
 use localslides_model::{Shape, ShapeId};
 use localslides_text::{Fields, GlyphRun, Opts, TextLayout};
-use kurbo::{Affine, Point, Vec2};
 use vello_cpu::RenderContext;
 
 use crate::{color, draw_glyph, draw_layout, shape_geometry, text_transform};

@@ -430,8 +430,11 @@ fn draw_transition(show: &mut Show, f: &Fr, sl: &Sl, painter: &egui::Painter, te
         let threads = if cfg!(target_arch = "wasm32") { 0 } else { std::thread::available_parallelism().map(|n| n.get().min(8) as u16).unwrap_or(0) };
         let opts =
             RenderOpts { scale: size.0 as f64 / doc.slide_size.width.max(1.0), size: Some(size), state: Some(&f), threads, ..Default::default() };
-        let text: Vec<localslides_render::TextMorph> =
-            m.text.iter().map(|x| localslides_render::TextMorph { old: x.old, new: x.new, from: x.from, to: x.to, chars: x.chars, t: m.mix }).collect();
+        let text: Vec<localslides_render::TextMorph> = m
+            .text
+            .iter()
+            .map(|x| localslides_render::TextMorph { old: x.old, new: x.new, from: x.from, to: x.to, chars: x.chars, t: m.mix })
+            .collect();
         let paths: Vec<localslides_render::PathMorph> = m
             .paths
             .iter()

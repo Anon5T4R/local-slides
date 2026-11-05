@@ -164,7 +164,8 @@ fn picture_pixel_at(s: &Session, p: &Value, at: &Value) -> Result<(ShapeId, Rgba
         let Some((sh, xf, to_slide)) = placed(&st.doc, &st.selection, shapes, id, Affine::IDENTITY, 0) else { continue };
         let ShapeKind::Picture { fill } = &sh.kind else { continue };
         // The camera turns the picture where it is drawn, so the click is mapped back through it too.
-        let turn = text::ctx_for(&st.doc, &st.selection).and_then(|c| localslides_render::camera_turn(&c, sh, xf.w, xf.h)).unwrap_or(Affine::IDENTITY);
+        let turn =
+            text::ctx_for(&st.doc, &st.selection).and_then(|c| localslides_render::camera_turn(&c, sh, xf.w, xf.h)).unwrap_or(Affine::IDENTITY);
         let local = (to_slide * turn).inverse() * Point::new(x, y);
         if !(local.is_finite() && (0.0..=xf.w).contains(&local.x) && (0.0..=xf.h).contains(&local.y)) {
             continue;

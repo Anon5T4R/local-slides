@@ -171,7 +171,8 @@ fn write_master_date(s: &mut Session, o: &DateOpts) -> Result<Value> {
     let (format, sample, lang, update) = (o.format.clone(), o.sample.clone(), o.lang.clone(), o.update);
     let has_date = {
         let st = s.doc()?;
-        crate::page_master(&st.doc, st.selection.target).is_some_and(|m| m.shapes.iter().any(|x| x.ph_type() == Some(localslides_model::PhType::Date)))
+        crate::page_master(&st.doc, st.selection.target)
+            .is_some_and(|m| m.shapes.iter().any(|x| x.ph_type() == Some(localslides_model::PhType::Date)))
     };
     if !has_date {
         return Err(bad(

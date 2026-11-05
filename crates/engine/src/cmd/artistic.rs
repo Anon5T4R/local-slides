@@ -4,9 +4,9 @@
 //! the original is kept (`PictureFill::artistic`) so the effect can be changed or removed, and
 //! both are saved (`a14:imgLayer`). The effects approximate PowerPoint's look.
 
+use image::{GrayImage, Rgba, RgbaImage};
 use localslides_model::style::Artistic;
 use localslides_model::{MediaId, ShapeId, ShapeKind};
-use image::{GrayImage, Rgba, RgbaImage};
 use serde_json::{Value, json};
 
 use super::{CommandSpec, NO_ID_SPACE, bad, cmd, has_selection, str_param, targets};

@@ -920,7 +920,8 @@ fn modern_comment(
     let ai = author_slot(c, authors, author_map);
     let author = authors.get(ai).map(|(n, _, _)| n.clone()).unwrap_or_default();
     let dt = if valid_date(&c.date) { c.date.clone() } else { "2024-01-01T00:00:00.000".into() };
-    let mut a = A::new().a("id", crate::tables::guid(&format!("localslides-comment:{part}:{ti}"))).a("authorId", author_guid(&author)).a("created", dt);
+    let mut a =
+        A::new().a("id", crate::tables::guid(&format!("localslides-comment:{part}:{ti}"))).a("authorId", author_guid(&author)).a("created", dt);
     if c.resolved {
         a = a.a("status", "resolved");
     }

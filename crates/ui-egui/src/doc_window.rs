@@ -4,8 +4,8 @@
 //! selection. It does not edit, and Arrange All is not here. Closing the window leaves the
 //! presentation open.
 
-use localslides_render::RenderOpts;
 use egui::{Color32, CornerRadius, Rect, RichText, pos2, vec2};
+use localslides_render::RenderOpts;
 use serde_json::{Value, json};
 
 use crate::SlideApp;

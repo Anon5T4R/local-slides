@@ -35,6 +35,7 @@ mod warp;
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use kurbo::{Affine, BezPath, PathEl, Point, Rect, Shape as _, Vec2};
 use localslides_color::Rgba;
 use localslides_fonts::FontDb;
 use localslides_geom::preset::{self, FillMode, Geometry, SubPath};
@@ -44,13 +45,12 @@ use localslides_model::text::TextBody;
 use localslides_model::{Geom, PhType, Presentation, Shape, ShapeId, ShapeKind, Slide};
 use localslides_text::datetime::{self, DateTime};
 use localslides_text::{Fields, Opts};
-use kurbo::{Affine, BezPath, PathEl, Point, Rect, Shape as _, Vec2};
 use vello_common::filter_effects::{EdgeMode, Filter, FilterPrimitive};
 use vello_cpu::{RenderContext, Resources, peniko};
 
-pub use localslides_anim::{transition_frame, transition_layers, uses_slide_parts};
 pub use extent::{Region, TILE, layout_extent, pasteboard_region, slide_extent};
 pub use images::{decode as decode_image, gif_frame};
+pub use localslides_anim::{transition_frame, transition_layers, uses_slide_parts};
 pub use morph_path::PathMorph;
 pub use morph_text::TextMorph;
 pub use pattern::{is_fg as pattern_is_fg, presets as pattern_presets, tile as pattern_tile};

@@ -2,10 +2,10 @@
 //! mouse: a press on it used to reach the canvas, start a selection marquee there and hide the bar
 //! before the click landed, so Play only worked in the slide show.
 
-use localslides_engine::Session;
-use localslides_model::ShapeId;
 use egui::{Modifiers, PointerButton, Pos2, pos2, vec2};
 use egui_kittest::Harness;
+use localslides_engine::Session;
+use localslides_model::ShapeId;
 use serde_json::json;
 
 use crate::{Services, SlideApp};

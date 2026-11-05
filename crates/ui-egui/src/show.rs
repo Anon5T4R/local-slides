@@ -2,11 +2,11 @@
 //! keyboard/mouse navigation, pen, black/white screens, See All Slides, zoom, presenter view
 //! and rehearsed timings.
 
+use egui::{Align2, Color32, CornerRadius, Mesh, Pos2, Rect, Sense, Stroke, TextureHandle, Ui, pos2, vec2};
 use localslides_anim::{Click, HitShape, Layer, LinkJump, ShowAction, ShowState, Source, StepStamp, Timeline, TriggerPlay};
 use localslides_model::text::Hyperlink;
 use localslides_model::{Presentation, ShapeId};
 use localslides_render::{ParaState, PlacedLink, PlacedShape, RenderOpts, ShapeState};
-use egui::{Align2, Color32, CornerRadius, Mesh, Pos2, Rect, Sense, Stroke, TextureHandle, Ui, pos2, vec2};
 use serde_json::json;
 
 use crate::SlideApp;

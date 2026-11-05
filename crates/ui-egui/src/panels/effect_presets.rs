@@ -1,8 +1,8 @@
 //! Format Shape ▸ Effects: preset tiles that draw what each Shadow, Glow and Soft Edges preset does
 //! to a small card, so the choice is made by looking rather than by reading names.
 
-use localslides_model::style::Effects;
 use egui::{Color32, CornerRadius, Painter, Rect, Role, Sense, Stroke, StrokeKind, Ui, WidgetInfo, pos2, vec2};
+use localslides_model::style::Effects;
 
 use crate::theme::Tokens;
 

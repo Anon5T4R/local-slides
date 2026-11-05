@@ -1,10 +1,10 @@
 //! Draw › Ink to Shape driven through the ribbon: pen a rough rectangle on the slide with the
 //! mouse, press the button, get a rectangle shape.
 
-use localslides_engine::Session;
 use egui::{Modifiers, PointerButton, Pos2};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
+use localslides_engine::Session;
 use serde_json::json;
 
 use crate::{Services, SlideApp};

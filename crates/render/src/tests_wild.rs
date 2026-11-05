@@ -5,10 +5,10 @@ use super::{
     BezPath, Fill, Image, Line, MAX_DASHES, PathEl, Point, Rect, RenderOpts, ShapeKind, dash_with_caps, head_size, images, limit_dash_count, paint,
     render_slide, trim_ends,
 };
+use kurbo::Shape as _;
 use localslides_color::Rgba;
 use localslides_model::style::ColorRef;
 use localslides_model::{CustomPath, Geom, Presentation, Shape, ShapeId, Xfrm};
-use kurbo::Shape as _;
 
 fn deck_with(shapes: Vec<Shape>) -> Presentation {
     let mut p = Presentation::default();

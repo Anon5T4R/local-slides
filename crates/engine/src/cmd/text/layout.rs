@@ -117,7 +117,12 @@ pub fn text_frame(st: &DocState, t: &TextSel) -> Option<(localslides_text::TextL
     let sh = st.shape(t.shape)?;
     let ctx = ctx_for(&st.doc, &st.selection)?;
     let lay = |s: &Shape, body: &TextBody, rect: Rect| {
-        localslides_text::layout(&ctx, s, body, &localslides_text::Opts { rect, fields: &localslides_text::NoFields, prompt_color: None, no_shrink: false })
+        localslides_text::layout(
+            &ctx,
+            s,
+            body,
+            &localslides_text::Opts { rect, fields: &localslides_text::NoFields, prompt_color: None, no_shrink: false },
+        )
     };
     if let Some((r, c)) = t.cell {
         // A cell's text is laid out in the cell's rect with the cell's margins, anchor and the

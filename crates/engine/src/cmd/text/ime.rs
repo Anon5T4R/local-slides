@@ -354,7 +354,8 @@ pub fn cell_range_underlines(
     let localslides_model::ShapeKind::Table(tb) = &sh.kind else { return vec![] };
     let (Some(cell), Some(ctx)) = (tb.cell(row, col), ctx_for(&st.doc, &st.selection)) else { return vec![] };
     let heights = crate::cmd::table_drawn_heights(&st.doc, &st.selection, tb);
-    let Some(rect) = localslides_render::table_cell_rects(tb, &heights).into_iter().find(|(r, c, _)| *r == row && *c == col).map(|(_, _, r)| r) else {
+    let Some(rect) = localslides_render::table_cell_rects(tb, &heights).into_iter().find(|(r, c, _)| *r == row && *c == col).map(|(_, _, r)| r)
+    else {
         return vec![];
     };
     let body = localslides_render::table_cell_body(&ctx, tb, row, col, cell);

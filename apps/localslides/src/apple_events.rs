@@ -9,8 +9,8 @@
 //! registered before Finder's launch event that leaves winit's delegate alone, behind a safe
 //! main-thread API.
 
-use localslides_ui_egui::SlideApp;
 use fmv_macos_events::{Event, Inbox, Registration};
+use localslides_ui_egui::SlideApp;
 
 /// Keeps the Apple-event handlers registered; hold it until the event loop returns.
 pub struct AppleEvents {

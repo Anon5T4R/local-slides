@@ -2,11 +2,11 @@
 //! every style.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
+use egui_kittest::Harness;
+use egui_kittest::kittest::Queryable;
 use localslides_engine::Session;
 use localslides_engine::cmd::picture_style::STYLES;
 use localslides_model::{Geom, ShapeId};
-use egui_kittest::Harness;
-use egui_kittest::kittest::Queryable;
 use serde_json::json;
 
 use crate::{Services, SlideApp};

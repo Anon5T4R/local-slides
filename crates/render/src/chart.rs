@@ -2,13 +2,13 @@
 
 use std::collections::HashMap;
 
+use kurbo::{Affine, BezPath, Point, Rect, Shape as _};
 use localslides_color::{ColorTransform, Rgba, SchemeSlot};
 use localslides_model::Shape;
 use localslides_model::chart::{Chart, ChartType, TrendlineType, axis_scale};
 use localslides_model::resolve::Ctx;
 use localslides_model::style::{ColorRef, Fill};
 use localslides_model::text::{Align, Anchor, Bullet, TextBody};
-use kurbo::{Affine, BezPath, Point, Rect, Shape as _};
 use vello_cpu::RenderContext;
 
 use crate::color;
@@ -973,7 +973,8 @@ fn draw_bars(ctx: &mut RenderContext, draw: &BarDrawing<'_, '_>) -> Vec<(f64, f6
         let step = bar * (1.0 - ov);
         let group = bar + step * (n - 1.0);
         // Error bars need each series' mean and spread: worked out once, not per point.
-        let stats: Vec<localslides_model::chart::SeriesStats> = bars.iter().map(|(_, s)| localslides_model::chart::SeriesStats::of(&s.values)).collect();
+        let stats: Vec<localslides_model::chart::SeriesStats> =
+            bars.iter().map(|(_, s)| localslides_model::chart::SeriesStats::of(&s.values)).collect();
         // Each series' per-point fills by point (the first for a point wins), not searched per bar.
         let point_fills: Vec<HashMap<usize, &Fill>> = bars
             .iter()

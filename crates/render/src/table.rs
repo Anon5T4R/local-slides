@@ -1,5 +1,6 @@
 //! Tables: cell fills from the table style (or overrides), borders, and cell text.
 
+use kurbo::{Affine, BezPath, Rect, Shape as _};
 use localslides_color::{ColorTransform, Rgba, SchemeSlot};
 use localslides_model::resolve::Ctx;
 use localslides_model::style::{ColorRef, Fill};
@@ -7,7 +8,6 @@ use localslides_model::table::{Cell, Table, TableBorder, TablePart, TablePartSty
 use localslides_model::text::{Anchor, TextBody, TextDir};
 use localslides_model::{Presentation, Shape};
 use localslides_text::Fields;
-use kurbo::{Affine, BezPath, Rect, Shape as _};
 use vello_cpu::{RenderContext, peniko};
 
 use crate::color;
@@ -476,7 +476,8 @@ pub fn draw(
         let tmp = Shape::table_cell(body.clone());
         #[cfg(test)]
         TEXT_CELLS_DRAWN.with(|n| n.set(n.get() + 1));
-        let mut l = localslides_text::layout(rctx, &tmp, &body, &localslides_text::Opts { rect: *rect, fields, prompt_color: None, no_shrink: false });
+        let mut l =
+            localslides_text::layout(rctx, &tmp, &body, &localslides_text::Opts { rect: *rect, fields, prompt_color: None, no_shrink: false });
         if editing {
             crate::preview_empty_bullets(&mut l);
         }

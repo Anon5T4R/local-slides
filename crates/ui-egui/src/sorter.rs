@@ -2,8 +2,8 @@
 
 use std::collections::HashSet;
 
-use localslides_model::{Presentation, SlideId};
 use egui::{Align2, Color32, CornerRadius, Rect, Role, Sense, Stroke, Ui, WidgetInfo, pos2, vec2};
+use localslides_model::{Presentation, SlideId};
 use serde_json::json;
 
 use crate::SlideApp;

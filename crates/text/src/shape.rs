@@ -189,8 +189,9 @@ fn shape_cells(
         // (`a:sym`), which PowerPoint uses for the symbol codes alone (Wingdings' space is about
         // four times a text font's).
         // Emoji, and pictographs asked to look like text (U+FE0E), pick their own face.
-        let neutral =
-            cluster.iter().all(|c| script::script_of(*c).is_none()) && !localslides_fonts::is_emoji_cluster(cluster) && !cluster.contains(&'\u{FE0E}');
+        let neutral = cluster.iter().all(|c| script::script_of(*c).is_none())
+            && !localslides_fonts::is_emoji_cluster(cluster)
+            && !cluster.contains(&'\u{FE0E}');
         // A symbol-font character (U+F0xx) with an `a:sym` font draws in that font when it's there.
         // Some installed Symbol faces (Apple's on macOS) have no private-use mapping: they map the
         // glyphs to real Unicode, so the PUA code is remapped to that character when shaping.
