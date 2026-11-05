@@ -16,15 +16,6 @@
 </p>
 
 <p align="center">
-  <img alt="Written in Rust" src="https://img.shields.io/badge/written%20in-Rust-b7410e?style=flat-square&logo=rust&logoColor=white">
-  <img alt="Runs on macOS, Windows, Linux, BSD and the web" src="https://img.shields.io/badge/runs%20on-macOS%20%C2%B7%20Windows%20%C2%B7%20Linux%20%C2%B7%20BSD%20%C2%B7%20Web-f26b1d?style=flat-square">
-  <img alt="License: MIT OR Apache-2.0" src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-f26b1d?style=flat-square">
-  <img alt="Agent-drivable over MCP" src="https://img.shields.io/badge/agents-MCP%20%C2%B7%20CLI-d97706?style=flat-square">
-  <img alt="No account, no telemetry" src="https://img.shields.io/badge/no%20account-no%20telemetry-d97706?style=flat-square">
-  <br>
-</p>
-
-<p align="center">
   <a href="https://github.com/Anon5T4R/local-slides"><b>Local Slides on GitHub</b></a>
 </p>
 
