@@ -1,0 +1,51 @@
+# cargo-deny policy. Run with `cargo deny check` (cargo install cargo-deny --locked).
+# Code dependencies follow the same rule as assets (AGENTS.md): permissive licences only.
+# Copyleft (GPL, AGPL, LGPL) is never linked; such tools run only as external oracle processes.
+
+[graph]
+all-features = true
+
+[licenses]
+confidence-threshold = 0.9
+allow = [
+    "MIT",
+    "MIT-0",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "Unicode-3.0",
+    "BSL-1.0",
+    "CC0-1.0",
+]
+
+[licenses.private]
+ignore = true
+
+[bans]
+multiple-versions = "allow"
+wildcards = "deny"
+allow-wildcard-paths = true
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+# Nenhuma dependência git: tudo vem do crates.io (pinado pelo lock) ou de libs/ e
+# vendor/ (vendored, path deps). O CI recusa qualquer fonte git+ no Cargo.lock.
+allow-git = []
+
+[advisories]
+yanked = "warn"
+
+# egui's default UI fonts (Ubuntu-Light, Hack, emoji-icon-font): font licences on the AGENTS.md
+# allowlist, attributed in ATTRIBUTION.md as dependency-bundled assets.
+[[licenses.exceptions]]
+crate = "epaint_default_fonts"
+allow = ["OFL-1.1", "Ubuntu-font-1.0"]
+
+# The CA bundle reqwest brings is CDLA-Permissive-2.0 data, compiled into a build script only.
+[[licenses.exceptions]]
+crate = "webpki-root-certs"
+allow = ["CDLA-Permissive-2.0"]

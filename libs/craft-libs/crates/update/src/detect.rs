@@ -238,7 +238,13 @@ pub mod windows {
     /// (`Software\Anon5T4R\<Name>`), so both that and the upstream `<Name>` key are read, for
     /// every name the app has had.
     fn install_dir(app: &App) -> Option<PathBuf> {
-        [KEY_WOW64_64KEY, KEY_WOW64_32KEY].into_iter().find_map(|flags| {
+        [
+            (HKEY_LOCAL_MACHINE, KEY_WOW64_64KEY),
+            (HKEY_LOCAL_MACHINE, KEY_WOW64_32KEY),
+            (HKEY_CURRENT_USER, 0),
+        ]
+        .into_iter()
+        .find_map(|(hive, flags)| {
             app.names().find_map(|name| {
                 let suite_name: String = name.chars().filter(|c| !c.is_whitespace()).collect();
                 [
@@ -248,7 +254,7 @@ pub mod windows {
                 ]
                 .into_iter()
                 .find_map(|key| {
-                    let key = RegKey::predef(HKEY_LOCAL_MACHINE).open_subkey_with_flags(key, KEY_READ | flags).ok()?;
+                    let key = RegKey::predef(hive).open_subkey_with_flags(key, KEY_READ | flags).ok()?;
                     key.get_value::<String, _>("InstallDir").ok().filter(|d| !d.is_empty()).map(PathBuf::from)
                 })
             })
