@@ -38,11 +38,8 @@ jobs:
         with:
           components: rustfmt
       - uses: Swatinem/rust-cache@v2
-      - name: Formatação (nightly; só o nosso código — libs/ mantém o estilo de origem)
-        shell: bash
-        run: |
-          files=$(git ls-files '*.rs' | grep -v -E '^libs/')
-          rustfmt +nightly --edition 2024 --check $files
+      - name: Formatação (nightly; só o nosso código — libs/ fica fora do workspace)
+        run: cargo +nightly fmt --all -- --check
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
