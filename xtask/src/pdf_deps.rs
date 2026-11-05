@@ -60,6 +60,39 @@ pub fn run(root: &Path) -> Result<(), String> {
     Ok(())
 }
 
+/// Where a writer package may come from: the pinned upstream git revision, or the tree vendored
+/// under `libs/craft-libs` at that same revision (the local fork's path dependencies).
+#[derive(Clone, Copy)]
+enum SourceKind {
+    Vendored(&'static str),
+    Registry,
+}
+
+impl SourceKind {
+    fn describe(self) -> String {
+        match self {
+            Self::Vendored(dir) => format!("the pinned craft-libs revision or libs/craft-libs/{dir}"),
+            Self::Registry => REGISTRY.to_string(),
+        }
+    }
+
+    fn matches(self, package: &Value, git_source: &str) -> bool {
+        match self {
+            Self::Vendored(dir) => {
+                if package.get("source").and_then(Value::as_str) == Some(git_source) {
+                    return true;
+                }
+                package.get("source").is_none_or(Value::is_null)
+                    && package
+                        .get("manifest_path")
+                        .and_then(Value::as_str)
+                        .is_some_and(|p| p.replace('\\', "/").ends_with(&format!("/libs/craft-libs/{dir}/Cargo.toml")))
+            }
+            Self::Registry => package.get("source").and_then(Value::as_str) == Some(REGISTRY),
+        }
+    }
+}
+
 fn validate(metadata: &Value) -> Result<(), String> {
     let packages = metadata.get("packages").and_then(Value::as_array).ok_or("cargo metadata has no packages")?;
     let nodes = metadata.get("resolve").and_then(|r| r.get("nodes")).and_then(Value::as_array).ok_or("cargo metadata has no resolved nodes")?;
@@ -70,15 +103,15 @@ fn validate(metadata: &Value) -> Result<(), String> {
         }
         matches.first().copied().ok_or_else(|| format!("missing {name}"))
     };
-    let source = format!("git+https://github.com/storytold/craft-libs?rev={SHARED_REV}#{SHARED_REV}");
-    for (name, version, expected_source, expected_features) in [
-        ("craft-pdf", "0.1.0", source.as_str(), vec!["write", "write-simple-text"]),
-        ("krilla", "0.8.2", source.as_str(), vec!["raster-images", "rayon", "simple-text"]),
-        ("hayro-syntax", "0.7.2", REGISTRY, vec!["std"]),
+    let git_source = format!("git+https://github.com/storytold/craft-libs?rev={SHARED_REV}#{SHARED_REV}");
+    for (name, version, source_kind, expected_features) in [
+        ("craft-pdf", "0.1.0", SourceKind::Vendored("crates/pdf"), vec!["write", "write-simple-text"]),
+        ("krilla", "0.8.2", SourceKind::Vendored("vendor/krilla"), vec!["raster-images", "rayon", "simple-text"]),
+        ("hayro-syntax", "0.7.2", SourceKind::Registry, vec!["std"]),
     ] {
         let package = one_package(name)?;
-        if package.get("version").and_then(Value::as_str) != Some(version) || package.get("source").and_then(Value::as_str) != Some(expected_source) {
-            return Err(format!("{name}: expected {version} from {expected_source}; got {package}"));
+        if package.get("version").and_then(Value::as_str) != Some(version) || !source_kind.matches(package, &git_source) {
+            return Err(format!("{name}: expected {version} from {}; got {package}", source_kind.describe()));
         }
         let id = package.get("id").and_then(Value::as_str).ok_or_else(|| format!("{name}: missing package id"))?;
         let node = nodes.iter().find(|n| n.get("id").and_then(Value::as_str) == Some(id)).ok_or_else(|| format!("{name}: no resolved node"))?;
@@ -182,6 +215,18 @@ mod tests {
         let mut m = metadata();
         let duplicate = m["packages"][2].clone();
         m["packages"].as_array_mut().unwrap().push(duplicate);
+        assert!(validate(&m).is_err());
+    }
+
+    #[test]
+    fn accepts_the_vendored_writer_tree() {
+        let mut m = metadata();
+        for (index, dir) in [(1, "crates/pdf"), (2, "vendor/krilla")] {
+            m["packages"][index]["source"] = Value::Null;
+            m["packages"][index]["manifest_path"] = json!(format!("C:/repo/libs/craft-libs/{dir}/Cargo.toml"));
+        }
+        assert!(validate(&m).is_ok());
+        m["packages"][1]["manifest_path"] = json!("C:/repo/vendor/pdf/Cargo.toml");
         assert!(validate(&m).is_err());
     }
 
