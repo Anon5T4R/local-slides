@@ -1,1 +1,61 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect x="16" y="16" width="480" height="480" rx="111.84" fill="#f26b1d"/><rect x="246" y="330" width="20" height="110" fill="#0b0b0c"/><rect x="176" y="430" width="160" height="18" fill="#0b0b0c"/><rect x="86" y="96" width="340" height="244" rx="14.64" fill="#efe9dc" stroke="#0b0b0c" stroke-width="12"/><rect x="126" y="136" width="170" height="20" fill="#0b0b0c"/><rect x="136" y="236" width="46" height="70" fill="#f26b1d"/><rect x="202" y="196" width="46" height="110" fill="#0b0b0c"/><rect x="268" y="166" width="46" height="140" fill="#f26b1d"/><circle cx="364" cy="178" r="28" fill="#0b0b0c"/></svg>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fb923c"/>
+      <stop offset="1" stop-color="#c2410c"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="slide" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ffedd5"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#7c2d12" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- tile âmbar do Local Slides -->
+  <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#bg)"/>
+  <rect x="64" y="64" width="896" height="512" rx="200" fill="url(#sheen)"/>
+
+  <!-- telão de apresentação -->
+  <g filter="url(#shadow)">
+    <rect x="208" y="216" width="608" height="396" rx="28" fill="url(#slide)"/>
+    <!-- barra de título do slide -->
+    <rect x="264" y="276" width="344" height="26" rx="13" fill="#fdba74"/>
+    <!-- bullets do slide -->
+    <g fill="#fb923c">
+      <circle cx="278" cy="360" r="13"/>
+      <circle cx="278" cy="428" r="13"/>
+      <circle cx="278" cy="496" r="13"/>
+    </g>
+    <g fill="#fdba74">
+      <rect x="310" y="347" width="288" height="26" rx="13"/>
+      <rect x="310" y="415" width="220" height="26" rx="13"/>
+      <rect x="310" y="483" width="258" height="26" rx="13"/>
+    </g>
+    <!-- gráfico no canto do slide: linha de base + vértices marcados -->
+    <g stroke="#ea580c" fill="none" opacity="0.9">
+      <path d="M648 536 H768" stroke-width="10" stroke-linecap="round" opacity="0.5"/>
+      <path d="M660 520 L708 452 L752 484" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g fill="#ea580c">
+      <circle cx="660" cy="520" r="11"/>
+      <circle cx="708" cy="452" r="11"/>
+      <circle cx="752" cy="484" r="11"/>
+    </g>
+  </g>
+
+  <!-- pernas do apresentador (easel), conectadas ao telão -->
+  <g stroke="#ffffff" stroke-width="26" stroke-linecap="round" opacity="0.9">
+    <path d="M360 612 L288 800"/>
+    <path d="M664 612 L736 800"/>
+  </g>
+
+  <!-- assinatura da marca -->
+  <text x="512" y="888" font-family="'Segoe Script','Brush Script MT',cursive"
+        font-size="72" fill="#ffffff" opacity="0.55" text-anchor="middle">Taylor</text>
+</svg>
