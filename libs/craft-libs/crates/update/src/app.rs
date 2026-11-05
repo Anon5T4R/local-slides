@@ -23,15 +23,33 @@ pub struct App {
     /// Who makes it, shown as "by <developer>" in the update prompt. [`DEVELOPER`] unless the app
     /// says otherwise.
     pub developer: &'static str,
+    /// Who its Windows Installer packages name as their publisher (`Manufacturer` in the app's WiX,
+    /// the `Publisher` of its uninstall entry). [`UPSTREAM_PUBLISHER`] unless the suite entry
+    /// overrides it: a rebranded app publishes under its own name, and detection must match it.
+    pub publisher: &'static str,
 }
 
 /// The developer of every app in the storytold organisation.
 pub const DEVELOPER: &str = "ArtCraft";
 
+/// Who the upstream suite's Windows Installer packages name as their publisher.
+pub const UPSTREAM_PUBLISHER: &str = "Learning Machines LLC";
+
 impl App {
     /// An app with no former names and no icon.
     pub const fn new(id: &'static str, name: &'static str, tagline: &'static str, repo: &'static str) -> Self {
-        Self { id, name, tagline, repo, former_ids: &[], former_names: &[], icon_png: None, accent: None, developer: DEVELOPER }
+        Self {
+            id,
+            name,
+            tagline,
+            repo,
+            former_ids: &[],
+            former_names: &[],
+            icon_png: None,
+            accent: None,
+            developer: DEVELOPER,
+            publisher: UPSTREAM_PUBLISHER,
+        }
     }
 
     /// `ai.storyteller.<id>`: macOS bundle id, Flatpak id and Linux desktop-file id.
