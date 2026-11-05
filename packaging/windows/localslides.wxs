@@ -128,7 +128,7 @@
            uninstall; in the per-machine package both folders are the all-users ones. -->
       <Component Id="LocalSlidesStartMenuShortcut" Directory="ProgramMenuFolder" Guid="6E0C5F34-1D2A-4B7C-9E18-3A4F5B6C7D80">
         <Shortcut Id="StartMenuShortcut" Name="Local Slides" Description="Local Slides presentations and slide shows"
-            Target="[#LocalSlidesExe]" WorkingDirectory="INSTALLFOLDER" Icon="LocalSlidesIcon.exe" IconIndex="0" />
+            Target="[#LocalSlidesExe]" WorkingDirectory="INSTALLFOLDER" />
         <RegistryValue Root="HKMU" Key="Software\Anon5T4R\LocalSlides\Shortcuts" Name="StartMenu" Type="integer" Value="1" KeyPath="yes" />
       </Component>
 
@@ -137,13 +137,13 @@
            uninstall removes it. -->
       <Component Id="LocalSlidesAliasShortcut" Directory="ProgramMenuFolder" Guid="9A1B2C3D-4E5F-4A6B-8C7D-0E1F2A3B4C5D">
         <Shortcut Id="AliasShortcut" Name="Slides" Description="Local Slides presentations and slide shows"
-            Target="[#LocalSlidesExe]" WorkingDirectory="INSTALLFOLDER" Icon="LocalSlidesIcon.exe" IconIndex="0" />
+            Target="[#LocalSlidesExe]" WorkingDirectory="INSTALLFOLDER" />
         <RegistryValue Root="HKMU" Key="Software\Anon5T4R\LocalSlides\Shortcuts" Name="Alias" Type="integer" Value="1" KeyPath="yes" />
       </Component>
 
       <Component Id="LocalSlidesDesktopShortcut" Directory="DesktopFolder" Guid="3F5E7A9B-0C1D-4E2F-8A3B-5C6D7E8F9A0B">
         <Shortcut Id="DesktopShortcut" Name="Local Slides" Description="Local Slides presentations and slide shows"
-            Target="[#LocalSlidesExe]" WorkingDirectory="INSTALLFOLDER" Icon="LocalSlidesIcon.exe" IconIndex="0" />
+            Target="[#LocalSlidesExe]" WorkingDirectory="INSTALLFOLDER" />
         <RegistryValue Root="HKMU" Key="Software\Anon5T4R\LocalSlides\Shortcuts" Name="Desktop" Type="integer" Value="1" KeyPath="yes" />
       </Component>
 
