@@ -212,6 +212,14 @@ pub fn check(crates: &[Crate]) -> Vec<Violation> {
     out
 }
 
+/// `true` if the dependency is a workspace crate: a member listed in the metadata, or a path
+/// dependency inside this repository. Path dependencies under `libs/` are vendored third-party
+/// trees (the workspace excludes them), so they count as external, like a crates.io crate.
+fn is_workspace_dep(name: &str, path: Option<&str>, members: &[&str]) -> bool {
+    let vendored = path.is_some_and(|p| p.replace('\\', "/").contains("/libs/"));
+    !vendored && (members.contains(&name) || path.is_some())
+}
+
 /// Build the model from `cargo metadata --format-version 1 --no-deps`.
 pub fn from_metadata(meta: &Value) -> Result<Vec<Crate>, String> {
     let pkgs = meta["packages"].as_array().ok_or("metadata: no packages array")?;
@@ -227,7 +235,7 @@ pub fn from_metadata(meta: &Value) -> Result<Vec<Crate>, String> {
                 Some("build") => DepKind::Build,
                 _ => DepKind::Normal,
             };
-            let workspace = members.contains(&dname.as_str()) || d["path"].is_string();
+            let workspace = is_workspace_dep(&dname, d["path"].as_str(), &members);
             deps.push(Dep { name: dname, kind, workspace });
         }
         out.push(Crate { name, deps });
@@ -304,6 +312,29 @@ mod tests {
         }
         assert!(check(&[c("localslides-engine", &[("egui_extras_not", Normal, false)])]).is_empty());
         assert!(check(&[c("localslides-mcp", &[("winit", Normal, false)])]).is_empty());
+    }
+
+    #[test]
+    fn vendored_path_dependencies_are_not_workspace_crates() {
+        let meta = serde_json::json!({
+            "packages": [
+                {
+                    "name": "localslides-bitstream",
+                    "dependencies": [
+                        {"name": "craft-media", "kind": null, "path": "C:\\repo\\libs\\craft-libs\\crates\\media"}
+                    ]
+                },
+                {
+                    "name": "localslides-model",
+                    "dependencies": [{"name": "localslides-geom", "kind": null, "path": "C:\\repo\\crates\\geom"}]
+                }
+            ]
+        });
+        let crates = from_metadata(&meta).unwrap();
+        let bitstream = crates.iter().find(|c| c.name == "localslides-bitstream").unwrap();
+        assert!(!bitstream.deps[0].workspace, "libs/ is vendored, not part of the workspace");
+        let model = crates.iter().find(|c| c.name == "localslides-model").unwrap();
+        assert!(model.deps[0].workspace, "crates/ is part of the workspace");
     }
 
     #[test]
