@@ -1,35 +1,39 @@
-# Windows installation policy checks
+# Windows installation
 
-New installations default to the current account under `Programs\ArtCraft\<App>`.
-The first setup page offers installation for everyone. Scope is selected before duplicate
-checks and directory costing. An update uses the existing context's remembered exact folder;
-`INSTALLFOLDER` supplied explicitly is never replaced. It is a secure MSI property so the
-chosen folder reaches the elevated installer. Silent machine updates pass `ALLUSERS=1`.
-A cross-context copy is refused; changing context means uninstalling the old copy first.
+`packaging/windows/package.ps1` builds two MSIs from `localslides.wxs`:
 
-App registration follows the selected context. Existing optional shortcuts and file-handler
-choices stay app-owned. No new cleanup operation or model/settings migration is introduced.
-Packaged resources remain package-owned; separately downloaded shared models are not caches
-and are outside this installer's ownership.
+- `localslides-<version>-windows-<arch>.msi` installs for all users, into
+  `Program Files\Local Slides` (`Program Files (x86)` for the 32-bit build), and needs administrator
+  rights. It is `Scope="perMachine"`.
+- `localslides-<version>-windows-user-<arch>.msi` installs for the current account only, into
+  `%LOCALAPPDATA%\Programs\Local Slides`, with no UAC prompt. It is `Scope="perUserOrMachine"`:
+  Windows redirects Program Files, the Start Menu and HKMU to the user's own locations, so the same
+  components work in both packages. Both share the UpgradeCode, and Windows Installer only pairs
+  products installed in the same context.
 
-## Repeatable metadata tests
+Choose one: installing both gives two Local Slides entries in Settings › Apps and two in the Start
+menu. Silent installs pass `ALLUSERS=1` for the per-machine package
+(`msiexec /i localslides-<version>-windows-<arch>.msi /qn ALLUSERS=1`); the per-user package needs
+no property.
 
-On Windows with WiX 5.0.2 and its matching UI/Util extensions:
+The package registers, in the context it installs into (`HKMU` follows the package's scope):
+
+- `Software\Anon5T4R\LocalSlides\InstallDir`, which the app's updater reads to tell an MSI install
+  (it updates with the next MSI) from a portable copy (it updates with the portable zip);
+- App Paths for `localslides.exe`, so Win+R `localslides` works;
+- Local Slides as the default app for `.deckcraft` (its own format), and as an "Open with" choice
+  for `.pptx`, `.potx` and `.ppsx`; the installer never takes these extensions over from PowerPoint;
+- a Start Menu shortcut, a `Slides` alias for Start Menu search, and a desktop shortcut. All three
+  are plain links to `localslides.exe` (not advertised MSI shortcuts), each in its own component
+  with a registry key path so Windows Installer removes it on uninstall.
+
+`package.ps1` runs `wix msi validate -ice ICE50` before signing. The slower check to run by hand on
+a packaging change is the same command against the built file:
 
 ```powershell
-./packaging/windows/test-install-policy.ps1 -OutputDirectory ./target/install-policy-tests
+wix msi validate dist/release/localslides-<version>-windows-x64.msi -ice ICE50
 ```
 
-The script builds x64, x86 and arm64 packages with deliberately non-executable payloads. It
-uses the actual package source and compiled database. A safe Windows Installer session checks
-24 scope/registration/maintenance cases, remembered and explicit custom folders, sequencing,
-upgrade identity and the original registration inventory recorded in `install-policy.json`.
-The release packaging script runs the compiled checker before signing. Packaging CI runs the
-small fixture builds without compiling the Rust application.
-
-Never install or distribute the `NOT-INSTALLABLE.msi` fixtures as an app. Passing these checks
-does not prove real installation, elevation, legacy-version upgrades, registry writes, optional
-shortcut/menu behaviour, cancellation, rollback or uninstall. Those still require the real
-payload in an authorised clean Windows test environment. Cross-architecture metadata is not
-execution evidence on those architectures. Existing open installer/association PRs must be
-reconciled before publication. Nothing here changes macOS/Linux native packaging conventions.
+Passing these checks does not prove a real installation, elevation, upgrades, registry writes,
+shortcut behaviour, cancellation, rollback or uninstall: those still need the real payload in a
+clean Windows test environment.

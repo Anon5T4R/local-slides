@@ -43,7 +43,7 @@ case "$ARCH" in
   aarch64 | arm64) ARCH=aarch64; DEB_ARCH=arm64 ;;
   *) echo "unsupported architecture $ARCH" >&2; exit 2 ;;
 esac
-export LOCALSLIDES_MAINTAINER="${LOCALSLIDES_MAINTAINER:-Local Slides maintainers <localslides@storyteller.ai>}"
+export LOCALSLIDES_MAINTAINER="${LOCALSLIDES_MAINTAINER:-Local Slides maintainers <localslides@users.noreply.github.com>}"
 BASENAME="localslides-$VERSION-linux-$ARCH"
 
 echo "==> Local Slides $VERSION for Linux $ARCH ($FORMATS)"

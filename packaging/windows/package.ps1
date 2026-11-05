@@ -5,6 +5,7 @@
 .DESCRIPTION
   Produces, in $env:DIST (default: dist/release):
     localslides-<version>-windows-<arch>.msi            per-machine installer (WiX v5)
+    localslides-<version>-windows-user-<arch>.msi       per-user installer, no admin rights
     localslides-<version>-windows-<arch>-portable.zip   localslides.exe + localslides-cli.exe
 
   The binaries link the C runtime statically (+crt-static), so neither the MSI nor the portable
@@ -12,7 +13,10 @@
   warning when no signing secrets are set).
 
   Needs: Rust (MSVC toolchain + the target), the Windows SDK (rc.exe, signtool.exe),
-  and WiX v5: dotnet tool install --global wix --version 5.0.2
+  and WiX v5 with its UI and Util extensions (installer dialogs, "Launch Local Slides" on finish):
+    dotnet tool install --global wix --version 5.0.2
+    wix extension add -g WixToolset.UI.wixext/5.0.2
+    wix extension add -g WixToolset.Util.wixext/5.0.2
 
 .EXAMPLE
   pwsh packaging/windows/package.ps1 -Arch x64
@@ -84,22 +88,25 @@ foreach ($check in @(@('localslides.exe', 2), @('localslides-cli.exe', 3))) {
   Write-Output "ok $($check[0]): $Arch, PE subsystem $($h.Subsystem)"
 }
 
-# The Start menu shortcut is not advertised and names no MSI icon, so it shows the icon embedded in
-# localslides.exe (#1114). -SkipBuild takes whatever binary is already there, which may come from a
-# build without LOCALSLIDES_REQUIRE_WINRES=1 whose resource compilation failed: refuse an exe with no
-# icon instead of shipping shortcuts with a generic one. ExtractIconEx with index -1 counts them.
-Add-Type -Namespace Local Slides -Name Shell -MemberDefinition '[DllImport("shell32.dll", CharSet = CharSet.Unicode)] public static extern uint ExtractIconEx(string file, int index, IntPtr[] large, IntPtr[] small, uint icons);'
-$Icons = [Local Slides.Shell]::ExtractIconEx((Join-Path $Bin 'localslides.exe'), -1, $null, $null, 0)
-if ($Icons -eq 0) { throw 'localslides.exe has no embedded icon: rebuild it with LOCALSLIDES_REQUIRE_WINRES=1 (omit -SkipBuild)' }
-Write-Output "ok localslides.exe: $Icons embedded icon group(s)"
+# The shortcuts name no MSI icon, so they show the icon embedded in localslides.exe (build.rs).
+# -SkipBuild takes whatever binary is already there, which may come from a build without
+# LOCALSLIDES_REQUIRE_WINRES=1 whose resource compilation failed: refuse an exe with no icon
+# instead of shipping shortcuts with a generic one. ExtractIconEx with index -1 counts them.
 $Stage = Join-Path $TargetDir "windows-package\$Arch"
 Remove-Item -Recurse -Force $Stage -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $Stage | Out-Null
-# Dependency font notices are required even without optional craft-fonts.
-Copy-Item -LiteralPath (Join-Path $Root 'NOTICE') -Destination $Stage
-Copy-Item (Join-Path $Bin 'localslides.exe'), (Join-Path $Bin 'localslides-cli.exe') $Stage
+Add-Type -Namespace LocalSlides -Name Shell -MemberDefinition '[DllImport("shell32.dll", CharSet = CharSet.Unicode)] public static extern uint ExtractIconEx(string file, int index, IntPtr[] large, IntPtr[] small, uint icons);'
+$Icons = [LocalSlides.Shell]::ExtractIconEx((Join-Path $Bin 'localslides.exe'), -1, $null, $null, 0)
+if ($Icons -eq 0) { throw 'localslides.exe has no embedded icon: rebuild it with LOCALSLIDES_REQUIRE_WINRES=1 (omit -SkipBuild)' }
+Write-Output "ok localslides.exe: $Icons embedded icon group(s)"
 
+Copy-Item (Join-Path $Bin 'localslides.exe'), (Join-Path $Bin 'localslides-cli.exe') $Stage
 & (Join-Path $PSScriptRoot 'sign.ps1') (Join-Path $Stage 'localslides.exe') (Join-Path $Stage 'localslides-cli.exe')
+
+# Required notices ship in every MSI, independently of optional craft-fonts.
+$AppNotices = Join-Path $Stage 'app-notices'
+New-Item -ItemType Directory -Force -Path $AppNotices | Out-Null
+Copy-Item -LiteralPath (Join-Path $Root 'NOTICE'), (Join-Path $Root 'ATTRIBUTION.md') -Destination $AppNotices
 
 # ---- font notices for the MSI ------------------------------------------------------------------
 # The portable ZIP already carries these notices; stage the complete files before MSI creation too.
@@ -115,26 +122,65 @@ if ($env:CRAFT_FONTS_DIR) {
 # ---- end font notices for the MSI --------------------------------------------------------------
 
 # ---- MSI ---------------------------------------------------------------------------------------
-$Msi = Join-Path $Dist "localslides-$Version-windows-$Arch.msi"
-Invoke-Native 'WiX UI extension' { wix extension add -g WixToolset.UI.wixext/5.0.2 }
-Invoke-Native 'wix build' {
-  wix build (Join-Path $PSScriptRoot 'localslides.wxs') -arch $Arch -ext WixToolset.UI.wixext `
-    -d "Version=$MsiVersion" -d "BinDir=$Stage" -d "IconPath=$(Join-Path $Root 'assets\app-icon\localslides.ico')" `
-    -d "DocsDir=$Docs" -d "HasCraftFontLicences=$HasCraftFontLicences" `
-    -o $Msi
+# The installer's welcome page shows the license: build its RTF from LICENSE-MIT and LICENSE-APACHE
+# so it never drifts from them. Hard-wrapped lines are rejoined into paragraphs so the text wraps
+# to the dialog's width.
+function ConvertTo-RtfText([string] $Text) {
+  $sb = [System.Text.StringBuilder]::new()
+  foreach ($ch in $Text.ToCharArray()) {
+    $c = [int] $ch
+    if ($c -eq 0x5C -or $c -eq 0x7B -or $c -eq 0x7D) { [void] $sb.Append('\').Append($ch) }
+    elseif ($c -gt 127) { [void] $sb.Append("\u$(if ($c -gt 32767) { $c - 65536 } else { $c })?") }
+    else { [void] $sb.Append($ch) }
+  }
+  return $sb.ToString()
 }
-# Check the compiled scope, path and registration contract before signing.
-& (Join-Path $PSScriptRoot 'check-install-policy.ps1') -MsiPath $Msi
-# wix writes its debug symbols (.wixpdb) next to the MSI; keep them out of the release assets.
-Remove-Item -Force -ErrorAction SilentlyContinue ([IO.Path]::ChangeExtension($Msi, '.wixpdb'))
-& (Join-Path $PSScriptRoot 'sign.ps1') $Msi
+$paragraphs = [System.Collections.Generic.List[string]]::new()
+$paragraphs.Add('\b Local Slides\b0')
+$paragraphs.Add((ConvertTo-RtfText 'Local Slides is dual-licensed under the MIT License or the Apache License, Version 2.0, at your option. Both license texts follow. Bundled fonts and other third-party material keep their own open licenses, listed in NOTICE and ATTRIBUTION.md at https://github.com/Anon5T4R/local-slides.'))
+foreach ($file in 'LICENSE-MIT', 'LICENSE-APACHE') {
+  $title = $true  # each file opens with its license's name: show it bold
+  foreach ($para in ((Get-Content -Raw (Join-Path $Root $file)) -split '\r?\n\s*\r?\n')) {
+    $joined = (($para -split '\r?\n') | ForEach-Object { $_.Trim() } | Where-Object { $_ }) -join ' '
+    if (-not $joined) { continue }
+    $paragraphs.Add($(if ($title) { "\b $(ConvertTo-RtfText $joined)\b0" } else { ConvertTo-RtfText $joined }))
+    $title = $false
+  }
+}
+$LicenseRtf = Join-Path $Stage 'license.rtf'
+$rtf = '{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0\fswiss\fcharset0 Tahoma;}}\viewkind4\uc1\pard\sa120\f0\fs16 ' +
+  ($paragraphs -join "\par`r`n") + "\par`r`n}`r`n"
+[System.IO.File]::WriteAllText($LicenseRtf, $rtf, [System.Text.Encoding]::ASCII)
+
+# Two MSIs from one source: per-machine (Program Files, needs admin) and per-user (no admin, into
+# %LOCALAPPDATA%\Programs; see localslides.wxs). The per-user name puts "user" before the arch so
+# the per-machine MSI sorts first and the updater's asset-name parser ignores the user one.
+$Msi = Join-Path $Dist "localslides-$Version-windows-$Arch.msi"
+$UserMsi = Join-Path $Dist "localslides-$Version-windows-user-$Arch.msi"
+foreach ($build in @(@($Msi, 'perMachine'), @($UserMsi, 'perUserOrMachine'))) {
+  $out = $build[0]
+  Invoke-Native "wix build ($($build[1]))" {
+    wix build (Join-Path $PSScriptRoot 'localslides.wxs') -arch $Arch `
+      -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext `
+      -d "Version=$MsiVersion" -d "BinDir=$Stage" -d "IconPath=$(Join-Path $Root 'assets\app-icon\localslides.ico')" `
+      -d "LicenseRtf=$LicenseRtf" `
+      -d "AppNoticesDir=$AppNotices" -d "DocsDir=$Docs" -d "HasCraftFontLicences=$HasCraftFontLicences" -d "Scope=$($build[1])" `
+      -o $out
+  }
+  # wix writes its debug symbols (.wixpdb) next to the MSI; keep them out of the release assets.
+  Remove-Item -Force -ErrorAction SilentlyContinue ([IO.Path]::ChangeExtension($out, '.wixpdb'))
+  Invoke-Native "MSI shortcut icon validation (ICE50, $($build[1]))" {
+    wix msi validate $out -ice ICE50 -intermediateFolder (Join-Path $Stage "msi-validation-$($build[1])")
+  }
+  & (Join-Path $PSScriptRoot 'sign.ps1') $out
+}
 
 # ---- portable zip ------------------------------------------------------------------------------
 $Portable = Join-Path $TargetDir "windows-package\localslides-$Version-windows-$Arch-portable"
 Remove-Item -Recurse -Force $Portable -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $Portable | Out-Null
 Copy-Item (Join-Path $Stage '*.exe') $Portable
-foreach ($f in 'README.md', 'LICENSE', 'LICENSE-MIT', 'LICENSE-APACHE', 'NOTICE') {
+foreach ($f in 'README.md', 'LICENSE', 'LICENSE-MIT', 'LICENSE-APACHE', 'NOTICE', 'ATTRIBUTION.md') {
   $p = Join-Path $Root $f
   if (Test-Path $p) { Copy-Item $p $Portable }
 }
@@ -146,7 +192,26 @@ if ($env:CRAFT_FONTS_DIR) {
 }
 $Zip = Join-Path $Dist "localslides-$Version-windows-$Arch-portable.zip"
 Remove-Item -Force $Zip -ErrorAction SilentlyContinue
-Compress-Archive -Path $Portable -DestinationPath $Zip
+# Compress-Archive (PowerShell 5.1) writes entry names with backslashes; the updater's portable
+# unpack refuses them ("The portable ZIP contains an unsafe path or link."), and a zip with '\'
+# is ambiguous cross-platform besides. Build the archive by hand, every entry with '/'.
+Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
+$RootName = Split-Path $Portable -Leaf
+$PortableFull = [System.IO.Path]::GetFullPath($Portable)
+$ZipStream = [System.IO.File]::Open($Zip, [System.IO.FileMode]::Create)
+$Archive = New-Object System.IO.Compression.ZipArchive($ZipStream, [System.IO.Compression.ZipArchiveMode]::Create)
+try {
+  Get-ChildItem -LiteralPath $Portable -Recurse -File | ForEach-Object {
+    $Relative = [System.IO.Path]::GetFullPath($_.FullName).Substring($PortableFull.Length + 1) -replace '\\', '/'
+    $Entry = $Archive.CreateEntry("$RootName/$Relative", [System.IO.Compression.CompressionLevel]::Optimal)
+    $EntryStream = $Entry.Open()
+    $FileStream = [System.IO.File]::OpenRead($_.FullName)
+    try { $FileStream.CopyTo($EntryStream) } finally { $FileStream.Dispose(); $EntryStream.Dispose() }
+  }
+} finally {
+  $Archive.Dispose()
+  $ZipStream.Dispose()
+}
 
 # Smoke-test the CLI when this machine can run it. An ARM64 build made on an x64 runner can't run
 # here.
@@ -156,4 +221,4 @@ if ($Arch -ne 'arm64' -or $HostArch -eq 'arm64') {
 } else {
   Write-Output "skipping localslides-cli --version: an $Arch build doesn't run on this $HostArch machine"
 }
-Get-Item $Msi, $Zip | Format-Table Name, Length
+Get-Item $Msi, $UserMsi, $Zip | Format-Table Name, Length

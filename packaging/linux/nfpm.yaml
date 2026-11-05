@@ -13,8 +13,8 @@ release: 1
 section: editors
 priority: optional
 maintainer: ${LOCALSLIDES_MAINTAINER}
-vendor: Learning Machines LLC
-homepage: https://getartcraft.com/apps/localslides
+vendor: Local Slides contributors
+homepage: https://github.com/Anon5T4R/local-slides
 license: MIT OR Apache-2.0
 description: |-
   Open-source, native presentation app that works the way PowerPoint users
