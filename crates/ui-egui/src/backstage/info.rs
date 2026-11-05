@@ -209,7 +209,7 @@ pub(super) fn about(app: &mut SlideApp, ui: &mut Ui) {
             if task(ui, Icon::Help, "Credits", "Credits", "The people and models who built Local Slides.", true) {
                 let _ = app.run("app.about", json!({}));
             }
-            ui.hyperlink_to("Join our community on Discord", localslides_engine::links::DISCORD);
+            ui.hyperlink_to("Community discussions on GitHub", localslides_engine::links::COMMUNITY);
             ui.hyperlink_to("Source on GitHub", localslides_engine::links::GITHUB);
         });
         ui.add_space(40.0);

@@ -48,7 +48,7 @@ const ASSET_EXT: &[&str] = &[
     "ogg",
     "flac",
 ];
-const ASSET_DIRS: &[&str] = &["assets/", "docs/images/", "docs/brand/", "examples/"];
+const ASSET_DIRS: &[&str] = &["assets/", "docs/images/", "examples/"];
 
 /// Paths whose files this repo does not attribute: the vendored trees under `libs/` keep their own
 /// licences and attribution files (egui, winit, craft-libs), and build output is not shipped.

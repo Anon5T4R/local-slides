@@ -26,11 +26,11 @@ pub fn about(_app: &mut SlideApp, ui: &mut Ui) {
         ui.label("Presentations and slide shows, rebuilt from scratch in pure Rust.");
         ui.label("An open-source, clean-room project. Not affiliated with Microsoft.");
         ui.add_space(6.0);
-        ui.hyperlink_to("Join our community on Discord", localslides_engine::links::DISCORD);
-        ui.hyperlink_to("getartcraft.com/apps/localslides", localslides_engine::links::APP_PAGE);
+        ui.hyperlink_to("Community discussions on GitHub", localslides_engine::links::COMMUNITY);
+        ui.hyperlink_to("github.com/Anon5T4R/local-slides", localslides_engine::links::APP_PAGE);
         ui.hyperlink_to("Source on GitHub", localslides_engine::links::GITHUB);
         ui.add_space(6.0);
-        ui.label(egui::RichText::new("MIT OR Apache-2.0 · © 2026 ArtCraft Team and the Local Slides contributors").size(11.0).color(t.text_faint));
+        ui.label(egui::RichText::new("MIT OR Apache-2.0 · © 2026 the Local Slides contributors").size(11.0).color(t.text_faint));
     });
 }
 

@@ -5,11 +5,11 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use localslides_engine::Session;
 use egui::accesskit::Role;
 use egui::{Key, Modifiers};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
+use localslides_engine::Session;
 use serde_json::json;
 
 use crate::backstage::{Backstage, NAV_W, Nav, Page, PrintScope, entries, format_bytes, print_page_size, print_params, print_slides, split_path};
@@ -719,7 +719,7 @@ fn about_has_product_links_and_credits_without_account_controls() {
     assert_eq!(page(&h), Some(Page::About));
     assert!(h.query_by_label("User Information").is_none());
     assert!(h.query_by_label("Source on GitHub").is_some());
-    assert!(h.query_by_label("Join our community on Discord").is_some());
+    assert!(h.query_by_label("Community discussions on GitHub").is_some());
     assert!(h.query_all_by_label("Appearance").next().is_some());
     click_on_page(&h, "Credits");
     h.run_steps(3);

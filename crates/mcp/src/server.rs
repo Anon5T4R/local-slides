@@ -147,9 +147,9 @@ impl Server {
                     "capabilities": {"tools": {}, "resources": {}},
                     "serverInfo": {"name": "localslides", "title": "Local Slides", "version": env!("CARGO_PKG_VERSION"), "websiteUrl": localslides_engine::links::APP_PAGE},
                     "instructions": format!(
-                        "{INSTRUCTIONS} Backend: {}. Community: {} (Discord), {} (app page), {} (source). The `app.links` command returns these links.",
+                        "{INSTRUCTIONS} Backend: {}. Community: {} (GitHub Discussions), {} (project page), {} (source). The `app.links` command returns these links.",
                         self.backend.describe(),
-                        localslides_engine::links::DISCORD,
+                        localslides_engine::links::COMMUNITY,
                         localslides_engine::links::APP_PAGE,
                         localslides_engine::links::GITHUB
                     ),

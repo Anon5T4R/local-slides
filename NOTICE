@@ -1,11 +1,12 @@
-DeckCraft
-Copyright (c) 2026 ArtCraft Team and the DeckCraft contributors.
+Local Slides
+Fork of DeckCraft (https://github.com/storytold/deckcraft), rebranded for the Local suite.
+Copyright (c) 2026 the Local Slides contributors, and the ArtCraft Team and the DeckCraft
+contributors for the upstream work.
 Licensed under the MIT License or the Apache License, Version 2.0, at your option
 (LICENSE-MIT, LICENSE-APACHE).
 
-The ArtCraft name, wordmark and logos in docs/brand/ are trademarks of the ArtCraft Team. They are
-not open source and are not covered by the license above; their terms are in
-docs/brand/LICENSE-brand.txt.
+Local Slides is an independent fork of DeckCraft. "DeckCraft" and "ArtCraft" are names of the
+upstream project and its team; this repository and its packages use only the Local Slides name.
 
 Third-party material
 

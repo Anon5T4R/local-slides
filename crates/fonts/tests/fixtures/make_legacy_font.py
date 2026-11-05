@@ -1,10 +1,10 @@
-"""Build the legacy-name test font: DeckCraft Legacy Semibold (contributor-original, CC0-1.0).
+"""Build the legacy-name test font: Local Slides Legacy Semibold (contributor-original, CC0-1.0).
 
 Usage: python make_legacy_font.py legacy-semibold.ttf legacy-regular.ttf  (needs fontTools)
 
-legacy-semibold.ttf: typographic family "DeckCraft Legacy", style "Semibold" (name IDs 16/17,
-weight 600); Windows family "DeckCraft Legacy Semibold", style "Regular" (name IDs 1/2), as fonts
-like Segoe UI Semibold are named. legacy-regular.ttf: the family's Regular ("DeckCraft Legacy",
+legacy-semibold.ttf: typographic family "Local Slides Legacy", style "Semibold" (name IDs 16/17,
+weight 600); Windows family "Local Slides Legacy Semibold", style "Regular" (name IDs 1/2), as fonts
+like Segoe UI Semibold are named. legacy-regular.ttf: the family's Regular ("Local Slides Legacy",
 "Regular", weight 400), named only by IDs 1/2 as Segoe UI's regular file is. Glyphs: .notdef and
 a square for "A".
 """
@@ -38,18 +38,18 @@ def build(path, names, weight):
 
 
 build(sys.argv[1], {
-    "familyName": "DeckCraft Legacy Semibold",
+    "familyName": "Local Slides Legacy Semibold",
     "styleName": "Regular",
-    "typographicFamily": "DeckCraft Legacy",
+    "typographicFamily": "Local Slides Legacy",
     "typographicSubfamily": "Semibold",
-    "uniqueFontIdentifier": "DeckCraft Legacy Semibold",
-    "fullName": "DeckCraft Legacy Semibold",
-    "psName": "DeckCraftLegacy-Semibold",
+    "uniqueFontIdentifier": "Local Slides Legacy Semibold",
+    "fullName": "Local Slides Legacy Semibold",
+    "psName": "LocalSlidesLegacy-Semibold",
 }, 600)
 build(sys.argv[2], {
-    "familyName": "DeckCraft Legacy",
+    "familyName": "Local Slides Legacy",
     "styleName": "Regular",
-    "uniqueFontIdentifier": "DeckCraft Legacy Regular",
-    "fullName": "DeckCraft Legacy",
-    "psName": "DeckCraftLegacy-Regular",
+    "uniqueFontIdentifier": "Local Slides Legacy Regular",
+    "fullName": "Local Slides Legacy",
+    "psName": "LocalSlidesLegacy-Regular",
 }, 400)

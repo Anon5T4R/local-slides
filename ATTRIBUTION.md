@@ -1,40 +1,39 @@
 # Attribution
 
 Every asset Local Slides includes, bundles, embeds at build time or shows in its documentation, with
-its author, source and licence. The policy is in [AGENTS.md](AGENTS.md) §1. `cargo xtask assets`
-fails if a file under `assets/`, `docs/images/` or `docs/brand/` is missing from this table.
+its author, source and licence. The policy is in [AGENTS.md](AGENTS.md). `cargo xtask assets` fails
+if a file under `assets/` or `docs/images/` is missing from this table.
 
 Local Slides contains **no Microsoft, Adobe, Avid or Autodesk iconography, images, fonts, themes,
 templates or other assets**. Its themes, colour schemes, layouts, preset-shape geometry, sample
-deck and UI icons are original work of the DeckCraft contributors (drawn or generated in code).
-Icons placed from Insert › Icons are Lucide paths (ISC; Feather-derived icons MIT), not Microsoft
-artwork. The ribbon and menu icons stay original drawings.
+deck and UI icons are original work of the Local Slides contributors (drawn or generated in code),
+carried over from the DeckCraft upstream this repository forks from. Icons placed from Insert ›
+Icons are Lucide paths (ISC; Feather-derived icons MIT), not Microsoft artwork. The ribbon and menu
+icons stay original drawings.
+
+The rows below are the work of this repository and its upstream; "Local Slides contributors" is the
+fork's own attribution for assets the rebrand keeps as-is.
 
 ## In this repository
 
 | Asset | Author | Source | Licence | Used for |
 |---|---|---|---|---|
-| `docs/brand/artcraft-logo.svg`, `docs/brand/artcraft-logo.png` | ArtCraft Team | ArtCraft brand kit (project owner) | ArtCraft trademark, `docs/brand/LICENSE-brand.txt` (not open source) | README header |
-| `docs/brand/artcraft-logo-white.svg`, `docs/brand/artcraft-logo-white.png` | ArtCraft Team | ArtCraft brand kit | ArtCraft trademark, `docs/brand/LICENSE-brand.txt` | README header (dark mode) |
-| `docs/brand/artcraft-mark.svg`, `docs/brand/artcraft-mark.png` | ArtCraft Team | ArtCraft brand kit | ArtCraft trademark, `docs/brand/LICENSE-brand.txt` | README footer, About |
-| `docs/brand/artcraft-mark-black.svg`, `docs/brand/artcraft-mark-black.png` | ArtCraft Team | ArtCraft brand kit | ArtCraft trademark, `docs/brand/LICENSE-brand.txt` | Mark for light backgrounds |
-| `docs/brand/LICENSE-brand.txt` | ArtCraft Team | ArtCraft brand kit | — (licence text) | Terms for the ArtCraft marks |
-| `assets/app-icon/localslides-1024.png`, `assets/app-icon/hicolor/*/apps/com.local.localslides.png` | DeckCraft contributors | rendered by DeckCraft from `assets/app-icon/icon-source.deckcraft` (shapes only) | MIT OR Apache-2.0 | Placeholder app icon (presentation board) until the mascot icon is drawn |
-| `packaging/macos/dmg/background.svg` | @XusBadia | DeckCraft macOS DMG window background, original work for this repository (2026-10-08), derived from the DeckCraft app icon `assets/app-icon/localslides-1024.png` (referenced via `<image>`, not copied); text is outlined Inter / JetBrains Mono glyph paths | MIT OR Apache-2.0 (`LICENSE-MIT`, `LICENSE-APACHE`) | Finder window of the macOS DMG; `packaging/macos/dmg/generate.py` renders it to `background.tiff` |
+| `assets/app-icon/localslides-1024.png`, `assets/app-icon/hicolor/*/apps/com.local.localslides.png` | Local Slides contributors | rendered by DeckCraft from `assets/app-icon/icon-source.deckcraft` (shapes only) | MIT OR Apache-2.0 | Placeholder app icon (presentation board) until the mascot icon is drawn |
+| `packaging/macos/dmg/background.svg` | @XusBadia | Local Slides macOS DMG window background, original work for this repository (2026-10-08), derived from the app icon `assets/app-icon/localslides-1024.png` (referenced via `<image>`, not copied); text is outlined Inter / JetBrains Mono glyph paths | MIT OR Apache-2.0 (`LICENSE-MIT`, `LICENSE-APACHE`) | Finder window of the macOS DMG; `packaging/macos/dmg/generate.py` renders it to `background.tiff` |
 | `packaging/macos/dmg/background.tiff` | @XusBadia | Rendered from `packaging/macos/dmg/background.svg` by `packaging/macos/dmg/generate.py` | MIT OR Apache-2.0 (`LICENSE-MIT`, `LICENSE-APACHE`) | 1x + 2x HiDPI TIFF for the macOS DMG window; includes the app icon (see its row) and LittleCMS's built-in sRGB profile ("No copyright, use freely") |
-| `assets/app-icon/localslides.icns`, `assets/app-icon/localslides.ico` | DeckCraft contributors | generated from the PNGs above by `packaging/icons.sh` (sips/iconutil, `cargo xtask ico`) | MIT OR Apache-2.0 | macOS and Windows app icons |
-| `assets/app-icon/hicolor/scalable/apps/com.local.localslides.svg` | DeckCraft contributors | the shapes of `assets/app-icon/icon-source.deckcraft` written out as SVG (same coordinates, colours and corner radii) | MIT OR Apache-2.0 | Scalable app icon for Linux desktops (hicolor theme) |
-| `assets/app-icon/icon-source.deckcraft` | DeckCraft contributors | made with `localslides-cli run` (see git history) | MIT OR Apache-2.0 | Source of the placeholder icon |
-| `docs/images/editor.png`, `docs/images/shape-format.png`, `docs/images/format-pane.png`, `docs/images/slide-sorter.png`, `docs/images/dark-mode.png`, `docs/images/sample-deck.png` | DeckCraft contributors | Screenshots of Local Slides and slides rendered by `localslides-cli` from the built-in sample deck (original content; Inter font, OFL-1.1) | MIT OR Apache-2.0 | README screenshots |
-| `crates/media/tests/fixtures/tone*` (`tone.mp3`, `.m4a`, `.aac`, `.ogg`, `.opus`, `.flac`, `.wma`, `tone-alac.m4a`) | DeckCraft contributors | synthesised 0.5 s 440 Hz sine, encoded by `crates/media/tests/fixtures/make.sh` (ffmpeg as the encoder only) | CC0-1.0 | Audio decoding tests |
-| `crates/media/tests/fixtures/clip-*` (`clip-h264.mp4`, `clip-h264.mov`, `clip-hevc.mp4`, `clip-vp8.webm`, `clip-vp9.webm`, `clip-av1.mkv`) | DeckCraft contributors | 6 frames of a colour gradient generated by `make.sh` (python3), encoded by ffmpeg (x264 / x265 / libvpx / libvpx-vp9 / SVT-AV1 as encoders only) | CC0-1.0 | Video decoding tests |
-| `crates/media/tests/fixtures/damaged/*` (`ebml-header.mkv`, `ebml-position.webm`, `demux-loop.mp4`, `demux-loop.m4a`) | DeckCraft contributors | the `clip-*` and `tone*` fixtures above with bytes changed by a mutation fuzzer | CC0-1.0 | Damaged media must not panic or hang |
-| `crates/media/tests/fixtures/damaged/*` (`stsc-count.m4a`, `stsz-size.m4a`) | DeckCraft contributors | `tone.m4a` above with bytes changed by a mutation fuzzer | CC0-1.0 | Damaged MP4 sample tables must not abort |
-| `crates/media/tests/fixtures/make.sh` | DeckCraft contributors | this repository | MIT OR Apache-2.0 | Regenerates the media fixtures |
-| `crates/render/tests/fixtures/colr-squares.ttf` | DeckCraft contributors | two squares as a COLRv0/CPAL test font, built by `make_colr_font.py` (fontTools as the builder only) | CC0-1.0 | Colour glyph rendering tests |
-| `crates/fonts/tests/fixtures/legacy-semibold.ttf` | DeckCraft contributors | a one-glyph Semibold face named like Segoe UI Semibold (its Windows family differs from the typographic one), built by `make_legacy_font.py` (fontTools as the builder only) | CC0-1.0 | Font lookup by Windows family name tests |
-| `crates/fonts/tests/fixtures/legacy-regular.ttf` | DeckCraft contributors | the same family's one-glyph Regular face, built by `make_legacy_font.py` (fontTools as the builder only) | CC0-1.0 | Font lookup by Windows family name tests |
-| `crates/render/tests/fixtures/make_colr_font.py` | DeckCraft contributors | this repository | MIT OR Apache-2.0 | Regenerates the COLR test font |
+| `assets/app-icon/localslides.icns`, `assets/app-icon/localslides.ico` | Local Slides contributors | generated from the PNGs above by `packaging/icons.sh` (sips/iconutil, `cargo xtask ico`) | MIT OR Apache-2.0 | macOS and Windows app icons |
+| `assets/app-icon/hicolor/scalable/apps/com.local.localslides.svg` | Local Slides contributors | the shapes of `assets/app-icon/icon-source.deckcraft` written out as SVG (same coordinates, colours and corner radii) | MIT OR Apache-2.0 | Scalable app icon for Linux desktops (hicolor theme) |
+| `assets/app-icon/icon-source.deckcraft` | Local Slides contributors | made with `localslides-cli run` (see git history) | MIT OR Apache-2.0 | Source of the placeholder icon |
+| `docs/images/editor.png`, `docs/images/shape-format.png`, `docs/images/format-pane.png`, `docs/images/slide-sorter.png`, `docs/images/dark-mode.png`, `docs/images/sample-deck.png` | Local Slides contributors | Screenshots of Local Slides and slides rendered by `localslides-cli` from the built-in sample deck (original content; Inter font, OFL-1.1) | MIT OR Apache-2.0 | README screenshots |
+| `crates/media/tests/fixtures/tone*` (`tone.mp3`, `.m4a`, `.aac`, `.ogg`, `.opus`, `.flac`, `.wma`, `tone-alac.m4a`) | Local Slides contributors | synthesised 0.5 s 440 Hz sine, encoded by `crates/media/tests/fixtures/make.sh` (ffmpeg as the encoder only) | CC0-1.0 | Audio decoding tests |
+| `crates/media/tests/fixtures/clip-*` (`clip-h264.mp4`, `clip-h264.mov`, `clip-hevc.mp4`, `clip-vp8.webm`, `clip-vp9.webm`, `clip-av1.mkv`) | Local Slides contributors | 6 frames of a colour gradient generated by `make.sh` (python3), encoded by ffmpeg (x264 / x265 / libvpx / libvpx-vp9 / SVT-AV1 as encoders only) | CC0-1.0 | Video decoding tests |
+| `crates/media/tests/fixtures/damaged/*` (`ebml-header.mkv`, `ebml-position.webm`, `demux-loop.mp4`, `demux-loop.m4a`) | Local Slides contributors | the `clip-*` and `tone*` fixtures above with bytes changed by a mutation fuzzer | CC0-1.0 | Damaged media must not panic or hang |
+| `crates/media/tests/fixtures/damaged/*` (`stsc-count.m4a`, `stsz-size.m4a`) | Local Slides contributors | `tone.m4a` above with bytes changed by a mutation fuzzer | CC0-1.0 | Damaged MP4 sample tables must not abort |
+| `crates/media/tests/fixtures/make.sh` | Local Slides contributors | this repository | MIT OR Apache-2.0 | Regenerates the media fixtures |
+| `crates/render/tests/fixtures/colr-squares.ttf` | Local Slides contributors | two squares as a COLRv0/CPAL test font, built by `make_colr_font.py` (fontTools as the builder only) | CC0-1.0 | Colour glyph rendering tests |
+| `crates/fonts/tests/fixtures/legacy-semibold.ttf` | Local Slides contributors | a one-glyph Semibold face named like Segoe UI Semibold (its Windows family differs from the typographic one), built by `make_legacy_font.py` (fontTools as the builder only) | CC0-1.0 | Font lookup by Windows family name tests |
+| `crates/fonts/tests/fixtures/legacy-regular.ttf` | Local Slides contributors | the same family's one-glyph Regular face, built by `make_legacy_font.py` (fontTools as the builder only) | CC0-1.0 | Font lookup by Windows family name tests |
+| `crates/render/tests/fixtures/make_colr_font.py` | Local Slides contributors | this repository | MIT OR Apache-2.0 | Regenerates the COLR test font |
 | Lucide icon paths in `crates/engine/src/icon_data.rs` (Insert › Icons) | Lucide Contributors; Feather icons by Cole Bemis | https://github.com/lucide-icons/lucide/tree/440a1e1dfb1e712505308da46bead3c28b1f1398/icons (release 1.56.0, 2026-10-13) | ISC; MIT for the Feather-derived icons named in that commit's LICENSE | Stroke icons inserted as shapes |
 
 ## Bundled through dependencies

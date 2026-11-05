@@ -252,7 +252,7 @@ pub(super) fn home(app: &mut SlideApp, ui: &mut Ui, bs: &mut Backstage, out: &mu
         });
     }
     ui.add_space(30.0);
-    ui.hyperlink_to("Join the ArtCraft community on Discord", localslides_engine::links::DISCORD);
+    ui.hyperlink_to("Community discussions on GitHub", localslides_engine::links::COMMUNITY);
 }
 
 /// New: a blank presentation, then every theme and starter template, with a search box.

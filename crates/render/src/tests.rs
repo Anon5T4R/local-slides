@@ -1165,7 +1165,7 @@ fn colour_glyphs_paint_their_layers() {
     let mut t = TextBody::from_text("\u{E000} \u{E001}");
     let props = &mut t.paragraphs[0].runs[0].props;
     props.size = Some(72.0);
-    props.font = Some("DeckCraft Colr Squares".into());
+    props.font = Some("Local Slides Colr Squares".into());
     props.fill = Some(localslides_model::style::Fill::solid(ColorRef::rgb(localslides_color::Rgba::rgb(0, 160, 0))));
     sh.text = Some(t);
     let p = deck_with(vec![sh]);
@@ -2765,7 +2765,11 @@ fn region_map_draws_tiles_on_its_colour_scale() {
         kind: ChartType::RegionMap,
         title: Some("Sales by region".into()),
         categories: names.iter().map(|s| s.to_string()).collect(),
-        series: vec![localslides_model::chart::Series { name: "Sales".into(), values: vals.iter().map(|v| Some(*v)).collect(), ..Default::default() }],
+        series: vec![localslides_model::chart::Series {
+            name: "Sales".into(),
+            values: vals.iter().map(|v| Some(*v)).collect(),
+            ..Default::default()
+        }],
         data_labels: true,
         ..Default::default()
     };

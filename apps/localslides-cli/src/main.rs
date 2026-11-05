@@ -88,8 +88,8 @@ fn main() -> ExitCode {
         Some("app") => report(app(rest)),
         Some("mcp") => report(mcp(rest)),
         Some("links") => {
-            use localslides_engine::links::{APP_PAGE, DISCORD, GITHUB, WEBSITE};
-            outln!("Discord   {DISCORD}\nWebsite   {WEBSITE}\nApp page  {APP_PAGE}\nGitHub    {GITHUB}");
+            use localslides_engine::links::{APP_PAGE, COMMUNITY, GITHUB, WEBSITE};
+            outln!("Community {COMMUNITY}\nWebsite   {WEBSITE}\nApp page  {APP_PAGE}\nGitHub    {GITHUB}");
             ExitCode::SUCCESS
         }
         Some(other) => unknown(other),
@@ -113,7 +113,7 @@ fn unknown(sub: &str) -> ExitCode {
 
 fn usage() -> ExitCode {
     eprintln!("{}", help::overview());
-    eprintln!("\nCommunity: {}  ·  {}", localslides_engine::links::DISCORD, localslides_engine::links::APP_PAGE);
+    eprintln!("\nCommunity: {}  ·  {}", localslides_engine::links::COMMUNITY, localslides_engine::links::APP_PAGE);
     ExitCode::FAILURE
 }
 
