@@ -169,4 +169,53 @@ impl SlideApp {
             ctx.request_repaint_after_for(std::time::Duration::from_millis(100), ctx.viewport_id());
         }
     }
+
+    /// Advance the slide show of every open window, not only the drawn one: a show playing in a
+    /// window that another one has the focus over keeps its clocks running.
+    ///
+    /// A window whose show a visible pass drew in the last frame already ran its clocks
+    /// ([`show::ui`]); its neighbours did not, and advance here from wall time, exactly as a
+    /// hidden window does.
+    pub(crate) fn tick_shows(&mut self, ctx: &egui::Context, now: web_time::Instant) {
+        let drawn = self.windows.take_drawn_shows();
+        let shown = self.windows.shown();
+        for key in self.windows.keys_in_order() {
+            if key == shown {
+                // The drawn window's show is `SlideApp::show`, in the app's fields.
+                self.tick_hidden_show(ctx, now);
+            } else if !drawn.contains(&key) {
+                self.tick_window_show(key, ctx, now);
+            }
+        }
+    }
+
+    /// [`SlideApp::tick_hidden_show`] for a window whose interface state is parked: its show is
+    /// not being drawn this pass, so its clocks advance here.
+    fn tick_window_show(&mut self, key: u64, ctx: &egui::Context, now: web_time::Instant) {
+        let Some(uid) = self.windows.doc_of(key) else { return };
+        let Some(doc) = self.session.documents().iter().find(|d| d.uid == uid).map(|d| d.doc.clone()) else { return };
+        let viewport = self.windows.viewport_of(key);
+        // The show's own anchor is the wall-clock origin: a window that was drawn before keeps
+        // advancing from the instant of that pass, never from another viewport's stale input.
+        let (keep, time_driven) = {
+            let Some(ui) = self.windows.parked_ui_mut(key) else { return };
+            let Some(show) = ui.show.as_mut() else { return };
+            if !show.hidden_started() {
+                return;
+            }
+            let input_time = ctx.input_for(viewport, |i| i.time);
+            let show_time = show.hidden_logic_time(input_time, now);
+            let keep = show.advance_hidden(&doc, show_time);
+            (keep, show.hidden_time_driven(&doc))
+        };
+        if !keep {
+            if let Some(ui) = self.windows.parked_ui_mut(key) {
+                ui.show = None;
+            }
+            return;
+        }
+        if time_driven {
+            ctx.request_repaint_after_for(std::time::Duration::from_millis(100), viewport);
+        }
+    }
 }

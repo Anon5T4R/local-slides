@@ -26,6 +26,15 @@ impl SlideApp {
             }
             return r;
         }
+        // Opening a file that is already open brings its window to the front: the same file is
+        // one presentation, not two. (A presentation opened from bytes has no path to match.)
+        if matches!(id, "file.open" | "file.adopt")
+            && let Some(path) = params.get("path").and_then(Value::as_str)
+            && self.focus_open_document(path)
+        {
+            self.note_recent(path);
+            return Ok(json!({"document": self.session.active_index(), "alreadyOpen": true}));
+        }
         let before = self.session.active().map(|d| d.uid);
         // Open replaces an untouched blank presentation in the window it was asked from.
         let reuse = if matches!(id, "file.open" | "file.adopt" | "file.openBytes") { self.open_reuse_target() } else { None };

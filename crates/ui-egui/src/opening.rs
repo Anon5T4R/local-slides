@@ -37,6 +37,11 @@ impl SlideApp {
     /// Open `path` without blocking the UI: the file is read on a thread and the progress window
     /// shows until it arrives. Without threads (the web build) it opens at once.
     pub fn open_path_in_background(&mut self, path: &str) {
+        // The file is already open: its window comes forward, nothing is read.
+        if self.focus_open_document(path) {
+            self.note_recent(path);
+            return;
+        }
         if let Some(o) = &self.opening {
             let name = o.name();
             self.set_status(format!("Still opening {name}"));
@@ -94,6 +99,12 @@ impl SlideApp {
         let Some(o) = self.opening.take() else { return };
         match r {
             Ok(f) => {
+                // The same file was opened again while it was being read: show that window and
+                // drop this copy.
+                if self.focus_open_document(&o.path) {
+                    self.note_recent(&o.path);
+                    return;
+                }
                 // Into the session through the command path, like file.open: journaled and guarded.
                 let token = self.session.stage_loaded(f);
                 match self.session.execute("file.adopt", &serde_json::json!({"path": o.path, "token": token})) {
@@ -255,7 +266,8 @@ mod tests {
     }
 
     /// #862: a `.pptx` from the system opens for editing, and so does a `.ppsx` followed by a
-    /// `.pptx`: the show would otherwise play the deck opened last.
+    /// `.pptx`: the show would otherwise play the deck opened last. A file already open is shown
+    /// in its window instead of being opened a second time.
     #[test]
     fn a_pptx_from_the_system_opens_for_editing() {
         let pptx = saved_as("edit.pptx", 3);
@@ -264,8 +276,15 @@ mod tests {
         assert!(app.open_from_system(std::slice::from_ref(&pptx)).is_empty());
         assert!(app.show.is_none());
         assert!(app.open_from_system(&[ppsx.clone(), pptx.clone()]).is_empty());
-        assert_eq!(app.session.documents().len(), 3);
+        assert_eq!(app.session.documents().len(), 2, "the .pptx was already open: it is not opened again");
+        assert_eq!(app.session.active().map(|d| d.path.as_deref()), Some(Some(pptx.as_str())), "the last file is the active one");
         assert!(app.show.is_none(), "the last file is a .pptx");
+
+        // Both handed over at once: both open, and the .pptx last still starts no show.
+        let mut batch = SlideApp::new(Session::new(), crate::Services::default());
+        assert!(batch.open_from_system(&[ppsx.clone(), pptx.clone()]).is_empty());
+        assert_eq!(batch.session.documents().len(), 2);
+        assert!(batch.show.is_none(), "the last file is a .pptx");
         std::fs::remove_file(&pptx).ok();
         std::fs::remove_file(&ppsx).ok();
     }
