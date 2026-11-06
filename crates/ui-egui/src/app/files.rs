@@ -164,18 +164,6 @@ impl SlideApp {
         self.recent_checked.remove(path);
     }
 
-    /// File › Close and Ctrl+W: closes the active presentation, asking first when it has unsaved
-    /// changes (Save, Don't Save, Cancel), as PowerPoint does.
-    pub fn close_presentation(&mut self) {
-        match self.session.active() {
-            None => {}
-            Some(d) if d.is_dirty() => self.dialog = Some(dialogs::Dialog::new("close")),
-            Some(_) => {
-                let _ = self.run("file.close", json!({}));
-            }
-        }
-    }
-
     /// The file name a save or export suggests: the presentation's title with `ext`.
     fn suggested_name(&self, ext: &str) -> String {
         let name = self.session.active().map(|d| d.title()).unwrap_or_else(|| "Presentation".into());
@@ -306,7 +294,7 @@ impl SlideApp {
     }
 
     pub fn open_path(&mut self, path: &str) -> Result<(), String> {
-        self.session.execute("file.open", &json!({"path": path})).map_err(|e| e.to_string())?;
+        self.run("file.open", json!({"path": path})).map(|_| ())?;
         self.note_recent(path);
         Ok(())
     }
@@ -616,15 +604,21 @@ impl SlideApp {
         } else {
             json!({"name": name, "data": localslides_engine::cmd::base64_encode(bytes)})
         };
+        // An open replaces an untouched blank presentation in the window it was dropped on.
+        let reuse = if cmd == "file.openBytes" { self.open_reuse_target() } else { None };
         let result = if cmd == "file.openBytes" || self.viewing_target(&req.target) {
             self.session.execute(cmd, &params).map(|_| ()).map_err(|e| e.to_string())
         } else {
             self.execute_on_target(&req.target, name, cmd, &params)
         };
+        let opened = cmd == "file.openBytes" && result.is_ok();
         match result {
             Err(e) if cmd == "file.openBytes" => self.notify(e),
             Err(e) => self.set_status(e),
             Ok(()) => {}
+        }
+        if opened {
+            self.opened_document(reuse);
         }
         self.drain_requests();
     }

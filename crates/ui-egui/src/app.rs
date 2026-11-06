@@ -6,8 +6,8 @@ use super::state::{FilePlace, FilePurpose, ImeDescriptorKey, ImeDestination, Ime
 use super::updates_ui;
 use super::{
     AnimPreview, ControlRequest, FileTarget, HashMap, ImeCancelled, ImeComposition, ImeResetPhase, ImeTerminalPending, InputTarget, Mods,
-    PendingFile, Perf, Receiver, Session, SlideApp, Target, UI_COMMANDS, UiRequest, Value, backstage, canvas, capture, dialogs, doc_window,
-    eyedropper, json, media, menus, notes, panes, preview, qat, ribbon, selpane, show, sorter, status, textures, theme, thumbs, toast, uifonts,
+    PendingFile, Perf, Receiver, Session, SlideApp, Target, UI_COMMANDS, UiRequest, Value, backstage, canvas, capture, dialogs, eyedropper, json,
+    media, menus, notes, panes, preview, qat, ribbon, selpane, show, sorter, status, textures, theme, thumbs, toast, uifonts, windows,
 };
 
 mod clipboard;
@@ -39,6 +39,9 @@ impl SlideApp {
     /// synthetic input, and timing fields.
     pub fn new(session: Session, mut services: Services) -> Self {
         let audio_out = services.audio_out.take();
+        let active = session.active().map(|d| d.uid);
+        let mut windows = windows::Windows::new();
+        windows.start_with(active);
         SlideApp {
             last_fill: serde_json::json!("accent1"),
             last_outline: serde_json::json!("tx1"),
@@ -70,6 +73,7 @@ impl SlideApp {
             synthetic_target: None,
             synthetic_focus: None,
             synthetic_injected_time: None,
+            synthetic_viewport: None,
             ribbon_scroll: HashMap::new(),
             show_instance: 0,
             opening_generation: 0,
@@ -98,7 +102,9 @@ impl SlideApp {
             thumb_drag: None,
             selpane: selpane::State::default(),
             align_to: None,
-            doc_window: None,
+            windows,
+            shown_document: active,
+            ctx: None,
             sorter: sorter::State::default(),
             slides_focused: false,
             v_seen: false,
@@ -187,7 +193,7 @@ impl SlideApp {
 
     /// Keeps the File tab's view in step with the open presentations: it closes when one is
     /// opened, created or closed (the result shows), and it is the start screen when none is open.
-    fn sync_backstage(&mut self) {
+    pub(crate) fn sync_backstage(&mut self) {
         let key = self.docs_key();
         let has_doc = self.session.active().is_some();
         let stale = self.backstage.as_ref().is_some_and(|b| b.docs != key);
@@ -208,6 +214,7 @@ impl SlideApp {
             log::debug!("ignoring SlideApp::logic for render-only viewport {:?}", ctx.viewport_id());
             return;
         }
+        self.ctx = Some(ctx.clone());
         self.tick_hidden_show(ctx, web_time::Instant::now());
         // `raw_input_hook` runs before `App::logic`. In a full pass egui has already built
         // `PointerState` and `keys_down` from every injected event, so retracting the events after
@@ -227,18 +234,28 @@ impl SlideApp {
             self.drain_inbox();
         }
         self.drain_screenshots();
+        // A script, an agent or a later result may have made another presentation the active one.
+        self.sync_document();
         // `raw_input_hook` ran before this logic pass. This is normally a no-op now that
         // target-changing work is deferred for a live batch; it still covers a target change
         // made by other logic, and keeps a logic-only batch pending for the next hook.
         self.retract_synthetic_after_logic(ctx);
+        // Control input for a window that draws in a viewport of its own goes to that viewport,
+        // not the root's raw input.
+        self.send_control_input(ctx);
         // Queued/settling screenshots force the bounded hidden paints they need; issued ones
         // rely on the screenshot command and the completion callback, with only a deadline wake.
         self.capture.request_paint_if_needed(ctx, web_time::Instant::now());
         if !self.synthetic.is_empty() || !self.synthetic_next.is_empty() || self.synthetic_pending {
             ctx.request_repaint();
         }
-        // Closing the window with unsaved changes asks first.
-        if ctx.input(|i| i.viewport().close_requested()) && !self.quit_confirmed && self.session.documents().iter().any(|d| d.is_dirty()) {
+        // Closing the last window with unsaved changes asks first. Closing one of several
+        // windows closes only it (see `windows::window_events`).
+        if ctx.input(|i| i.viewport().close_requested())
+            && !self.quit_confirmed
+            && self.window_count() <= 1
+            && self.session.documents().iter().any(|d| d.is_dirty())
+        {
             ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
             self.show = None;
             if self.dialog.as_ref().is_none_or(|d| d.id != "quit") {
@@ -257,18 +274,44 @@ impl SlideApp {
         }
     }
 
-    /// Lay out the whole window.
+    /// Lay out the windows: on the desktop each open presentation's in its own native window
+    /// ([`windows`]), on the web the one window.
+    pub fn ui(&mut self, ui: &mut egui::Ui) {
+        self.ctx = Some(ui.ctx().clone());
+        if self.windows.native() {
+            self.windows_ui(ui);
+        } else {
+            self.sync_document();
+            self.ui_window(ui);
+        }
+    }
+
+    /// Whether this pass draws an admitted window: in native windows, the viewport of the window
+    /// being drawn; otherwise the root viewport.
+    pub(crate) fn viewport_admitted(&self, ctx: &egui::Context) -> bool {
+        match self.drawing_viewport() {
+            Some(viewport) => viewport == ctx.viewport_id(),
+            None => Self::root_viewport_admitted(ctx),
+        }
+    }
+
+    /// Run one window's UI pass.
     ///
     /// Every return route, including fonts/layout discards, show mode, modal/Backstage and the
     /// no-document paths, reaches the same outer reset observation and finalizer below. No early
     /// route may publish or inspect IME output on its own.
-    pub fn ui(&mut self, ui: &mut egui::Ui) {
+    pub(crate) fn ui_window(&mut self, ui: &mut egui::Ui) {
         let ctx = ui.ctx().clone();
-        if !Self::root_viewport_admitted(&ctx) {
+        if !self.viewport_admitted(&ctx) {
             log::debug!("ignoring SlideApp::ui for render-only viewport {:?}", ctx.viewport_id());
             return;
         }
-        self.ui_inner(ui);
+        if !self.ui_inner(ui) {
+            // Drawing moved to another window (New, Open, Switch Windows): the rest would be
+            // that window's.
+            self.requeue_injected_synthetic();
+            return;
+        }
         // The last writer (all panels, dialogs, the custom producer and deferred child windows)
         // has run. Observe the actual custom descriptor for this pass, then reconcile the reset
         // lifetime against the actual committed output. This also runs for discarded passes.
@@ -277,17 +320,18 @@ impl SlideApp {
         self.finalize_ime_reset(&ctx, custom);
     }
 
-    /// Run the admitted root UI pass, including setup gating, panels, canvas, dialogs, overlays, and
-    /// show mode.
-    fn ui_inner(&mut self, ui: &mut egui::Ui) {
+    /// Run the drawn window's UI pass, including setup gating, panels, canvas, dialogs, overlays,
+    /// and show mode. False when a command made another window the drawn one.
+    fn ui_inner(&mut self, ui: &mut egui::Ui) -> bool {
         let ctx = ui.ctx().clone();
+        let window = self.windows.shown();
         self.ime_frame_viewport = Some(ctx.viewport_id());
         self.ime_pending = None;
         if !self.ui_setup(&ctx) {
             // This pass is discarded for the new fonts. The input events were already consumed
             // by egui, so keep them queued for the next frame instead of silently losing them.
             self.requeue_injected_synthetic();
-            return;
+            return true;
         }
         let t0 = now_ms();
         let t = theme::Tokens::get(&ctx);
@@ -295,22 +339,34 @@ impl SlideApp {
         self.media.sync_video_textures(&ctx);
         canvas::trackpad_twist(self, &ctx);
         eyedropper::tick(self, &ctx);
-        self.opening_ui(&ctx);
+        // The progress window belongs to the active window: a file open is app-wide, its modal
+        // is not repeated in every window.
+        if ctx.viewport_id() == self.active_viewport() {
+            self.opening_ui(&ctx);
+        }
         if self.show.is_some() {
             self.anim_preview = None;
             show::ui(self, ui);
-            doc_window::show(self, &ctx);
             self.perf.frame_ms = now_ms() - t0;
             self.ui_end(&ctx);
-            return;
+            return true;
         }
         self.sync_backstage();
         self.keyboard(&ctx);
+        if self.windows.shown() != window {
+            return false;
+        }
         self.sync_backstage();
         ribbon::title_bar(self, ui);
+        if self.windows.shown() != window {
+            return false;
+        }
         if self.backstage.is_none() && self.session.active().is_some() {
             ribbon::show(self, ui);
             status::status_bar(self, ui);
+        }
+        if self.windows.shown() != window {
+            return false;
         }
         let now = ui.input(|i| i.time);
         if self.tick_anim_preview(now) {
@@ -346,11 +402,17 @@ impl SlideApp {
                 }
             }
         });
+        if self.windows.shown() != window {
+            return false;
+        }
         toast::note_missing_fonts(self);
         toast::show(self, &ctx);
         dialogs::show(self, &ctx);
         #[cfg(not(target_arch = "wasm32"))]
         updates_ui::show(self, &ctx);
+        if self.windows.shown() != window {
+            return false;
+        }
         menus::palette(self, &ctx);
         for url in std::mem::take(&mut self.pending_urls) {
             ctx.open_url(egui::OpenUrl::new_tab(url));
@@ -359,9 +421,9 @@ impl SlideApp {
             ctx.copy_text(t);
         }
         self.drain_requests();
-        doc_window::show(self, &ctx);
         self.perf.frame_ms = now_ms() - t0;
         self.ui_end(&ctx);
+        true
     }
 
     pub fn open_url(&mut self, url: &str) {

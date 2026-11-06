@@ -1,6 +1,6 @@
 #[cfg(not(target_arch = "wasm32"))]
 use super::updates_ui;
-use super::{SlideApp, UI_COMMANDS, Value, ViewMode, backstage, dialogs, doc_window, json, media, qat, theme};
+use super::{SlideApp, UI_COMMANDS, Value, ViewMode, backstage, dialogs, json, media, qat, theme};
 
 fn grid_options_touched(p: &Value) -> bool {
     ["spacing", "snap", "smartGuides", "gridlines", "guides"].iter().any(|k| p.get(*k).is_some())
@@ -18,6 +18,17 @@ impl SlideApp {
     /// Run a command by id (UI commands here, everything else in the engine). Errors show in the
     /// status bar and are returned.
     pub fn run(&mut self, id: &str, params: Value) -> Result<Value, String> {
+        // "Next Window" walks the app's windows now, not the presentations of one window.
+        if id == "window.next" {
+            let r = self.next_window(&params);
+            if let Err(e) = &r {
+                self.set_status(e.clone());
+            }
+            return r;
+        }
+        let before = self.session.active().map(|d| d.uid);
+        // Open replaces an untouched blank presentation in the window it was asked from.
+        let reuse = if matches!(id, "file.open" | "file.adopt" | "file.openBytes") { self.open_reuse_target() } else { None };
         let r = if UI_COMMANDS.iter().any(|c| c.0 == id) {
             self.run_ui(id, &params)
         } else {
@@ -33,6 +44,10 @@ impl SlideApp {
             }
             Ok(_) => {}
             Err(e) => self.set_status(e.clone()),
+        }
+        match &r {
+            Ok(_) if self.session.active().map(|d| d.uid) != before => self.opened_document(reuse),
+            _ => {}
         }
         self.drain_requests();
         r
@@ -155,7 +170,7 @@ impl SlideApp {
                 self.restyle = true;
             }
             "view.grayscale" => self.ui.grayscale = self.flag(p, self.ui.grayscale),
-            "view.newWindow" => return doc_window::command(self, p),
+            "view.newWindow" => return self.new_window_command(p),
             "show.start" => {
                 if let Some(name) = p.get("custom").and_then(Value::as_str).filter(|s| !s.is_empty()) {
                     self.start_custom_show(name, false);

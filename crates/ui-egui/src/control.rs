@@ -87,11 +87,12 @@ pub fn all_commands(app: &SlideApp) -> Value {
 }
 
 pub fn inspect(app: &SlideApp, ctx: &egui::Context) -> Value {
-    let r = ctx.content_rect();
+    let size = app.active_window_size(ctx);
     json!({
         "ui": serde_json::to_value(&app.ui).unwrap_or_default(),
         "tool": serde_json::to_value(&app.session.tool.kind).unwrap_or_default(),
-        "window": [r.width(), r.height()],
+        "window": [size.x, size.y],
+        "windows": app.window_count(),
         "canvasRect": app.canvas_rect.map(|c| json!([c.left(), c.top(), c.width(), c.height()])),
         "slideRect": app.slide_rect.map(|c| json!([c.left(), c.top(), c.width(), c.height()])),
         "canvasScale": app.canvas_scale,
@@ -326,11 +327,11 @@ pub fn handle(app: &mut SlideApp, ctx: &egui::Context, req: &ControlRequest) -> 
         }
         "ui.resize" => {
             let (Some(w), Some(h)) = (f(p, "width"), f(p, "height")) else { return err("missing width/height") };
-            ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(egui::vec2(w, h)));
+            ctx.send_viewport_cmd_to(app.active_viewport(), egui::ViewportCommand::InnerSize(egui::vec2(w, h)));
             ok(Value::Null)
         }
         "ui.focus" => {
-            ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
+            ctx.send_viewport_cmd_to(app.active_viewport(), egui::ViewportCommand::Focus);
             ok(Value::Null)
         }
         "show.start" => {
@@ -370,7 +371,8 @@ pub fn handle(app: &mut SlideApp, ctx: &egui::Context, req: &ControlRequest) -> 
                 return err("not every presentation could be saved");
             }
             app.quit_confirmed = true;
-            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            // Quitting closes the app: the root viewport owns it, whichever window asked.
+            ctx.send_viewport_cmd_to(egui::ViewportId::ROOT, egui::ViewportCommand::Close);
             ok(Value::Null)
         }
         other => err(format!("unknown method `{other}`")),

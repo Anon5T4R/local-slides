@@ -9,6 +9,7 @@ impl SlideApp {
         InputTarget {
             documents: self.session.documents().len(),
             active: self.session.active().map(|d| d.uid),
+            window: Some(self.windows.shown()),
             slide: self.session.active().map(|d| d.selection.slide),
             view: self.ui.view,
             zoom: self.ui.zoom.map(bits),
@@ -63,7 +64,7 @@ impl SlideApp {
 
     /// Forget the injected or queued synthetic batch and everything recorded about it. Events
     /// waiting in `synthetic_next` are a separate, newer batch and are promoted by the caller.
-    fn clear_synthetic_batch(&mut self) {
+    pub(crate) fn clear_synthetic_batch(&mut self) {
         self.synthetic.clear();
         self.synthetic_pending = false;
         self.synthetic_injected.clear();
@@ -71,10 +72,11 @@ impl SlideApp {
         self.synthetic_injected_time = None;
         self.synthetic_target = None;
         self.synthetic_focus = None;
+        self.synthetic_viewport = None;
     }
 
     /// Start the batch that was queued behind an older one once the older batch is gone.
-    pub(super) fn promote_next_synthetic(&mut self) {
+    pub(crate) fn promote_next_synthetic(&mut self) {
         if self.synthetic_pending || !self.synthetic.is_empty() || self.synthetic_next.is_empty() {
             return;
         }
@@ -137,6 +139,19 @@ impl SlideApp {
     /// `RawInput` before eframe delivers them in a full pass.
     pub(super) fn retract_synthetic_after_logic(&mut self, ctx: &egui::Context) {
         if !self.synthetic_pending {
+            return;
+        }
+        // A batch routed to another window's viewport (see `send_control_input`) is in the
+        // viewport input plugin, not this pass's input: drop it when its target changed, and
+        // otherwise leave it for that window's next pass.
+        if self.synthetic_injected.is_empty() {
+            if self.synthetic_target != Some(self.input_target()) {
+                ctx.with_plugin(|p: &mut crate::windows::ViewportInput| {
+                    p.drop_queued();
+                });
+                self.clear_synthetic_batch();
+                self.promote_next_synthetic();
+            }
             return;
         }
         let current = self.input_target();
@@ -253,11 +268,7 @@ impl SlideApp {
         }
         self.synthetic_generation = self.synthetic_generation.wrapping_add(1).max(1);
         log::debug!("injecting synthetic input batch {}", self.synthetic_generation);
-        let n = match self.synthetic.first() {
-            Some(egui::Event::PointerMoved(_) | egui::Event::PointerButton { .. }) => 1,
-            _ => self.synthetic.iter().position(|e| matches!(e, egui::Event::Key { pressed: false, .. })).map_or(self.synthetic.len(), |i| i + 1),
-        };
-        let n = n.min(self.synthetic.len());
+        let n = crate::windows::batch_len(&self.synthetic);
         let batch: Vec<egui::Event> = self.synthetic.drain(..n).collect();
         let at = raw.events.len();
         raw.events.extend(batch.iter().cloned());
