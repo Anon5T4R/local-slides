@@ -263,12 +263,16 @@ fn main() -> eframe::Result {
     let apple_events = apple_events::AppleEvents::install();
     #[cfg(target_os = "macos")]
     let apple_events = &apple_events;
+    // New windows start from the root's builder (icon, app id, frame preference); their title and
+    // place are the app's.
+    let window_builder = options.viewport.clone();
     eframe::run_native(
         "Local Slides",
         options,
         Box::new(move |cc| {
             localslides_ui_egui::install_ime_pass_hooks(&cc.egui_ctx);
             let mut app = SlideApp::new(Session::new(), services());
+            app.set_window_builder(window_builder);
             load_prefs(&mut app);
             app.enable_update_checks();
             // AutoRecover: reopen what a previous run left unsaved, then keep it current.

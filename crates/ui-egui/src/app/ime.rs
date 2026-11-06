@@ -153,11 +153,12 @@ impl SlideApp {
             && self.opening.is_none()
     }
 
-    /// The singleton app's session, composition tracker and terminal guard belong to its owning
-    /// viewport. View › New Window and Presenter View render through their own immediate
-    /// viewports and never call `logic`/`ui`; admitting such a callback would let a render-only
-    /// viewport mutate root composition state while only the reset map is per-viewport. Reject it
-    /// before any state changes instead of pretending to support multi-view editing.
+    /// The app-wide work (`logic`), the fonts/theme setup and the composition tracker belong to
+    /// the pass the host runs for `App::ui`. Presenter View renders through an immediate viewport
+    /// of its own and never calls `logic`/`ui`; admitting such a render-only callback would let it
+    /// mutate root composition state while only the reset map is per-viewport. Reject it before
+    /// any state changes. The application's own windows each draw admitted passes of their own
+    /// (`SlideApp::viewport_admitted`).
     pub(super) fn root_viewport_admitted(ctx: &egui::Context) -> bool {
         ctx.viewport_id() == egui::ViewportId::ROOT
     }

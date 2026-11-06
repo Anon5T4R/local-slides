@@ -33,7 +33,7 @@ ends and are omitted from thumbnails, slide shows and exports.
 | Status bar: slide counter, language, notes, comments, views, zoom slider | yes | yes | |
 | Command search (Tell Me) | yes | command palette | |
 | Light / dark appearance | follows the system | light or dark; doesn't follow the system (#41) | 1–2 h |
-| One window per presentation, New Window, Arrange All | yes | New Window opens one more window on the same presentation (its own slide, live with edits); tabs stay in the first window; no Arrange All | Arrange All |
+| One window per presentation, New Window, Arrange All | yes | one native window per presentation (craft `Viewports`), like Local Word; New Window opens another editable window on the same presentation, with its own dialogs and File page; no Arrange All | Arrange All |
 | Quick Access Toolbar customization | yes | yes: Customize menu (common commands, reset), right-click any ribbon button to add, right-click a toolbar button to remove; saved with the UI state | done |
 
 ## File tab (Backstage)

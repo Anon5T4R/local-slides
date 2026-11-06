@@ -13,6 +13,9 @@ pub struct Opening {
     /// Monotonic identity of this attempt. Cancelling and reopening the same path must not match
     /// a click queued for the previous progress window's Cancel button.
     pub(crate) generation: u64,
+    /// The window and its untouched blank presentation the file replaces when it arrives; `None`
+    /// when it opens in a window of its own.
+    pub(crate) reuse: Option<(u64, u64)>,
     rx: Receiver<Result<LoadedFile, String>>,
 }
 
@@ -26,7 +29,7 @@ impl Opening {
     #[cfg(test)]
     pub(crate) fn for_test(path: &str) -> Self {
         let (_tx, rx) = std::sync::mpsc::channel();
-        Opening { path: path.to_string(), started_ms: 0.0, generation: 0, rx }
+        Opening { path: path.to_string(), started_ms: 0.0, generation: 0, reuse: None, rx }
     }
 }
 
@@ -56,7 +59,13 @@ impl SlideApp {
             match spawned {
                 Ok(_) => {
                     self.opening_generation = self.opening_generation.wrapping_add(1).max(1);
-                    self.opening = Some(Opening { path: path.to_string(), started_ms: crate::now_ms(), generation: self.opening_generation, rx });
+                    self.opening = Some(Opening {
+                        path: path.to_string(),
+                        started_ms: crate::now_ms(),
+                        generation: self.opening_generation,
+                        reuse: self.open_reuse_target(),
+                        rx,
+                    });
                 }
                 Err(_) => {
                     if let Err(e) = self.open_path(path) {
@@ -88,7 +97,10 @@ impl SlideApp {
                 // Into the session through the command path, like file.open: journaled and guarded.
                 let token = self.session.stage_loaded(f);
                 match self.session.execute("file.adopt", &serde_json::json!({"path": o.path, "token": token})) {
-                    Ok(_) => self.note_recent(&o.path),
+                    Ok(_) => {
+                        self.note_recent(&o.path);
+                        self.opened_document(o.reuse);
+                    }
                     Err(e) => self.notify(e.to_string()),
                 }
             }
@@ -199,7 +211,7 @@ mod tests {
         let mut app = SlideApp::new(Session::with_new(), crate::Services::default());
         // A read that never answers: the window stays until Cancel.
         let (_tx, rx) = std::sync::mpsc::channel();
-        app.opening = Some(Opening { path: "/decks/Big deck.pptx".into(), started_ms: crate::now_ms(), generation: 1, rx });
+        app.opening = Some(Opening { path: "/decks/Big deck.pptx".into(), started_ms: crate::now_ms(), generation: 1, reuse: None, rx });
         let mut harness = egui_kittest::Harness::builder().with_size(egui::vec2(1000.0, 700.0)).build_ui_state(
             |ui, app: &mut SlideApp| {
                 app.logic(ui.ctx());

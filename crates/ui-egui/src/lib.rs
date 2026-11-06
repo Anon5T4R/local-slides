@@ -20,7 +20,6 @@ pub mod canvas;
 pub mod capture;
 pub mod control;
 pub mod dialogs;
-pub mod doc_window;
 pub mod eyedropper;
 pub mod icons;
 pub mod media;
@@ -54,6 +53,7 @@ mod ime_hooks;
 pub mod panels;
 mod services;
 mod state;
+mod windows;
 
 pub use app::key_name;
 #[cfg(test)]
@@ -117,7 +117,7 @@ pub const UI_COMMANDS: &[(&str, &str, Option<&str>, &str)] = &[
     ("view.collapseRibbon", "Collapse the Ribbon", Some("Cmd+F1"), "{}"),
     ("view.dark", "Dark Mode", None, "{on?: bool}"),
     ("view.grayscale", "Grayscale", None, "{on?: bool}"),
-    ("view.newWindow", "New Window", None, "{on?: bool, slide?: index, delta?: int}"),
+    ("view.newWindow", "New Window", None, "{on?: bool}"),
     ("show.start", "Slide Show", Some("F5"), "{from?: index, custom?: name}"),
     (
         "show.presenter",
@@ -190,6 +190,9 @@ struct AnimPreview {
 struct InputTarget {
     documents: usize,
     active: Option<u64>,
+    /// The window drawn when the batch was queued: a click means another place when the windows
+    /// change.
+    window: Option<u64>,
     slide: Option<usize>,
     view: ViewMode,
     zoom: Option<u32>,
@@ -271,6 +274,8 @@ pub struct SlideApp {
     /// `InputState` from the previous pass; comparing this value keeps retraction from draining
     /// an unrelated batch out of that stale input.
     synthetic_injected_time: Option<f64>,
+    /// The viewport a batch was routed to (`send_control_input`); its pass acknowledges it.
+    synthetic_viewport: Option<egui::ViewportId>,
     /// Horizontal scroll offset (as `f32` bits) of each ribbon tab, recorded for
     /// [`InputTarget`]. Scroll state is per tab in egui, so the identity is too.
     ribbon_scroll: HashMap<String, u32>,
@@ -318,8 +323,13 @@ pub struct SlideApp {
     pub selpane: selpane::State,
     /// Arrange ▸ Align: Align to Slide (`true`) or Align Selected Objects, ticked for that selection.
     pub(crate) align_to: Option<(Vec<localslides_model::ShapeId>, bool)>,
-    /// View › New Window: a second window on one presentation. `None` when it is closed.
-    pub doc_window: Option<doc_window::DocWindow>,
+    /// The open windows: one native window per presentation (see [`windows`]).
+    pub(crate) windows: windows::Windows,
+    /// The presentation the drawn window shows; `None` on the start screen. Mirrors the drawn
+    /// window's document, which [`SlideApp::sync_document`] keeps in step with the session.
+    pub(crate) shown_document: Option<u64>,
+    /// The egui context of the frame being run, for the window driver's focus and adoption.
+    pub(crate) ctx: Option<egui::Context>,
     /// Slide Sorter: folded sections, inline rename, dragging a whole section.
     pub sorter: sorter::State,
     /// The slide thumbnail pane was the last thing clicked, so ⌘A selects slides, not shapes.

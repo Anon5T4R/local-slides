@@ -50,17 +50,22 @@ impl SlideApp {
     /// pass after layout; the outer [`Self::ui`] wrapper observes IME output after this returns.
     pub(super) fn ui_end(&mut self, ctx: &egui::Context) {
         self.ime_frame_viewport = None;
-        self.capture.observe_ui(ctx);
-        if !ctx.will_discard() {
-            let doc = self.session.active().map(|d| d.uid);
-            self.capture.issue(ctx, doc, web_time::Instant::now());
+        // The active window's pass is the one screenshots and `ui.resize` are about; the other
+        // windows drawing this frame must not overwrite its geometry.
+        if ctx.viewport_id() == self.active_viewport() {
+            self.capture.observe_ui(ctx);
+            if !ctx.will_discard() {
+                let doc = self.session.active().map(|d| d.uid);
+                self.capture.issue(ctx, doc, web_time::Instant::now());
+            }
         }
-        if self.fonts_ready && !ctx.will_discard() {
+        if self.fonts_ready && !ctx.will_discard() && self.synthetic_viewport.is_none_or(|v| v == ctx.viewport_id()) {
             self.synthetic_pending = false;
             self.synthetic_injected.clear();
             self.synthetic_injected_at = None;
             self.synthetic_injected_time = None;
             self.synthetic_focus = None;
+            self.synthetic_viewport = None;
             if self.synthetic.is_empty() {
                 self.synthetic_target = None;
             }
