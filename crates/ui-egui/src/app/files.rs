@@ -126,6 +126,19 @@ fn command_for(purpose: FilePurpose, name: &str, bytes: &[u8]) -> Result<&'stati
     cmd.ok_or_else(|| format!("{name}: Local Slides can't open this kind of file"))
 }
 
+/// The form two spellings of the same file share: the absolute, resolved path when the file is
+/// there, and the path as given otherwise (a file that was moved or deleted since it was opened).
+/// A presentation is only ever matched by path: one opened from bytes has none.
+#[cfg(not(target_arch = "wasm32"))]
+fn same_file_key(path: &str) -> std::path::PathBuf {
+    std::fs::canonicalize(path).unwrap_or_else(|_| std::path::PathBuf::from(path))
+}
+
+#[cfg(target_arch = "wasm32")]
+fn same_file_key(path: &str) -> String {
+    path.to_string()
+}
+
 impl SlideApp {
     /// Does this recent path exist on disk? Probed once per path per session and only on
     /// desktop (the web build has no file system to ask): a stat on a dead network share can
@@ -297,6 +310,23 @@ impl SlideApp {
         self.run("file.open", json!({"path": path})).map(|_| ())?;
         self.note_recent(path);
         Ok(())
+    }
+
+    /// The presentation already open from `path`, if any. Reopening a file shows the window it is
+    /// already open in instead of adding a second copy of the same presentation.
+    pub(crate) fn open_document_at(&self, path: &str) -> Option<u64> {
+        let key = same_file_key(path);
+        self.session.documents().iter().find(|d| d.path.as_deref().is_some_and(|p| p == path || same_file_key(p) == key)).map(|d| d.uid)
+    }
+
+    /// Bring the window showing `path`'s presentation to the front and make it the active one.
+    /// False when the file is not open, which leaves the caller to open it.
+    pub(crate) fn focus_open_document(&mut self, path: &str) -> bool {
+        let Some(uid) = self.open_document_at(path) else { return false };
+        let Some(i) = self.session.documents().iter().position(|d| d.uid == uid) else { return false };
+        self.session.set_active(i);
+        self.sync_document();
+        true
     }
 
     /// Files the system hands over (the command line, a double-click through the file

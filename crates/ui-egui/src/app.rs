@@ -215,7 +215,9 @@ impl SlideApp {
             return;
         }
         self.ctx = Some(ctx.clone());
-        self.tick_hidden_show(ctx, web_time::Instant::now());
+        // Every open window's show runs, not only the drawn one: a slideshow keeps playing in a
+        // window another one has the focus over.
+        self.tick_shows(ctx, web_time::Instant::now());
         // `raw_input_hook` runs before `App::logic`. In a full pass egui has already built
         // `PointerState` and `keys_down` from every injected event, so retracting the events after
         // this pass would not stop the derived click or key from reaching the UI. Defer instead:
@@ -251,15 +253,18 @@ impl SlideApp {
         }
         // Closing the last window with unsaved changes asks first. Closing one of several
         // windows closes only it (see `windows::window_events`).
-        if ctx.input(|i| i.viewport().close_requested())
-            && !self.quit_confirmed
-            && self.window_count() <= 1
-            && self.session.documents().iter().any(|d| d.is_dirty())
-        {
-            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
-            self.show = None;
-            if self.dialog.as_ref().is_none_or(|d| d.id != "quit") {
-                self.dialog = Some(dialogs::Dialog::new("quit"));
+        if ctx.input(|i| i.viewport().close_requested()) {
+            let last = self.window_count() <= 1;
+            let asking = last && !self.quit_confirmed && self.session.documents().iter().any(|d| d.is_dirty());
+            if asking {
+                ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+                self.show = None;
+                if self.dialog.as_ref().is_none_or(|d| d.id != "quit") {
+                    self.dialog = Some(dialogs::Dialog::new("quit"));
+                }
+            } else if last {
+                // The app is quitting (the close goes through): no slide show outlives it.
+                self.media.stop_owned(media::Owner::Show);
             }
         }
         self.autosave_if_due(ctx);

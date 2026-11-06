@@ -19,8 +19,12 @@
 //! View › New Window opens another editable window on a presentation. The presentation, its undo
 //! history and its save state are shared; its selection is already per document in the session, so
 //! its windows share that view too. What the app keeps per window (`WindowUi`) is the interface
-//! state another window must not inherit: its File page, open dialogs and messages, its slide
-//! show, its eyedropper and slide drag.
+//! state another window must not inherit: its File page, open dialogs and messages, its ribbon
+//! tab, its slide show, its eyedropper and slide drag. Panes, zoom and the Quick Access Toolbar
+//! are preferences and stay shared.
+//!
+//! A slide show in a window that is not the active one keeps running: [`SlideApp::logic`] advances
+//! the clocks of every open window, not only the one whose state is in the app's fields.
 //!
 //! Closing one of a presentation's windows leaves the presentation open and asks nothing; closing
 //! its last window closes it, asking about unsaved changes first.
@@ -53,6 +57,10 @@ pub(crate) struct WindowUi {
     pub(crate) status: Option<(String, f64)>,
     pub(crate) toast: Option<crate::toast::Toast>,
     pub(crate) palette: Option<(String, usize)>,
+    /// The active ribbon tab. The one piece of [`crate::UiState`] a window owns: two windows side
+    /// by side can look at different tabs, while zoom, panes, the ruler and the Quick Access
+    /// Toolbar stay preferences of the app.
+    pub(crate) tab: String,
     pub(crate) show: Option<show::Show>,
     pub(crate) eyedropper: Option<eyedropper::State>,
     pub(crate) reuse_target: Option<FileTarget>,
@@ -78,6 +86,7 @@ impl Default for WindowUi {
             status: None,
             toast: None,
             palette: None,
+            tab: crate::UiState::default().tab,
             show: None,
             eyedropper: None,
             reuse_target: None,
@@ -104,6 +113,7 @@ impl WindowUi {
             status: app.status.take(),
             toast: app.toast.take(),
             palette: app.palette.take(),
+            tab: std::mem::take(&mut app.ui.tab),
             show: app.show.take(),
             eyedropper: app.eyedropper.take(),
             reuse_target: app.reuse_target.take(),
@@ -127,6 +137,7 @@ impl WindowUi {
         app.status = self.status;
         app.toast = self.toast;
         app.palette = self.palette;
+        app.ui.tab = self.tab;
         app.show = self.show;
         app.eyedropper = self.eyedropper;
         app.reuse_target = self.reuse_target;
@@ -184,6 +195,9 @@ pub struct Windows {
     driven: bool,
     /// The window being drawn and the viewport it draws in, while [`SlideApp::ui`] runs for it.
     drawing: Option<(u64, ViewportId)>,
+    /// Windows whose slide show advanced in the last frame's drawing: their own pass ran the
+    /// clocks, so the next logic pass must not run them a second time.
+    drawn_shows: HashSet<u64>,
     /// [`ViewportInput`] is registered with egui.
     input_plugin: bool,
 }
@@ -209,6 +223,7 @@ impl Windows {
             builder: egui::ViewportBuilder::default().with_inner_size([1440.0, 900.0]).with_min_inner_size([900.0, 560.0]),
             driven: false,
             drawing: None,
+            drawn_shows: HashSet::new(),
             input_plugin: false,
         }
     }
@@ -280,8 +295,29 @@ impl Windows {
     }
 
     /// The open window keys in opening order.
-    fn keys_in_order(&self) -> Vec<u64> {
+    pub(crate) fn keys_in_order(&self) -> Vec<u64> {
         self.open.iter().map(|w| w.key).collect()
+    }
+
+    /// A parked window's interface state; `None` for the drawn window, whose state is in
+    /// [`SlideApp`]'s fields, and for a key that is not open.
+    pub(crate) fn parked_ui_mut(&mut self, key: u64) -> Option<&mut WindowUi> {
+        self.get_mut(key).and_then(|w| w.ui.as_deref_mut())
+    }
+
+    /// Note that window `key`'s slide show advanced in this frame's drawing.
+    pub(crate) fn mark_show_drawn(&mut self, key: u64) {
+        self.drawn_shows.insert(key);
+    }
+
+    /// The windows whose show advanced in the last frame's drawing, clearing the record.
+    pub(crate) fn take_drawn_shows(&mut self) -> HashSet<u64> {
+        std::mem::take(&mut self.drawn_shows)
+    }
+
+    /// The egui viewport a window draws in.
+    pub(crate) fn viewport_of(&self, key: u64) -> ViewportId {
+        self.viewport(key)
     }
 
     /// The window's position in opening order, as View › Switch Windows numbers it.
@@ -482,10 +518,18 @@ impl SlideApp {
     /// brings its presentation with it; the root viewport adopts it when the removed window was
     /// the root's. Removing the last window leaves the start screen's empty window.
     pub(crate) fn remove_window(&mut self, key: u64) {
-        if self.windows.get(key).is_none() {
-            return;
+        let (was_shown, doc, played) = {
+            let Some(removed) = self.windows.get(key) else { return };
+            let was_shown = self.windows.shown == key;
+            // A slide show's voices belong to the show, not to the presentation: they stop with
+            // the window that plays it, unless the presentation stays open in another window
+            // (where another show of it may be using them).
+            let played = if was_shown { self.show.is_some() } else { removed.ui.as_ref().is_some_and(|ui| ui.show.is_some()) };
+            (was_shown, removed.doc, played)
+        };
+        if played && doc.is_none_or(|uid| self.windows.windows_on(uid) <= 1) {
+            self.media.stop_owned(crate::media::Owner::Show);
         }
-        let was_shown = self.windows.shown == key;
         if !was_shown {
             self.windows.open.retain(|w| w.key != key);
             self.settle_windows();
@@ -801,6 +845,12 @@ impl SlideApp {
         self.sync_backstage();
         self.ui_window(ui);
         self.windows.drawing = None;
+        // A visible show pass ran this window's clocks; the next logic pass must not run them
+        // again (see `SlideApp::tick_shows`). A discarded pass, or one that moved drawing to
+        // another window, advanced nothing.
+        if self.windows.shown() == key && self.show.is_some() && show::viewport_visible(&ctx) {
+            self.windows.mark_show_drawn(key);
+        }
     }
 
     /// The windows' focus changes and close requests from this frame.
@@ -991,6 +1041,8 @@ impl egui::Plugin for ViewportInput {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::unwrap_used, clippy::expect_used)]
+
     use super::*;
 
     #[test]
@@ -1095,5 +1147,140 @@ mod tests {
         assert_ne!(child, ViewportId::ROOT, "the new presentation has a viewport of its own");
         assert!(drawn.contains(&child));
         assert!(app.window_title().ends_with(" - Local Slides"), "{}", app.window_title());
+    }
+
+    /// A pass of the app's logic alone, as a hidden window's frame gives it.
+    fn logic_pass(ctx: &egui::Context, app: &mut SlideApp, now: web_time::Instant) {
+        let mut raw = egui::RawInput::default();
+        raw.viewports.insert(ViewportId::ROOT, egui::ViewportInfo::default());
+        let _ = ctx.run_logic(&raw, |ctx| app.tick_shows(ctx, now));
+    }
+
+    /// A slide show playing in a window that no longer has the focus keeps its clocks: logic
+    /// advances every open window's show, not only the drawn one.
+    #[test]
+    fn a_show_in_a_window_that_lost_the_focus_keeps_its_clock_running() {
+        let ctx = backend();
+        let mut app = SlideApp::new(localslides_engine::Session::with_new(), crate::Services::default());
+        app.session.execute("slide.new", &json!({})).unwrap();
+        app.session.execute("transition.timing", &json!({"index": 0, "after": 1000})).unwrap();
+        app.session.execute("transition.timing", &json!({"index": 1, "after": null})).unwrap();
+        frame(&ctx, &mut app);
+        frame(&ctx, &mut app);
+
+        // A second presentation in a window of its own, its first slide advancing by itself.
+        app.run("file.new", json!({})).unwrap();
+        app.session.execute("slide.new", &json!({})).unwrap();
+        app.session.execute("transition.timing", &json!({"index": 0, "after": 1000})).unwrap();
+        app.session.execute("transition.timing", &json!({"index": 1, "after": null})).unwrap();
+        app.start_show(0, false);
+        frame(&ctx, &mut app);
+        frame(&ctx, &mut app);
+        let playing = app.windows.shown();
+        assert!(app.show.is_some(), "the new window plays the show");
+        assert_eq!(app.show.as_ref().map(|s| s.state.slide), Some(0));
+
+        // The first window takes the focus; the show's window stays open in the background.
+        let first = app.windows.keys_in_order()[0];
+        app.show_window(first);
+        assert!(app.show.is_none(), "the drawn window plays no show");
+        assert!(app.windows.open.iter().any(|w| w.key == playing && w.ui.as_ref().is_some_and(|ui| ui.show.is_some())));
+
+        // The pass right after the last drawn frame still has that frame's mark; the next one
+        // advances the background show from wall time, as it does for a hidden window.
+        let anchored = web_time::Instant::now();
+        logic_pass(&ctx, &mut app, anchored);
+        logic_pass(&ctx, &mut app, anchored + std::time::Duration::from_secs(2));
+
+        let show = app
+            .windows
+            .open
+            .iter()
+            .find(|w| w.key == playing)
+            .and_then(|w| w.ui.as_ref())
+            .and_then(|ui| ui.show.as_ref())
+            .expect("the background show is still playing");
+        assert_eq!(show.state.slide, 1, "the After: 1 s advance ran with the window in the background");
+    }
+
+    /// A 0.5 s sine at 8 kHz, mono 16-bit: a clip `insert.audio` accepts and the media host plays.
+    fn wav() -> Vec<u8> {
+        let rate = 8000u32;
+        let samples: Vec<i16> = (0..rate / 2).map(|i| ((i as f32 * 0.3).sin() * 3000.0) as i16).collect();
+        let data: Vec<u8> = samples.iter().flat_map(|s| s.to_le_bytes()).collect();
+        let mut b = b"RIFF".to_vec();
+        b.extend_from_slice(&(36 + data.len() as u32).to_le_bytes());
+        b.extend_from_slice(b"WAVEfmt ");
+        for v in [
+            16u32.to_le_bytes().to_vec(),
+            1u16.to_le_bytes().to_vec(),
+            1u16.to_le_bytes().to_vec(),
+            rate.to_le_bytes().to_vec(),
+            (rate * 2).to_le_bytes().to_vec(),
+            2u16.to_le_bytes().to_vec(),
+            16u16.to_le_bytes().to_vec(),
+        ] {
+            b.extend_from_slice(&v);
+        }
+        b.extend_from_slice(b"data");
+        b.extend_from_slice(&(data.len() as u32).to_le_bytes());
+        b.extend_from_slice(&data);
+        b
+    }
+
+    /// A voice playing for a show of the active presentation: audio inserted on slide 0 and
+    /// started by the show, which is what a show's media is owned by.
+    fn show_playing_audio(app: &mut SlideApp) -> localslides_model::ShapeId {
+        use localslides_engine::cmd::base64_encode;
+        let inserted = app.session.execute("insert.audio", &json!({"name": "tone.wav", "data": base64_encode(&wav())})).unwrap();
+        let id = localslides_model::ShapeId(inserted["id"].as_u64().unwrap() as u32);
+        let (uid, doc) = app.session.active().map(|d| (d.uid, d.doc.clone())).unwrap();
+        let clip = crate::media::find_clip(&doc, id, Some(0)).unwrap();
+        app.start_show(0, false);
+        app.media.play(uid, &doc, id, &clip, None, crate::media::Owner::Show);
+        assert_eq!(app.media.owner(id), Some(crate::media::Owner::Show));
+        id
+    }
+
+    /// Closing the window that plays a slide show stops the show's voices: they belong to the
+    /// show, not to the presentation.
+    #[test]
+    fn closing_the_window_of_a_show_stops_its_media() {
+        let mut app = SlideApp::new(localslides_engine::Session::with_new(), crate::Services::default());
+        // A second presentation, so closing its window closes that presentation's window alone.
+        app.run("file.new", json!({})).unwrap();
+        let id = show_playing_audio(&mut app);
+        let playing = app.windows.shown();
+        app.remove_window(playing);
+        assert_eq!(app.media.owner(id), None, "the show's voice stopped with its window");
+        assert!(app.media.ids().is_empty());
+    }
+
+    /// A presentation shown in two windows keeps its show's voices when one of them closes: the
+    /// presentation, and its show, continue in the other window.
+    #[test]
+    fn closing_one_of_the_windows_of_a_presentation_keeps_its_media() {
+        let mut app = SlideApp::new(localslides_engine::Session::with_new(), crate::Services::default());
+        app.new_window();
+        let id = show_playing_audio(&mut app);
+        let playing = app.windows.shown();
+        app.remove_window(playing);
+        assert_eq!(app.media.owner(id), Some(crate::media::Owner::Show), "the presentation is still shown in the other window");
+    }
+
+    /// Quitting with a show running stops its voices before the window goes.
+    #[test]
+    fn quitting_stops_the_shows_media() {
+        let mut app = SlideApp::new(localslides_engine::Session::with_new(), crate::Services::default());
+        let id = show_playing_audio(&mut app);
+        // The quit prompt was answered (Save or Don't Save): the close goes through.
+        app.quit_confirmed = true;
+        let ctx = egui::Context::default();
+        let mut info = egui::ViewportInfo::default();
+        info.events.push(egui::ViewportEvent::Close);
+        let mut raw = egui::RawInput::default();
+        raw.viewports.insert(ViewportId::ROOT, info);
+        let _ = ctx.run_logic(&raw, |ctx| app.logic(ctx));
+        assert_eq!(app.media.owner(id), None, "quitting stops the show's voices");
     }
 }

@@ -637,6 +637,66 @@ fn one_window_switches_presentations_like_the_web_app() {
     assert_eq!(app.run("view.newWindow", json!({})).unwrap_err(), "New Window needs the desktop app");
 }
 
+/// The ribbon tab belongs to the window, not to the app: two windows side by side can look at
+/// different tabs, while the rest of the UI state (zoom, panes) stays shared.
+#[test]
+fn the_ribbon_tab_is_the_windows_own() {
+    let mut app = SlideApp::new(Session::with_new(), Services::default());
+    app.run("view.tab", json!({"tab": "Insert"})).unwrap();
+    assert_eq!(app.ui.tab, "Insert");
+
+    app.run("view.newWindow", json!({})).unwrap();
+    assert_eq!(app.ui.tab, "Home", "a new window starts afresh");
+    app.run("view.tab", json!({"tab": "Design"})).unwrap();
+    app.run("view.zoom", json!({"percent": 150})).unwrap();
+
+    app.run("window.next", json!({})).unwrap();
+    assert_eq!(app.ui.tab, "Insert", "the first window kept its tab");
+    assert!((app.ui.zoom.unwrap_or(1.0) - 1.5).abs() < 1e-6, "zoom stays the app's preference");
+
+    app.run("window.next", json!({})).unwrap();
+    assert_eq!(app.ui.tab, "Design", "and the second window kept its own");
+}
+
+/// Opening a file that is already open brings its window to the front instead of adding a second
+/// copy of the same presentation. Only a path matches: a presentation opened from bytes has none.
+#[test]
+fn opening_a_file_that_is_already_open_brings_its_window_forward() {
+    let dir = std::env::temp_dir().join(format!("localslides-already-open-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let file = dir.join("talk.deckcraft");
+    let path = file.to_string_lossy().to_string();
+    let mut deck = Session::with_new();
+    deck.execute("slide.new", &json!({})).unwrap();
+    deck.execute("file.saveAs", &json!({"path": path})).unwrap();
+
+    let mut app = SlideApp::new(Session::new(), Services::default());
+    app.open_path(&path).unwrap();
+    let uid = app.session.active().unwrap().uid;
+    let first = app.windows.shown();
+    assert_eq!(app.session.documents().len(), 1);
+
+    // Another presentation takes the front.
+    app.run("file.new", json!({})).unwrap();
+    assert_ne!(app.windows.shown(), first);
+
+    // The same file written differently: still one presentation, and its window comes forward.
+    let again = dir.join(".").join("talk.deckcraft").to_string_lossy().to_string();
+    app.open_path(&again).unwrap();
+    assert_eq!(app.session.documents().len(), 2, "no second copy of the same presentation");
+    assert_eq!(app.session.active().unwrap().uid, uid, "the file's own presentation is the active one");
+    assert_eq!(app.windows.shown(), first, "the window that shows it is the drawn one");
+
+    // The background opener finds it too: no read starts.
+    app.open_path_in_background(&path);
+    assert!(app.opening.is_none(), "the file is already open, so nothing is read");
+    assert_eq!(app.session.documents().len(), 2);
+    assert_eq!(app.windows.shown(), first);
+
+    std::fs::remove_file(&path).ok();
+    std::fs::remove_dir(&dir).ok();
+}
+
 #[test]
 fn grid_options_sets_spacing_and_display_or_opens_the_dialog() {
     let mut app = SlideApp::new(Session::with_new(), Services::default());
