@@ -501,10 +501,10 @@ fn home_needs_an_open_presentation() {
     assert!(!app.backstage_open(), "with nothing open the start screen shows anyway");
 }
 
-/// View › New Window is a second window on the open presentation. Its slide is its own;
-/// the editor's selection stays where it was. Closing the window leaves the document open.
+/// View › New Window is another editable window on the open presentation. The presentation and
+/// its selection are the document's, so both windows share them; `{on: false}` closes the extra.
 #[test]
-fn new_window_shows_the_same_document_on_its_own_slide() {
+fn new_window_opens_another_editable_window_on_the_same_presentation() {
     let mut app = SlideApp::new(Session::with_new(), Services::default());
     app.session.execute("slide.new", &json!({})).unwrap();
     app.session.execute("slide.go", &json!({"index": 1})).unwrap();
@@ -514,27 +514,127 @@ fn new_window_shows_the_same_document_on_its_own_slide() {
     };
     assert!(err.contains("presentation"), "{err}");
 
-    let name = app.session.active().unwrap().title();
+    let uid = app.session.active().unwrap().uid;
     let opened = app.run("view.newWindow", json!({})).unwrap();
     assert_eq!(opened["open"], true);
-    assert_eq!(opened["window"], 2);
-    assert_eq!(opened["slide"], 1);
-    assert_eq!(opened["title"], format!("{name}:2"));
-    assert_eq!(app.session.active().unwrap().selection.slide, 1);
+    assert_eq!(opened["windows"], 2);
+    assert_eq!(app.window_count(), 2);
+    assert_eq!(app.session.active().unwrap().uid, uid, "the same presentation");
+    assert_eq!(app.session.active().unwrap().selection.slide, 1, "the selection is the document's");
 
-    let moved = app.run("view.newWindow", json!({"delta": -1})).unwrap();
-    assert_eq!(moved["slide"], 0);
-    assert_eq!(app.doc_window.as_ref().unwrap().slide, 0);
-    assert_eq!(app.session.active().unwrap().selection.slide, 1, "the editor stays on its slide");
+    // Editing through one window shows in the presentation the other shows.
+    app.run("slide.new", json!({})).unwrap();
+    assert_eq!(app.session.documents().iter().find(|d| d.uid == uid).unwrap().doc.slides.len(), 3);
 
     let again = app.run("view.newWindow", json!({})).unwrap();
-    assert_eq!(again["window"], 2);
-    assert_eq!(again["slide"], 0, "opening again keeps the window's slide");
+    assert_eq!(again["windows"], 3, "each click opens another window");
+    let closed = app.run("view.newWindow", json!({"on": false})).unwrap();
+    assert_eq!(closed["open"], false);
+    assert_eq!(app.window_count(), 1, "the extra windows closed, the presentation stayed open");
+    assert!(app.session.active().is_some());
+}
 
-    app.session.execute("file.close", &json!({})).unwrap();
-    doc_window::show(&mut app, &egui::Context::default());
-    assert!(app.doc_window.is_none(), "closing the presentation closes the extra window");
+/// Each new presentation gets a window of its own, focused and in opening order.
+#[test]
+fn each_new_presentation_gets_its_own_window() {
+    let mut app = SlideApp::new(Session::with_new(), Services::default());
+    assert_eq!(app.window_count(), 1);
+    let first = app.session.active().unwrap().uid;
+    assert_eq!(app.windows.doc_of(app.windows.shown()), Some(first));
+
+    app.run("file.new", json!({})).unwrap();
+    let second = app.session.active().unwrap().uid;
+    assert_ne!(first, second);
+    assert_eq!((app.window_count(), app.session.documents().len()), (2, 2));
+    assert_eq!(app.windows.doc_of(app.windows.shown()), Some(second), "the new window is the drawn one");
+
+    app.run("file.new", json!({})).unwrap();
+    assert_eq!(app.window_count(), 3);
+    assert_ne!(app.session.active().unwrap().uid, second);
+}
+
+/// `window.next` walks the windows in opening order; `{index}` picks one.
+#[test]
+fn next_window_walks_the_open_windows() {
+    let mut app = SlideApp::new(Session::with_new(), Services::default());
+    let first = app.windows.shown();
+    app.run("file.new", json!({})).unwrap();
+    let second = app.windows.shown();
+    assert_ne!(first, second);
+
+    app.run("window.next", json!({})).unwrap();
+    assert_eq!(app.windows.shown(), first);
+    assert_eq!(Some(app.session.active().unwrap().uid), app.windows.doc_of(first));
+    app.run("window.next", json!({})).unwrap();
+    assert_eq!(app.windows.shown(), second);
+    app.run("window.next", json!({"index": 0})).unwrap();
+    assert_eq!(app.windows.shown(), first);
+    assert!(app.run("window.next", json!({"index": 9})).is_err());
+}
+
+/// Closing the last window of a presentation closes it, asking nothing when it has no unsaved
+/// changes; the start screen's window stays.
+#[test]
+fn closing_the_last_window_leaves_the_start_screen() {
+    let mut app = SlideApp::new(Session::with_new(), Services::default());
+    app.run("app.closePresentation", json!({})).unwrap();
+    assert_eq!(app.session.documents().len(), 0);
     assert!(app.session.active().is_none());
+    assert_eq!(app.window_count(), 1, "the last window stays open with no presentation");
+
+    app.run("file.new", json!({})).unwrap();
+    assert_eq!(app.session.documents().len(), 1);
+    assert_eq!(app.window_count(), 1, "the start screen's window takes the new presentation");
+}
+
+/// Closing one of a presentation's windows keeps the presentation open and asks nothing, even
+/// with unsaved changes; its last window asks.
+#[test]
+fn closing_one_window_of_a_presentation_keeps_it_open() {
+    let mut app = SlideApp::new(Session::with_new(), Services::default());
+    app.run("view.newWindow", json!({})).unwrap();
+    app.run("slide.new", json!({})).unwrap();
+    assert!(app.session.active().unwrap().is_dirty());
+    let uid = app.session.active().unwrap().uid;
+
+    app.run("app.closePresentation", json!({})).unwrap();
+    assert_eq!(app.window_count(), 1);
+    assert!(app.dialog.is_none(), "closing a window of a presentation asks nothing");
+    assert_eq!(app.session.documents().len(), 1);
+    assert_eq!(app.session.active().unwrap().uid, uid);
+
+    app.run("app.closePresentation", json!({})).unwrap();
+    assert_eq!(app.dialog.as_ref().map(|d| d.id.as_str()), Some("close"), "its last window asks about unsaved changes");
+    assert_eq!(app.session.documents().len(), 1, "Cancel would keep it");
+}
+
+/// Opening a file takes the place of an untouched blank presentation in its own window: no
+/// second presentation, no second window.
+#[test]
+fn opening_a_file_replaces_an_untouched_blank_presentation() {
+    let p = localslides_model::Presentation::default();
+    let data = localslides_engine::cmd::base64_encode(&localslides_engine::cmd::file::save_bytes(&p, "pptx").unwrap());
+    let mut app = SlideApp::new(Session::with_new(), Services::default());
+    assert_eq!((app.session.documents().len(), app.window_count()), (1, 1));
+
+    app.run("file.openBytes", json!({"name": "Quarterly review.pptx", "data": data})).unwrap();
+    assert_eq!(app.session.documents().len(), 1, "the blank presentation was replaced");
+    assert_eq!(app.window_count(), 1);
+    assert_eq!(app.session.active().unwrap().title(), "Quarterly review");
+    assert_eq!(app.windows.doc_of(app.windows.shown()), Some(app.session.active().unwrap().uid));
+}
+
+/// The web app has one window: a new presentation replaces the one it shows.
+#[test]
+fn one_window_switches_presentations_like_the_web_app() {
+    let mut app = SlideApp::new(Session::with_new(), Services::default());
+    app.windows.single();
+    assert_eq!(app.window_count(), 1);
+    app.run("file.new", json!({})).unwrap();
+    assert_eq!((app.window_count(), app.session.documents().len()), (1, 2));
+    app.sync_document();
+    assert_eq!(app.shown_document, app.session.active().map(|d| d.uid), "the drawn window follows the session");
+    assert_eq!(app.run("view.newWindow", json!({})).unwrap_err(), "New Window needs the desktop app");
 }
 
 #[test]

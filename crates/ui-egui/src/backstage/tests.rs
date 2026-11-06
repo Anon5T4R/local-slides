@@ -263,7 +263,8 @@ fn open_lists_recent_files_and_opens_one() {
         h.run_steps(1);
     }
     h.run_steps(3);
-    assert_eq!(h.state().session.documents().len(), 2);
+    assert_eq!(h.state().session.documents().len(), 1, "the untouched blank presentation was replaced in its window");
+    assert_eq!(h.state().window_count(), 1);
     assert_eq!(h.state().session.active().unwrap().path.as_deref(), Some(path.as_str()));
     assert!(h.state().backstage.is_none(), "the opened presentation shows");
     assert_eq!(h.state().ui.recent.first(), Some(&path));
