@@ -57,6 +57,25 @@ se uma feature entra; fazer merge; abrir PR no upstream.
 
 | Data | Upstream | O que entrou | O que ficou de fora |
 |------|----------|--------------|---------------------|
+
+## Divergências estruturais da camada do app (a camada do app SEMPRE vence)
+
+### Modelo de janelas: uma janela nativa por apresentação (desde a branch `port-multiwindow`)
+O upstream `deckcraft` usa uma janela única com múltiplas apresentações na sessão
+(`session.set_active` + `window.next` para ciclar). O Local Slides usa **uma janela nativa por
+apresentação**, no molde do Local Word (`crates/ui-egui/src/windows.rs`, driver
+`craft_window::Viewports`; dep `craft-window` do craft-libs vendored). `View › New Window` abre
+outra janela editável do mesmo documento (o visor read-only `doc_window.rs` do upstream foi
+removido). No wasm continua uma janela só.
+
+**Regra de sync:** commits upstream que tocarem `crates/ui-egui/src/app.rs`,
+`crates/ui-egui/src/windows.rs`, `backstage/`, `menus.rs`, `app/files.rs`, `control.rs` ou
+`doc_window.rs` conflitam por construção — reconciliar mantendo a camada de janelas do app
+(mesma regra do rebrand: a camada do app vence). Mudança de comportamento que o upstream fizer
+na *engine* (`Session`, selection per-doc, undo, recovery) entra limpa. Também divergente no
+craft-libs vendored: `crates/window/src/viewports.rs` carrega o patch do tile fantasma
+(porte do `715a06d5` do Local Word — `monitor_bounds` pelo centro) que o rev `c5a1cbf` não tem;
+nunca reverter.
 | 2026-11-05 | `9bac60ff` (v0.15.1) | baseline: árvore inteira importada (Fase A) | `.github/`, `sonar-project.properties`, `.coderabbit.yaml`, `omastore.toml`, `docs/brand/`, packaging de cada SO reescrito no molde da suíte |
 
 ## Decision Ledger
