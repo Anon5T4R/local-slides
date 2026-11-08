@@ -38,6 +38,22 @@ allow-git = []
 
 [advisories]
 yanked = "warn"
+# ── // local-slides: experimento TLS 100% Rust (fork vendored do rustls-rustcrypto) ──
+# dois advisories sem correção possível hoje, ambos da VERIFICAÇÃO de assinatura do
+# provider puro (o cliente não decifra, não assina e não opera chave privada):
+# - RUSTSEC-2023-0071 (rsa, Marvin): `patched = []` no advisory — nem o 0.9.10 nem o
+#   0.10.0-rc são corrigidos. O cliente só verifica o CertificateVerify do servidor com
+#   chave pública; recuperação de chave privada por timing não tem alvo aqui. Sair do
+#   `rsa` significaria abrir mão de verificar servidores com certificado RSA.
+# - RUSTSEC-2026-0387 (crypto-bigint 0.5.5): corrigido em >= 0.7.6, mas o crypto-bigint
+#   0.5 chega pelo rsa 0.9 (que exige a série 0.5). As operações secret-dependentes são
+#   de chave privada. Revisitar quando o rustls-rustcrypto migrar para rsa 0.10.
+# (rustls-webpki 0.102 não entra: o fork usa as constantes `alg_id` do rustls-pki-types
+# 1.14 e a verificação de cadeia é a do rustls 0.23 + verifier do SO.)
+ignore = [
+    { id = "RUSTSEC-2023-0071", reason = "rsa sem patch (0.9.10 e 0.10-rc afetados); cliente só verifica assinatura de servidor com chave pública" },
+    { id = "RUSTSEC-2026-0387", reason = "crypto-bigint 0.5.5 via rsa 0.9 (fix exige rsa 0.10); cliente não opera chave privada" },
+]
 
 # egui's default UI fonts (Ubuntu-Light, Hack, emoji-icon-font): font licences on the AGENTS.md
 # allowlist, attributed in ATTRIBUTION.md as dependency-bundled assets.
