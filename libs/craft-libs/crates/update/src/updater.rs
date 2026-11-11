@@ -71,6 +71,11 @@ impl Updater {
     pub fn new(app: &'static App, version: impl Into<String>) -> Self {
         let version = version.into();
         let version = self_update::current_version(app, &version).map_or(version, |v| v.to_string());
+        // Desktop integration (Linux): an app launched from outside a package
+        // manager (AppImage anywhere, bare binary) registers its menu entry.
+        // No-op on other platforms; opt out with CRAFT_NO_DESKTOP_INTEGRATION=1.
+        #[cfg(target_os = "linux")]
+        crate::desktop_register::ensure_registered(app, &version);
         Self {
             app,
             version,
