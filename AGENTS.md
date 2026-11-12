@@ -21,7 +21,7 @@ Rust puro + egui. Sem conta, sem telemetria, sem dependência de servidores de t
   `apps/localslides-web` — wasm
 - `libs/` — forks vendored: `craft-libs` (c5a1cbf, com `vendor/krilla`), `egui` (6d518fc),
   `winit` (a517b38)
-- `packaging/` — Windows (WiX/MSI per-machine e per-user), Linux (AppImage/deb/rpm/tar/Flatpak),
+- `packaging/` — Windows (WiX/MSI per-machine e per-user), Linux (AppImage/deb/rpm/tar FHS com `install.sh`), Arch (PKGBUILD),
   macOS, FreeBSD, web
 - `xtask/` — tarefas de build/CI (`cargo xtask ci`, `layers`, `wasm`, `parity`)
 

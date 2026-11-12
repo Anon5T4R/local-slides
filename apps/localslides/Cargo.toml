@@ -31,6 +31,11 @@ arboard = { workspace = true, features = ["image-data"] }
 image = { workspace = true }
 cpal = "0.16"
 
+# Native Wayland clipboard via the data-control protocol (same as Local Sheets);
+# X11 keeps the default backend. Not a wasm dependency.
+[target.'cfg(any(target_os = "linux", target_os = "freebsd"))'.dependencies]
+arboard = { workspace = true, features = ["image-data", "wayland-data-control"] }
+
 [target.'cfg(target_os = "macos")'.dependencies]
 # Finder double-click, Open With, Dock drops and `open -a Local Slides deck.pptx` arrive as a
 # kAEOpenDocuments Apple event, which winit 0.30 doesn't handle. This audited crate (also used by
