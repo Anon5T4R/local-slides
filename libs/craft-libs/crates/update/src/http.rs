@@ -33,7 +33,7 @@ pub enum Fetched {
 
 #[derive(Clone)]
 pub struct Http {
-    /// // local-slides: um único conjunto de agentes, sempre com o provider
+    /// // craft-update: um único conjunto de agentes, sempre com o provider
     /// `rustls-rustcrypto` (o caminho puro; não há fallback).
     agents: Agents,
     token: Option<String>,
@@ -140,7 +140,7 @@ impl Http {
         // The OS checks each certificate chain itself: Windows fetches roots it hasn't stored yet
         // and trusts what antivirus HTTPS scanning installs. Reading the store ourselves missed
         // both ("invalid peer certificate: UnknownIssuer").
-        // // local-slides: provider puro (rustls-rustcrypto) é o caminho ÚNICO do app - não há
+        // // craft-update: provider puro (rustls-rustcrypto) é o caminho ÚNICO do app - não há
         // conjunto de agentes com o provider padrão (ring): ele nem é compilado.
         let tls = ureq::tls::TlsConfig::builder()
             .root_certs(ureq::tls::RootCerts::PlatformVerifier)

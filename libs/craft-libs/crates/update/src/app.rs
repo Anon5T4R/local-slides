@@ -23,14 +23,14 @@ pub struct App {
     /// Who makes it, shown as "by <developer>" in the update prompt. [`DEVELOPER`] unless the app
     /// says otherwise.
     pub developer: &'static str,
-    /// Who its Windows Installer packages name as their publisher (`Manufacturer` in the app's WiX,
-    /// the `Publisher` of its uninstall entry). [`UPSTREAM_PUBLISHER`] unless the suite entry
-    /// overrides it: a rebranded app publishes under its own name, and detection must match it.
+    /// Who its Windows Installer packages name as their publisher (`Manufacturer` in the app's
+    /// WiX, the `Publisher` of its uninstall entry). [`UPSTREAM_PUBLISHER`] unless the suite
+    /// entry overrides it: a rebranded app publishes under its own name.
     pub publisher: &'static str,
 }
 
-/// The developer of every app in the storytold organisation.
-pub const DEVELOPER: &str = "ArtCraft";
+/// The developer of every app in the Local suite.
+pub const DEVELOPER: &str = "Anon5T4R";
 
 /// Who the upstream suite's Windows Installer packages name as their publisher.
 pub const UPSTREAM_PUBLISHER: &str = "Learning Machines LLC";
@@ -53,8 +53,11 @@ impl App {
     }
 
     /// `ai.storyteller.<id>`: macOS bundle id, Flatpak id and Linux desktop-file id.
+    /// The suite's own app uses its packaging id (`com.localpaint.app`) instead —
+    /// the fork's installers, desktop entry and metainfo all use it, and macOS
+    /// self-update detection must match what `Info.plist` carries.
     pub fn bundle_id(&self) -> String {
-        format!("ai.storyteller.{}", self.id)
+        if self.id == "localpaint" { "com.localpaint.app".into() } else { format!("ai.storyteller.{}", self.id) }
     }
 
     pub fn releases_url(&self) -> String {

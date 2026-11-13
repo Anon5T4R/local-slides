@@ -205,7 +205,7 @@ pub fn occupied(
     let target = match kind {
         PackageKind::Msi => folder,
         PackageKind::PortableZip => Some(folder.unwrap_or_else(|| paths.apps()).join(app.id)),
-        PackageKind::Dmg => folder.map(|f| f.join(format!("{}.app", app.name))),
+        PackageKind::Dmg => folder.and_then(|f| app.names().map(|n| f.join(format!("{n}.app"))).find(|p| std::fs::symlink_metadata(p).is_ok())),
         #[cfg(target_os = "linux")]
         PackageKind::AppImage => folder.or_else(crate::detect::linux::appimage_dir).map(|f| f.join(&asset.name)),
         _ => None,
@@ -1387,9 +1387,14 @@ pub mod macos {
         replace: bool,
         expect: &Expect<'_>,
     ) -> Result<PathBuf, String> {
-        let bundle = format!("{}.app", app.name);
+        // The bundle keeps the name its earlier install shipped under, so try every name and take
+        // the one whose Info.plist carries this app's bundle id.
+        let bundle = app
+            .names()
+            .map(|name| format!("{name}.app"))
+            .find(|bundle| crate::detect::macos::read_bundle(app, &mount.join(bundle.as_str())).is_some())
+            .ok_or("the disk image doesn't contain the app")?;
         let src = mount.join(&bundle);
-        crate::detect::macos::read_bundle(app, &src).ok_or("the disk image doesn't contain the app")?;
         let dir = applications_dir(existing, destination)?;
         let dest = existing.filter(|i| i.source == InstallSource::MacApp).map_or_else(|| dir.join(&bundle), |i| PathBuf::from(&i.location));
         if !replace

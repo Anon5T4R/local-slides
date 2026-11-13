@@ -67,7 +67,7 @@ image = { version = "0.25", default-features = false, features = ["png", "jpeg",
 craft-media = { path = "libs/craft-libs/crates/media/", version = "=0.1.0", default-features = false }
 craft-pdf = { path = "libs/craft-libs/crates/pdf/", version = "=0.1.0", default-features = false, features = ["write", "write-simple-text"] }
 # craft-update: app-specific pretend versions apply to startup and manual checks.
-craft-update = { path = "libs/craft-libs/crates/update/", version = "=0.1.0", features = ["egui"] }
+craft-update = { path = "libs/craft-libs/crates/update/", version = "=0.1.0", features = ["egui", "icons"] }
 craft-ui = { path = "libs/craft-libs/crates/ui/", version = "=0.1.0" }
 # craft-window drives the native windows: one per open presentation, in the mold of
 # the other Crafting Apps. Same vendored craft-libs tree as the crates above.

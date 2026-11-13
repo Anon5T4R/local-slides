@@ -438,10 +438,19 @@ fn ink_on(fill: Color32) -> Color32 {
 }
 
 /// The largest icon the prompt decodes, a side; app icons are 128 px.
+#[cfg(feature = "icons")]
 const ICON_MAX_SIDE: u32 = 1024;
 
 /// `app`'s icon as a texture, decoded once per context and app; `None` when the app has none or
 /// it doesn't decode, and the prompt shows the app's initial instead.
+#[cfg(not(feature = "icons"))]
+fn icon_texture(_ctx: &egui::Context, _app: &App) -> Option<egui::TextureHandle> {
+    None
+}
+
+/// `app`'s icon as a texture, decoded once per context and app; `None` when the app has none or
+/// it doesn't decode, and the prompt shows the app's initial instead.
+#[cfg(feature = "icons")]
 fn icon_texture(ctx: &egui::Context, app: &App) -> Option<egui::TextureHandle> {
     let png = app.icon_png?;
     let id = egui::Id::unique(("craft_update.icon", app.id));
@@ -457,6 +466,7 @@ fn icon_texture(ctx: &egui::Context, app: &App) -> Option<egui::TextureHandle> {
 }
 
 /// A PNG as an RGBA image, or `None` when it doesn't decode or is over `max_side` a side.
+#[cfg(feature = "icons")]
 fn decode_icon(png: &[u8], max_side: u32) -> Option<egui::ColorImage> {
     let mut reader = image::ImageReader::with_format(std::io::Cursor::new(png), image::ImageFormat::Png);
     let mut limits = image::Limits::default();
@@ -554,6 +564,7 @@ mod tests {
     }
 
     /// A `width` x `height` PNG of one opaque color.
+    #[cfg(feature = "icons")]
     fn png(width: u32, height: u32, color: [u8; 4]) -> Vec<u8> {
         let mut out = std::io::Cursor::new(Vec::new());
         image::RgbaImage::from_pixel(width, height, image::Rgba(color)).write_to(&mut out, image::ImageFormat::Png).unwrap();
@@ -561,6 +572,7 @@ mod tests {
     }
 
     /// The textured meshes painted this frame (the app icon; text is drawn as `Shape::Text`).
+    #[cfg(feature = "icons")]
     fn textured_meshes(output: &FullOutput) -> Vec<egui::TextureId> {
         fn collect(shape: &egui::Shape, out: &mut Vec<egui::TextureId>) {
             match shape {
@@ -576,6 +588,7 @@ mod tests {
         ids
     }
 
+    #[cfg(feature = "icons")]
     #[test]
     fn icons_decode_and_bad_ones_are_refused() {
         let image = decode_icon(&png(3, 2, [10, 20, 30, 255]), ICON_MAX_SIDE).unwrap();
@@ -587,6 +600,7 @@ mod tests {
         assert!(decode_icon(&png(3, 2, [0, 0, 0, 255]), 2).is_none(), "an icon over the renderer's limit must not decode");
     }
 
+    #[cfg(feature = "icons")]
     #[test]
     fn prompt_shows_the_app_icon_or_else_its_initial() {
         static ICON_APP: std::sync::OnceLock<App> = std::sync::OnceLock::new();
@@ -777,7 +791,7 @@ mod tests {
         let mut prompt = prompt_for(false);
         frame(&ctx, &mut prompt, Vec::new());
         let (_, output) = frame(&ctx, &mut prompt, Vec::new());
-        assert!(painted_text(&output).lines().any(|l| l == "by ArtCraft"), "every suite app is ArtCraft's by default");
+        assert!(painted_text(&output).lines().any(|l| l == "by Anon5T4R"), "every suite app is Anon5T4R's by default");
 
         // An app can name its own developer.
         static OTHER: std::sync::OnceLock<App> = std::sync::OnceLock::new();
@@ -787,7 +801,7 @@ mod tests {
         frame(&ctx, &mut prompt, Vec::new());
         let (_, output) = frame(&ctx, &mut prompt, Vec::new());
         let painted = painted_text(&output);
-        assert!(painted.lines().any(|l| l == "by Someone Else") && !painted.contains("by ArtCraft"), "{painted}");
+        assert!(painted.lines().any(|l| l == "by Someone Else") && !painted.contains("by Anon5T4R"), "{painted}");
     }
 
     #[test]

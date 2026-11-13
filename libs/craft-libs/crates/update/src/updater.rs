@@ -441,7 +441,7 @@ mod tests {
             let status = std::process::Command::new(std::env::current_exe().unwrap())
                 .args(["--exact", "updater::tests::pretend_versions_trigger_startup_prompts_for_every_app", "--nocapture"])
                 .env(CHILD, app.id)
-                .env(format!("{}_PRETEND_VERSION", app.id.to_uppercase()), "0.0.1")
+                .env(format!("{}_PRETEND_VERSION", app.id.replace('-', "_").to_uppercase()), "0.0.1")
                 .env_remove(self_update::PRETEND_VAR)
                 .status()
                 .unwrap();

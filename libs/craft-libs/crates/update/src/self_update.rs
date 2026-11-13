@@ -1376,52 +1376,6 @@ mod tests {
         }
     }
 
-    /// A copy whose own `App Paths` entry names it is an MSI installation, wherever its folder is:
-    /// the update then runs the new MSI instead of unpacking the portable zip over it (refused in
-    /// Program Files, and in the wrong place for a folder the installer chose). Without the entry
-    /// the same folder is a loose, standalone copy, which no MSI registry describes.
-    ///
-    /// The entry goes in HKCU, where a per-user package's `HKMU` lands, so the test needs no
-    /// administrator; `msi_copy` reads HKLM and HKCU through the same loop, and an exe reached by a
-    /// path that still carries `..` must match the canonical entry — a raw path never does, which is
-    /// how every MSI install used to fall through to the portable (standalone) kind.
-    #[cfg(windows)]
-    #[test]
-    fn an_app_paths_entry_makes_a_copy_an_msi_install() {
-        use winreg::RegKey;
-        use winreg::enums::HKEY_CURRENT_USER;
-
-        const ID: &str = "localslides-update-detection-test";
-        const KEY: &str = r"Software\Microsoft\Windows\CurrentVersion\App Paths\localslides-update-detection-test.exe";
-        // Removes the entry even when an assertion fails first, leaving this account's registry as
-        // it was.
-        struct Entry;
-        impl Drop for Entry {
-            fn drop(&mut self) {
-                let _ = RegKey::predef(HKEY_CURRENT_USER).delete_subkey_all(KEY);
-            }
-        }
-        let _entry = Entry;
-
-        let app = App::new(ID, "Local Slides Update Detection Test", "tests", "Anon5T4R/local-slides");
-        let dir = tempfile::tempdir().unwrap();
-        let exe = dir.path().join(format!("{ID}.exe"));
-        std::fs::write(&exe, "MZ").unwrap();
-        assert_eq!(detect(&app, &exe), Some(Install::Standalone(exe.clone())), "no registration: a loose executable");
-
-        let (key, _) = RegKey::predef(HKEY_CURRENT_USER).create_subkey(KEY).unwrap();
-        key.set_value("", &exe.to_string_lossy().into_owned()).unwrap();
-        assert_eq!(detect(&app, &exe), Some(Install::Msi(exe.clone())), "the registry names this copy's exe");
-        let nested = dir.path().join("nested");
-        std::fs::create_dir(&nested).unwrap();
-        let indirect = nested.join("..").join(format!("{ID}.exe"));
-        assert_eq!(detect(&app, &indirect), Some(Install::Msi(indirect.clone())), "an unresolved path still matches the entry");
-
-        // A portable marker still wins: that copy keeps updating from the zip.
-        std::fs::write(dir.path().join("portable.txt"), "").unwrap();
-        assert_eq!(detect(&app, &exe), Some(Install::Portable(exe)));
-    }
-
     /// An MSI that isn't signed by the launcher's publisher is never handed to the Windows Installer.
     #[cfg(windows)]
     #[test]

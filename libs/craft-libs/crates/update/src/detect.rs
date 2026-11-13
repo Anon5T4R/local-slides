@@ -139,12 +139,16 @@ pub mod macos {
 
     use super::{App, InstallSource, Installed, version};
 
-    /// Where a `.app` might be: the system and the user's Applications folders.
+    /// Where a `.app` might be: the system and the user's Applications folders. Every name the app
+    /// has had, too: a renamed app still finds the bundle the earlier name installed.
     pub fn candidates(app: &App) -> Vec<PathBuf> {
-        let bundle = format!("{}.app", app.name);
-        let mut out = vec![Path::new("/Applications").join(&bundle)];
-        if let Some(home) = crate::folders::home_dir() {
-            out.push(home.join("Applications").join(&bundle));
+        let mut out = Vec::new();
+        for name in app.names() {
+            let bundle = format!("{name}.app");
+            out.push(Path::new("/Applications").join(&bundle));
+            if let Some(home) = crate::folders::home_dir() {
+                out.push(home.join("Applications").join(&bundle));
+            }
         }
         out
     }
@@ -161,10 +165,12 @@ pub mod macos {
             return None;
         }
         // `<App>Version` carries the full version including a pre-release suffix;
-        // CFBundleShortVersionString only has the numbers.
-        let full_key = format!("{}Version", app.name);
-        let text =
-            [full_key.as_str(), "CFBundleShortVersionString", "CFBundleVersion"].iter().find_map(|k| dict.get(k).and_then(plist::Value::as_string));
+        // CFBundleShortVersionString only has the numbers. Every name the app has had: the key
+        // keeps the name its `Info.plist` was written with.
+        let full_keys: Vec<String> = app.names().map(|name| format!("{name}Version")).collect();
+        let mut keys: Vec<&str> = full_keys.iter().map(String::as_str).collect();
+        keys.extend(["CFBundleShortVersionString", "CFBundleVersion"]);
+        let text = keys.iter().find_map(|k| dict.get(k).and_then(plist::Value::as_string));
         Some(Installed { version: text.and_then(version::parse), source: InstallSource::MacApp, location: path.display().to_string(), package: None })
     }
 }
@@ -234,23 +240,15 @@ pub mod windows {
     }
 
     /// The folder the app's MSI remembers for its next upgrade, which is where it went when the
-    /// launcher chose the folder. Rebranded apps record it under the suite's key
-    /// (`Software\Anon5T4R\<Name>`), so both that and the upstream `<Name>` key are read, for
-    /// every name the app has had.
+    /// launcher chose the folder. Every name the app has had: the key keeps the name the MSI was
+    /// installed under.
     fn install_dir(app: &App) -> Option<PathBuf> {
-        [(HKEY_LOCAL_MACHINE, KEY_WOW64_64KEY), (HKEY_LOCAL_MACHINE, KEY_WOW64_32KEY), (HKEY_CURRENT_USER, 0)].into_iter().find_map(
-            |(hive, flags)| {
-                app.names().find_map(|name| {
-                    let suite_name: String = name.chars().filter(|c| !c.is_whitespace()).collect();
-                    [format!(r"SOFTWARE\Anon5T4R\{suite_name}"), format!(r"SOFTWARE\Anon5T4R\{name}"), format!(r"SOFTWARE\{name}")]
-                        .into_iter()
-                        .find_map(|key| {
-                            let key = RegKey::predef(hive).open_subkey_with_flags(key, KEY_READ | flags).ok()?;
-                            key.get_value::<String, _>("InstallDir").ok().filter(|d| !d.is_empty()).map(PathBuf::from)
-                        })
-                })
-            },
-        )
+        [KEY_WOW64_64KEY, KEY_WOW64_32KEY].into_iter().find_map(|flags| {
+            app.names().find_map(|name| {
+                let key = RegKey::predef(HKEY_LOCAL_MACHINE).open_subkey_with_flags(format!(r"SOFTWARE\{name}"), KEY_READ | flags).ok()?;
+                key.get_value::<String, _>("InstallDir").ok().filter(|d| !d.is_empty()).map(PathBuf::from)
+            })
+        })
     }
 
     /// The app's exe: from `App Paths`, the install folder, or Program Files.
@@ -730,11 +728,12 @@ mod tests {
     }
 
     #[test]
-    fn local_slides_matches_its_own_installer_publisher() {
-        let slides = App::by_id("localslides").unwrap();
-        assert!(is_installer_entry(slides, "Local Slides", "Local Slides contributors"), "the WiX names Manufacturer=\"Local Slides contributors\"");
-        assert!(!is_installer_entry(slides, "Local Slides", LEARNING_MACHINES), "the upstream publisher is not this app's");
-        assert!(!is_installer_entry(slides, "DeckCraft", "Local Slides contributors"), "the upstream name is a different product");
+    fn the_apps_installer_publisher_matches_its_wix_manufacturer() {
+        let app = App::by_id("localpaint").unwrap();
+        assert!(is_installer_entry(app, "Local Paint", "Local Paint contributors"), "the WiX names Manufacturer=\"Local Paint contributors\"");
+        assert!(is_installer_entry(app, "LocalPaint", "Local Paint contributors"), "an MSI from before the rename is still this app's");
+        assert!(!is_installer_entry(app, "Local Paint", LEARNING_MACHINES), "the upstream publisher is not this app's");
+        assert!(!is_installer_entry(app, "Local Paint", "Anon5T4R"), "the old publisher is not this app's any more");
     }
 
     #[test]
@@ -752,9 +751,13 @@ mod tests {
     #[test]
     fn printcraft_entries_match_nothing_else() {
         let pdf = App::by_id("pdfcraft").unwrap();
+        let local = App::by_id("localpdf").unwrap();
         assert!(!is_installer_entry(pdf, "PrintCraft", "Some Other Publisher"));
         assert!(!is_installer_entry(pdf, "PhotoCraft", LEARNING_MACHINES));
-        for a in SUITE.iter().filter(|a| a.id != "pdfcraft") {
+        // Local PDF is the fork of the same PrintCraft, so it claims those entries too (its own
+        // catalog did before the unification); nothing else may.
+        assert!(is_installer_entry(local, "PrintCraft", LEARNING_MACHINES), "the fork keeps detecting its upstream install");
+        for a in SUITE.iter().filter(|a| !matches!(a.id, "pdfcraft" | "localpdf")) {
             assert!(!is_installer_entry(a, "PrintCraft", LEARNING_MACHINES), "PrintCraft matched {}", a.name);
         }
     }
