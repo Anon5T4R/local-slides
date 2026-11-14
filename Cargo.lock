@@ -2766,7 +2766,7 @@ checksum = "11d3d7f243d5c5a8b9bb5d6dd2b1602c0cb0b9db1621bafc7ed66e35ff9fe092"
 
 [[package]]
 name = "localslides"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "arboard",
  "chrono",
@@ -2788,7 +2788,7 @@ dependencies = [
 
 [[package]]
 name = "localslides-anim"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "localslides-geom",
  "localslides-model",
@@ -2797,7 +2797,7 @@ dependencies = [
 
 [[package]]
 name = "localslides-av1"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "localslides-bitstream",
  "rayon",
@@ -2806,14 +2806,14 @@ dependencies = [
 
 [[package]]
 name = "localslides-bitstream"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "craft-media",
 ]
 
 [[package]]
 name = "localslides-cli"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "localslides-engine",
  "localslides-mcp",
@@ -2823,14 +2823,14 @@ dependencies = [
 
 [[package]]
 name = "localslides-color"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "localslides-engine"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "chrono",
  "i_overlay",
@@ -2856,7 +2856,7 @@ dependencies = [
 
 [[package]]
 name = "localslides-fonts"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "epaint_default_fonts",
  "harfrust 0.13.3",
@@ -2868,7 +2868,7 @@ dependencies = [
 
 [[package]]
 name = "localslides-format"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "localslides-model",
  "serde",
@@ -2879,7 +2879,7 @@ dependencies = [
 
 [[package]]
 name = "localslides-geom"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "kurbo",
  "serde",
@@ -2887,7 +2887,7 @@ dependencies = [
 
 [[package]]
 name = "localslides-h264"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "localslides-bitstream",
  "rayon",
@@ -2896,7 +2896,7 @@ dependencies = [
 
 [[package]]
 name = "localslides-hevc"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "localslides-bitstream",
  "rayon",
@@ -2905,21 +2905,21 @@ dependencies = [
 
 [[package]]
 name = "localslides-isobmff"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "craft-media",
 ]
 
 [[package]]
 name = "localslides-matroska"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "craft-media",
 ]
 
 [[package]]
 name = "localslides-mcp"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "localslides-engine",
  "localslides-render",
@@ -2929,7 +2929,7 @@ dependencies = [
 
 [[package]]
 name = "localslides-media"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "image",
  "localslides-av1",
@@ -2947,7 +2947,7 @@ dependencies = [
 
 [[package]]
 name = "localslides-metafile"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "image",
  "kurbo",
@@ -2956,7 +2956,7 @@ dependencies = [
 
 [[package]]
 name = "localslides-model"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "localslides-color",
  "localslides-geom",
@@ -2968,15 +2968,15 @@ dependencies = [
 
 [[package]]
 name = "localslides-ogg"
-version = "0.2.7"
+version = "0.2.8"
 
 [[package]]
 name = "localslides-opus"
-version = "0.2.7"
+version = "0.2.8"
 
 [[package]]
 name = "localslides-pdf"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "craft-pdf",
  "hayro-syntax",
@@ -2994,7 +2994,7 @@ dependencies = [
 
 [[package]]
 name = "localslides-pptx"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "image",
  "localslides-color",
@@ -3010,7 +3010,7 @@ dependencies = [
 
 [[package]]
 name = "localslides-render"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "image",
  "kurbo",
@@ -3029,7 +3029,7 @@ dependencies = [
 
 [[package]]
 name = "localslides-text"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "chrono",
  "localslides-color",
@@ -3043,7 +3043,7 @@ dependencies = [
 
 [[package]]
 name = "localslides-ui-egui"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "craft-ui",
  "craft-update",
@@ -3069,7 +3069,7 @@ dependencies = [
 
 [[package]]
 name = "localslides-vp9"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "localslides-bitstream",
  "rayon",
@@ -3078,7 +3078,7 @@ dependencies = [
 
 [[package]]
 name = "localslides-web"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "eframe",
  "egui",
@@ -6755,7 +6755,7 @@ checksum = "9440ea3e5aeabb0ac63af70daf835274065238cdd0cec83418f417eae38bacee"
 
 [[package]]
 name = "xtask"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "serde_json",
 ]
