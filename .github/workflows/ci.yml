@@ -62,8 +62,22 @@ jobs:
         with:
           components: rustfmt
       - uses: Swatinem/rust-cache@v2
-      - name: Formatação (nightly; só o nosso código — libs/ fica fora do workspace)
-        run: cargo +nightly fmt --all -- --check
+      - name: Formatação (nightly; só os membros do workspace - libs/ é vendorizado)
+        # `cargo fmt --all` também alcança as dependências de path (libs/local-ai, libs/egui,
+        # libs/craft-libs), que são espelhos com o estilo de origem: o gate lista os membros via
+        # `cargo metadata`. `-p` múltiplo num único `cargo fmt` (lição #46).
+        shell: bash
+        run: |
+          set -euo pipefail
+          py=python3
+          "$py" -c 'import sys' > /dev/null 2>&1 || py=python
+          meta="$(cargo metadata --no-deps --format-version 1)"
+          # Windows: o python do runner imprime com \r\n e o mapfile só tira o \n - sem o tr,
+          # os -p chegam com \r grudado ("package `localslides\r` is not a member").
+          mapfile -t members < <("$py" -c 'import json,sys; print("\n".join(p["name"] for p in json.load(sys.stdin)["packages"]))' <<< "$meta" | tr -d '\r')
+          args=()
+          for member in "${members[@]}"; do args+=(-p "$member"); done
+          cargo +nightly fmt "${args[@]}" -- --check
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
