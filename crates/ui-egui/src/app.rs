@@ -49,6 +49,8 @@ impl SlideApp {
             session,
             services,
             ui: UiState::default(),
+            #[cfg(not(target_arch = "wasm32"))]
+            ai: crate::ai::Ai::default(),
             textures: textures::Textures::default(),
             control_rx: None,
             squiggles: Default::default(),
@@ -234,6 +236,12 @@ impl SlideApp {
             // Inbox results are host file bytes and do not need fonts or a painted frame. A
             // window that starts hidden must still apply a file picked before its first UI pass.
             self.drain_inbox();
+            // An AI answer that arrived since the last pass is applied here, through the engine's
+            // commands, so `sync_document` right below shows the slide it changed.
+            #[cfg(not(target_arch = "wasm32"))]
+            if self.ai.tick(&mut self.session) {
+                ctx.request_repaint();
+            }
         }
         self.drain_screenshots();
         // A script, an agent or a later result may have made another presentation the active one.
@@ -370,6 +378,12 @@ impl SlideApp {
             ribbon::show(self, ui);
             status::status_bar(self, ui);
         }
+        // The AI strip sits between the ribbon and the deck: the canvas takes the rest of the
+        // window, so anything drawn after it would be clipped.
+        #[cfg(not(target_arch = "wasm32"))]
+        if self.backstage.is_none() {
+            crate::ai::status_strip(self, ui);
+        }
         if self.windows.shown() != window {
             return false;
         }
@@ -415,6 +429,11 @@ impl SlideApp {
         dialogs::show(self, &ctx);
         #[cfg(not(target_arch = "wasm32"))]
         updates_ui::show(self, &ctx);
+        // The AI windows are modals of the active window (one window per presentation).
+        #[cfg(not(target_arch = "wasm32"))]
+        if ctx.viewport_id() == self.active_viewport() {
+            crate::ai::windows(self, &ctx);
+        }
         if self.windows.shown() != window {
             return false;
         }

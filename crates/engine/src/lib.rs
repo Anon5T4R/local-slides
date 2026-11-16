@@ -624,6 +624,59 @@ impl Session {
         self.guarded(id, |s| s.execute_unguarded(id, params))
     }
 
+    /// Run the commands `f` issues as **one** undo step: a whole action (an AI request that adds
+    /// several slides, a script, a batch the control channel asks for) is undone at once, and a
+    /// failure before the end puts the presentation back as `f` found it. `label` is what the Edit
+    /// menu shows for the step. A group opened inside a command belongs to that command.
+    pub fn grouped<R>(&mut self, label: &str, f: impl FnOnce(&mut Self) -> Result<R>) -> Result<R> {
+        if self.depth > 0 {
+            return f(self);
+        }
+        self.settle_composition();
+        let before = self.active().map(|d| (d.uid, d.doc.clone(), d.selection.clone()));
+        let vertex_kind = self.tool.vertex_kind.clone();
+        self.depth = 1;
+        // A command's own panic is caught by `guarded`; this covers a panic between commands, so
+        // the session never stays inside a group (which would stop keeping undo steps at all).
+        let caught = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| f(self)));
+        self.depth = 0;
+        match caught {
+            Ok(Ok(value)) => {
+                if let Some((uid, old, sel)) = before
+                    && let Some(st) = self.active_mut()
+                    && st.uid == uid
+                    && !Arc::ptr_eq(&old, &st.doc)
+                    && st.interaction.is_none()
+                {
+                    push_undo(st, HistoryEntry { label: label.to_string(), doc: old, selection: sel, vertex_kind });
+                }
+                Ok(value)
+            }
+            Ok(Err(e)) => {
+                self.rewind(before, vertex_kind);
+                Err(e)
+            }
+            Err(payload) => {
+                self.rewind(before, vertex_kind);
+                std::panic::resume_unwind(payload)
+            }
+        }
+    }
+
+    /// Put the presentation back where [`Self::grouped`] found it (a failed or interrupted group).
+    fn rewind(&mut self, before: Option<(u64, Arc<Presentation>, Selection)>, vertex_kind: Option<(ShapeId, usize, usize, String)>) {
+        if let Some((uid, old, sel)) = before
+            && let Some(st) = self.active_mut()
+            && st.uid == uid
+            && !Arc::ptr_eq(&old, &st.doc)
+        {
+            st.doc = old;
+            st.selection = sel;
+            st.revision += 1;
+        }
+        self.tool.vertex_kind = vertex_kind;
+    }
+
     /// Resolve and run a command, settling composition first, checking eligibility, rolling back a
     /// failed outer command, and committing the resulting undo entry or journal record.
     fn execute_unguarded(&mut self, id: &str, params: &Value) -> Result<Value> {

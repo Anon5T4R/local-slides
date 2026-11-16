@@ -15,6 +15,8 @@ pub const UPDATE_APP: craft_update::app::App = craft_update::app::App {
     ..craft_update::suite::LOCALSLIDES
 };
 
+#[cfg(not(target_arch = "wasm32"))]
+pub mod ai;
 pub mod backstage;
 pub mod canvas;
 pub mod capture;
@@ -227,6 +229,9 @@ pub struct SlideApp {
     pub session: Session,
     pub services: Services,
     pub ui: UiState,
+    /// The AI surface: connections, the three deck actions, the strip and the dialogs.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub ai: ai::Ai,
     pub textures: textures::Textures,
     pub control_rx: Option<Receiver<ControlRequest>>,
     /// Spelling squiggles, checked on a worker thread.
@@ -451,6 +456,8 @@ impl ImeResetPhase {
     }
 }
 
+#[cfg(test)]
+mod ai_tests;
 #[cfg(test)]
 mod animpane_tests;
 #[cfg(test)]

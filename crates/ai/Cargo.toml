@@ -1,0 +1,17 @@
+[package]
+name = "localslides-ai"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish = false
+description = "Local Slides - remote AI for presentations: prompts, the tolerant JSON extractor and the deck actions"
+
+[lints]
+workspace = true
+
+[dependencies]
+local-ai = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

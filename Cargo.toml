@@ -30,6 +30,7 @@ localslides-engine = { path = "crates/engine" }
 localslides-mcp = { path = "crates/mcp" }
 localslides-ui-egui = { path = "crates/ui-egui" }
 localslides-media = { path = "crates/media" }
+localslides-ai = { path = "crates/ai" }
 # codecs (ported from FilmCraft, same owner and licence)
 localslides-bitstream = { path = "crates/bitstream" }
 localslides-h264 = { path = "crates/h264" }
@@ -72,8 +73,13 @@ craft-ui = { path = "libs/craft-libs/crates/ui/", version = "=0.1.0" }
 # craft-window drives the native windows: one per open presentation, in the mold of
 # the other Crafting Apps. Same vendored craft-libs tree as the crates above.
 craft-window = { path = "libs/craft-libs/crates/window/", version = "=0.1.0", default-features = false, features = ["egui"] }
+# BYOK da suíte (repo Anon5T4R/local-ai), espelho byte-idêntico ao dos apps irmãos: conexões do
+# usuário, chave no keychain do SO e um client OpenAI-compatible (TLS 100% Rust pelo fork acima).
+local-ai = { path = "libs/local-ai" }
 i_overlay = "9"
 quick-xml = "0.41"
+# The system's language, for the prompts (the AI answers in it).
+sys-locale = "0.3"
 zip = { version = "3", default-features = false, features = ["deflate"] }
 
 # ui

@@ -6509,3 +6509,36 @@ fn save_to_image_path_is_an_error_not_zip_bytes() {
     }
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+#[test]
+fn grouped_commands_are_one_undo_step() {
+    let mut s = session();
+    let before = s.doc().unwrap().doc.slides.len();
+    let undo_before = s.doc().unwrap().history.undo.len();
+    s.grouped("AI: deck", |s| {
+        s.execute("slide.new", &json!({"title": "One"}))?;
+        s.execute("slide.new", &json!({"title": "Two"}))?;
+        s.execute("slide.new", &json!({"title": "Three"}))?;
+        Ok(())
+    })
+    .unwrap();
+    assert_eq!(s.doc().unwrap().doc.slides.len(), before + 3);
+    assert_eq!(s.doc().unwrap().history.undo.len(), undo_before + 1, "the three slides are one step");
+    assert_eq!(s.doc().unwrap().history.undo.last().unwrap().label, "AI: deck");
+    s.execute("edit.undo", &json!({})).unwrap();
+    assert_eq!(s.doc().unwrap().doc.slides.len(), before, "one undo takes the deck back");
+}
+
+#[test]
+fn a_group_that_fails_changes_nothing() {
+    let mut s = session();
+    let slides = s.doc().unwrap().doc.slides.len();
+    let undo_before = s.doc().unwrap().history.undo.len();
+    let r: crate::Result<()> = s.grouped("AI: half", |s| {
+        s.execute("slide.new", &json!({"title": "One"}))?;
+        Err(crate::EngineError::UnknownCommand("stop".into()))
+    });
+    assert!(r.is_err());
+    assert_eq!(s.doc().unwrap().doc.slides.len(), slides, "the made slide is gone");
+    assert_eq!(s.doc().unwrap().history.undo.len(), undo_before, "no undo step is kept");
+}
