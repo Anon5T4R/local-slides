@@ -30,6 +30,9 @@ web-time = { workspace = true }
 craft-update = { workspace = true }
 # The AI surface is desktop-only: `local-ai` reads the OS keychain and speaks HTTP.
 localslides-ai = { workspace = true }
+# The suite's AI surface: the connections form, the status strip and the chat panel (shared with
+# the other apps); this crate keeps the prompts, the context and the apply.
+craft-ai-ui = { workspace = true }
 sys-locale = { workspace = true }
 
 [dev-dependencies]

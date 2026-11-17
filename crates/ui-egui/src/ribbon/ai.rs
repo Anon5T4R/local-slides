@@ -20,8 +20,13 @@ pub(super) fn ai(app: &mut SlideApp, ui: &mut Ui) {
         }
     });
     group(ui, |ui| {
+        if big_button(ui, Icon::Sparkle, "AI\nAssistant", true).clicked() {
+            app.ai.chat_open = !app.ai.chat_open;
+        }
+    });
+    group(ui, |ui| {
         if big_button(ui, Icon::Settings, "Connections", true).clicked() {
-            app.ai.panel = true;
+            app.ai.settings_open = true;
         }
     });
 }

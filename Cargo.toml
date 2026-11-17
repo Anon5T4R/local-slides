@@ -73,6 +73,9 @@ craft-update = { path = "libs/craft-libs/crates/update/", version = "=0.1.0", fe
 # root flags); source of truth in local-libs, vendored here and replicated by its sync.ps1.
 craft-mcp = { path = "libs/craft-libs/crates/mcp/" }
 craft-ui = { path = "libs/craft-libs/crates/ui/", version = "=0.1.0" }
+# The suite's AI surface (connections form, status strip, chat panel and the window policy); source
+# of truth in local-libs, vendored here and replicated by its sync.ps1.
+craft-ai-ui = { path = "libs/craft-libs/crates/ai-ui/" }
 # craft-window drives the native windows: one per open presentation, in the mold of
 # the other Crafting Apps. Same vendored craft-libs tree as the crates above.
 craft-window = { path = "libs/craft-libs/crates/window/", version = "=0.1.0", default-features = false, features = ["egui"] }

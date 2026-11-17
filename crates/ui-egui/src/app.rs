@@ -407,6 +407,8 @@ impl SlideApp {
                     if self.ui.pane.is_some() {
                         panes::show(self, ui);
                     }
+                    #[cfg(not(target_arch = "wasm32"))]
+                    crate::ai::chat_panel(self, ui);
                     if self.ui.view == ViewMode::Outline {
                         sorter::outline_pane(self, ui);
                     } else {

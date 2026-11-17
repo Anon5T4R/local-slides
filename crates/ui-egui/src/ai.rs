@@ -1,4 +1,5 @@
-//! The AI surface: connections, the three deck actions, the status strip and the dialogs.
+//! The AI surface: the suite's connections form and chat panel, plus this app's three deck actions,
+//! their dialogs and the action strip.
 //!
 //! Everything the user configures is a [`local_ai::Connection`] (provider preset, base URL, model)
 //! plus a key that lives in the OS keychain. An action turns the deck (or one slide) into a
@@ -7,18 +8,23 @@
 //! ([`Session::grouped`]) - so a failed apply rolls back and the `.pptx` is never written by the AI
 //! directly.
 //!
+//! The connections form, the chat panel and the chat's strip are `craft_ai_ui` (the suite's AI
+//! surface, shared with the other apps). What the app adds is what only the app knows: the system
+//! prompt, the deck's outline as the chat's context, the three deck actions and how an answer is
+//! applied.
+//!
 //! The AI is desktop-only: `local-ai` reads the OS keychain and speaks HTTP, which the web build
 //! does not have.
 
 #![cfg(not(target_arch = "wasm32"))]
 
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, Receiver, TryRecvError};
 
+use craft_ai_ui as ai_ui;
 use egui::{Context, RichText, Ui};
-use localslides_ai::local_ai::{self, Connection};
+use localslides_ai::local_ai::{self, Connection, Msg};
 use localslides_ai::{AI_APP_ID, AI_APP_URL, Backend, LiveBackend, Outcome, PlannedSlide, Request};
 use localslides_engine::Session;
 use serde_json::json;
@@ -52,14 +58,19 @@ struct Running {
     cancelled: Arc<AtomicBool>,
 }
 
-/// A connection being edited (new or existing).
-pub struct Draft {
-    pub id: String,
-    pub provider: String,
-    pub label: String,
-    pub base_url: String,
-    pub model: String,
-    pub key: String,
+/// How much of the deck's outline goes as the chat's context.
+const CONTEXT_LIMIT: usize = 8_000;
+
+/// The whole request budget: the turns plus the outline.
+const BUDGET_CHARS: usize = 20_000;
+
+/// The most slides the outline names (a huge deck is cut, never refused).
+const OUTLINE_SLIDES: usize = 40;
+
+/// The chat request in flight: the worker's channel and the flag that drops a stopped answer.
+struct ChatRunning {
+    rx: Receiver<Event>,
+    cancelled: Arc<AtomicBool>,
 }
 
 /// One of the action dialogs.
@@ -80,16 +91,21 @@ pub struct LastDeck {
 /// The AI state the window owns.
 pub struct Ai {
     pub backend: Arc<dyn Backend>,
-    pub connections: Vec<Connection>,
-    pub active: Option<String>,
-    pub keys: HashMap<String, bool>,
-    keys_loaded: bool,
+    /// The connection in use, from the suite's store (one, like the other apps of the suite).
+    connection: Option<Connection>,
+    /// Whether the connections form is open.
+    pub settings_open: bool,
+    connections: ai_ui::ConnectionsPanel,
+    /// The chat: the suite's panel, with the deck's outline as its context.
+    chat: ai_ui::ChatPanel,
+    /// The chat's strip (spinner, seconds, the stream's tail and Stop).
+    strip: ai_ui::StatusStrip,
+    /// Whether the chat is open (it takes width from the deck).
+    pub chat_open: bool,
+    chat_running: Option<ChatRunning>,
     /// The prompts' language (the system's, read once).
     language: String,
-    pub panel: bool,
     pub dialog: Option<Dialog>,
-    pub draft: Option<Draft>,
-    pub models: Option<Vec<String>>,
     fetching: Option<Receiver<Result<Vec<String>, String>>>,
     running: Option<Running>,
     pub error: Option<String>,
@@ -103,25 +119,29 @@ impl Default for Ai {
     fn default() -> Self {
         let app = local_ai::App { id: AI_APP_ID, url: AI_APP_URL };
         let mut error = None;
-        let connections = match Connection::load_all(&app) {
-            Ok(connections) => connections,
+        // One connection per app, the suite's standard: the first of the store is the one in use.
+        let connection = match Connection::load_all(&app) {
+            Ok(connections) => connections.into_iter().next(),
             Err(e) => {
                 error = Some(format!("the AI connections could not be read: {e}"));
-                Vec::new()
+                None
             }
         };
-        let active = connections.first().map(|connection| connection.id.clone());
+        let mut chat = ai_ui::ChatPanel::default();
+        // The last 8 turns and one budget for everything that leaves: the outline plus the
+        // conversation.
+        chat.set_policy(ai_ui::WindowPolicy { turns: ai_ui::Turns::LastN(8), total_budget_chars: BUDGET_CHARS });
         Self {
             backend: Arc::new(LiveBackend::new(AI_APP_ID, AI_APP_URL)),
-            connections,
-            active,
-            keys: HashMap::new(),
-            keys_loaded: false,
+            connection,
+            settings_open: false,
+            connections: ai_ui::ConnectionsPanel::default(),
+            chat,
+            strip: ai_ui::StatusStrip::default(),
+            chat_open: false,
+            chat_running: None,
             language: sys_locale::get_locale().unwrap_or_else(|| "en".to_string()),
-            panel: false,
             dialog: None,
-            draft: None,
-            models: None,
             fetching: None,
             running: None,
             error,
@@ -136,23 +156,27 @@ impl Ai {
         local_ai::App { id: AI_APP_ID, url: AI_APP_URL }
     }
 
-    fn active_connection(&self) -> Option<&Connection> {
-        self.active.as_ref().and_then(|id| self.connections.iter().find(|connection| &connection.id == id))
+    /// The model in use, for the panel's header.
+    pub(crate) fn model(&self) -> &str {
+        self.connection.as_ref().map(|connection| connection.model.as_str()).unwrap_or_default()
     }
 
-    /// Re-reads the keychain for every connection (the panel calls this once when it opens).
-    fn refresh_keys(&mut self) {
-        let app = Self::app();
-        self.keys.clear();
-        for connection in &self.connections {
-            self.keys.insert(connection.id.clone(), connection.has_key(&app));
-        }
-        self.keys_loaded = true;
+    /// Whether the panel has somewhere to send a question.
+    pub(crate) fn ready(&self) -> bool {
+        self.connection.as_ref().is_some_and(|connection| !connection.model.trim().is_empty())
+    }
+
+    /// Whether an AI request is in flight (the actions and the chat take turns).
+    pub(crate) fn busy(&self) -> bool {
+        self.running.is_some() || self.chat_running.is_some()
     }
 
     /// Starts one request on a worker thread. The prompts follow the system's language.
     pub(crate) fn start(&mut self, ctx: &Context, request: Request, apply: Apply) -> Result<(), String> {
-        let Some(connection) = self.active_connection().cloned() else {
+        if self.busy() {
+            return Err("Another AI request is still running. Stop it or wait for it.".into());
+        }
+        let Some(connection) = self.connection.clone() else {
             return Err("No AI connection yet. Open AI > Connections and add one.".into());
         };
         let messages = localslides_ai::actions::messages(&request, &self.language)?;
@@ -160,26 +184,7 @@ impl Ai {
         if let (Request::GenerateDeck { topic, slides }, Apply::Deck { theme }) = (&request, &apply) {
             self.last = Some(LastDeck { topic: topic.clone(), slides: *slides, theme: theme.clone() });
         }
-        let (tx, rx) = mpsc::channel();
-        let backend = self.backend.clone();
-        let cancelled = Arc::new(AtomicBool::new(false));
-        let worker_cancelled = cancelled.clone();
-        let worker_ctx = ctx.clone();
-        std::thread::Builder::new()
-            .name("localslides-ai".into())
-            .spawn(move || {
-                let mut on_delta = |delta: &str| {
-                    if worker_cancelled.load(Ordering::Relaxed) {
-                        return;
-                    }
-                    let _ = tx.send(Event::Delta(delta.to_string()));
-                    worker_ctx.request_repaint();
-                };
-                let result = backend.stream(&connection, &messages, &mut on_delta);
-                let _ = tx.send(Event::Done(result));
-                worker_ctx.request_repaint();
-            })
-            .map_err(|e| format!("the AI worker could not start: {e}"))?;
+        let (rx, cancelled) = spawn_stream(self.backend.clone(), ctx, connection, messages)?;
         self.error = None;
         self.running = Some(Running { request, apply, rx, started_ms: crate::clock::now_ms(), partial: String::new(), cancelled });
         Ok(())
@@ -193,10 +198,90 @@ impl Ai {
         }
     }
 
-    /// Polls the worker and the model fetch; applies a finished outcome. Returns true when a
+    /// Sends what the chat's composer holds, through the same client the actions use.
+    fn chat_send(&mut self, ctx: &Context) {
+        if self.busy() {
+            return;
+        }
+        let Some(lines) = self.chat.take_request() else { return };
+        let Some(connection) = self.connection.clone() else {
+            self.chat.finish(Err("No AI connection yet. Open AI > Connections and add one.".into()));
+            return;
+        };
+        let messages: Vec<Msg> = lines
+            .into_iter()
+            .map(|line| match line.role {
+                ai_ui::Role::System => Msg::System(line.text),
+                ai_ui::Role::User => Msg::User(line.text),
+                ai_ui::Role::Assistant => Msg::Assistant(line.text),
+            })
+            .collect();
+        match spawn_stream(self.backend.clone(), ctx, connection, messages) {
+            Ok((rx, cancelled)) => {
+                self.strip.begin();
+                self.chat_running = Some(ChatRunning { rx, cancelled });
+            }
+            Err(error) => self.chat.finish(Err(error)),
+        }
+    }
+
+    /// Stops the chat's answer: what arrived stays as a turn, and nothing is applied.
+    fn chat_stop(&mut self) {
+        if let Some(running) = self.chat_running.take() {
+            running.cancelled.store(true, Ordering::Relaxed);
+        }
+        self.strip.finish();
+        self.chat.stopped();
+    }
+
+    /// What the chat's worker delivered since the last frame.
+    fn tick_chat(&mut self) {
+        let mut deltas = String::new();
+        let mut finished = None;
+        {
+            let Some(running) = self.chat_running.as_ref() else { return };
+            loop {
+                match running.rx.try_recv() {
+                    Ok(Event::Delta(delta)) => deltas.push_str(&delta),
+                    Ok(Event::Done(result)) => {
+                        finished = Some(result);
+                        break;
+                    }
+                    Err(TryRecvError::Empty) => break,
+                    Err(TryRecvError::Disconnected) => {
+                        finished = Some(Err("the AI worker stopped".into()));
+                        break;
+                    }
+                }
+            }
+        }
+        if !deltas.is_empty() {
+            self.strip.push(&deltas);
+            self.chat.push(&deltas);
+        }
+        let Some(result) = finished else { return };
+        self.strip.finish();
+        self.chat.finish(result);
+        self.chat_running = None;
+    }
+
+    /// Inserts the last answer as a new slide at the end of the deck: the first line is the title,
+    /// the rest are the body's bullets (one command, one undo step, nothing overwritten).
+    fn insert_answer(&mut self, session: &mut Session) -> bool {
+        let Some(answer) = self.chat.last_answer().map(str::trim).map(str::to_string) else { return false };
+        if answer.is_empty() || session.active().is_none() {
+            return false;
+        }
+        let at = deck_len(session);
+        let (title, body) = split_answer(&answer);
+        session.execute("slide.new", &json!({ "layout": "titleAndContent", "title": title, "body": body, "at": at })).is_ok()
+    }
+
+    /// Polls the workers and the model fetch; applies a finished outcome. Returns true when a
     /// command changed the deck (the window then shows the new slide).
     pub(crate) fn tick(&mut self, session: &mut Session) -> bool {
         self.tick_models();
+        self.tick_chat();
         let Some(running) = self.running.as_mut() else { return false };
         let mut finished = None;
         loop {
@@ -263,16 +348,77 @@ impl Ai {
         let Some(rx) = &self.fetching else { return };
         match rx.try_recv() {
             Ok(Ok(models)) => {
-                self.models = Some(models);
+                self.connections.models = models;
                 self.fetching = None;
             }
             Ok(Err(error)) => {
-                self.error = Some(error);
+                self.connections.failed(error);
                 self.fetching = None;
             }
             Err(TryRecvError::Empty) => {}
             Err(TryRecvError::Disconnected) => self.fetching = None,
         }
+    }
+
+    /// The connections form: the suite's dialog, with this app's store and keychain behind it.
+    fn settings(&mut self, ctx: &Context) {
+        if !self.settings_open {
+            self.connections.open = false;
+            return;
+        }
+        if !self.connections.open {
+            self.connections.set_presets(presets());
+            self.connections.open_with(self.connection.as_ref().map(draft_of));
+        }
+        let labels = form_labels();
+        match self.connections.show(ctx, &labels) {
+            ai_ui::ConnectionsIntent::None => {}
+            ai_ui::ConnectionsIntent::Cancel => {
+                self.connections.open = false;
+                self.settings_open = false;
+            }
+            ai_ui::ConnectionsIntent::Save(draft, key) => self.save(draft, key),
+            ai_ui::ConnectionsIntent::LoadModels(draft, key) => self.fetch_models(ctx, draft, key),
+        }
+    }
+
+    /// Stores the connection (the key in the keychain) and keeps it in use.
+    fn save(&mut self, draft: ai_ui::ConnectionDraft, key: String) {
+        let app = Self::app();
+        let connection = connection_of(&draft);
+        if !key.is_empty()
+            && let Err(error) = connection.set_key(&app, &key)
+        {
+            self.connections.failed(format!("the key could not be saved: {error}"));
+            return;
+        }
+        match Connection::save_all(&app, std::slice::from_ref(&connection)) {
+            Ok(()) => {
+                self.connection = Some(connection);
+                self.chat.clear();
+                self.connections.saved();
+                self.settings_open = false;
+            }
+            Err(error) => self.connections.failed(error),
+        }
+    }
+
+    /// Asks the provider for its model list, on a worker thread (the key as typed, or the saved one).
+    fn fetch_models(&mut self, ctx: &Context, draft: ai_ui::ConnectionDraft, key: String) {
+        if self.fetching.is_some() {
+            return;
+        }
+        let app = Self::app();
+        let connection = connection_of(&draft);
+        let key = if key.is_empty() { connection.key(&app).unwrap_or_default() } else { key };
+        let (tx, rx) = mpsc::channel();
+        let worker = ctx.clone();
+        std::thread::spawn(move || {
+            let result = local_ai::list_models_with_key(&app, &connection, &key);
+            let _ = tx.send(result);
+            worker.request_repaint();
+        });
+        self.fetching = Some(rx);
     }
 
     /// Opens the generate dialog. It comes back pre-filled with the last request (the suite's
@@ -494,207 +640,202 @@ pub(crate) fn status_strip(app: &mut SlideApp, ui: &mut Ui) {
 
 /// The connections window and the action dialogs, drawn last so they sit above the deck.
 pub(crate) fn windows(app: &mut SlideApp, ctx: &Context) {
-    connections_window(app, ctx);
+    app.ai.settings(ctx);
     dialog_window(app, ctx);
 }
 
-fn connections_window(app: &mut SlideApp, ctx: &Context) {
-    if !app.ai.panel {
+/// The chat beside the deck: the suite's panel over this app's conversation.
+pub(crate) fn chat_panel(app: &mut SlideApp, ui: &mut Ui) {
+    if !app.ai.chat_open {
         return;
     }
-    if !app.ai.keys_loaded {
-        app.ai.refresh_keys();
-    }
-    let mut open = true;
-    let mut add = false;
-    let mut edit: Option<Connection> = None;
-    let mut delete: Option<String> = None;
-    let mut activate: Option<String> = None;
-    let mut save = false;
-    let mut fetch = false;
-    let mut close_draft = false;
-    egui::Window::new("AI connections")
-        .open(&mut open)
-        .collapsible(false)
-        .resizable(false)
-        .default_width(540.0)
-        .anchor(egui::Align2::CENTER_CENTER, egui::Vec2::ZERO)
-        .show(ctx, |ui| {
-            ui.label(RichText::new("The key lives in the OS keychain; the connection file never holds it.").weak());
-            ui.add_space(4.0);
-            if app.ai.connections.is_empty() {
-                ui.label("No connections yet.");
-            }
-            for connection in &app.ai.connections {
-                ui.horizontal(|ui| {
-                    let active = app.ai.active.as_deref() == Some(connection.id.as_str());
-                    if ui.selectable_label(active, format!("{} · {} · {}", connection.label, connection.provider, connection.model)).clicked() {
-                        activate = Some(connection.id.clone());
-                    }
-                    if app.ai.keys.get(&connection.id).copied().unwrap_or(false) {
-                        ui.label(RichText::new("key saved").weak());
-                    }
-                    if ui.small_button("Edit").clicked() {
-                        edit = Some(connection.clone());
-                    }
-                    if ui.small_button("Delete").clicked() {
-                        delete = Some(connection.id.clone());
-                    }
-                });
-            }
-            ui.add_space(6.0);
-            if ui.button("Add connection").clicked() {
-                add = true;
-            }
-            if let Some(draft) = app.ai.draft.as_mut() {
-                ui.separator();
-                ui.horizontal(|ui| {
-                    ui.label("Provider");
-                    craft_ui::ComboBox::from_id_salt("ai-provider").selected_text(draft.provider.clone()).show_ui(ui, |ui| {
-                        for provider in local_ai::PROVIDERS {
-                            if ui.selectable_label(draft.provider == provider.id, provider.label).clicked() {
-                                draft.provider = provider.id.to_string();
-                                if !provider.base_url.is_empty() {
-                                    draft.base_url = provider.base_url.to_string();
-                                }
-                                if draft.label.is_empty() {
-                                    draft.label = provider.label.to_string();
-                                }
-                            }
-                        }
-                    });
-                });
-                ui.horizontal(|ui| {
-                    ui.label("Label");
-                    ui.text_edit_singleline(&mut draft.label);
-                });
-                ui.horizontal(|ui| {
-                    ui.label("Base URL");
-                    ui.text_edit_singleline(&mut draft.base_url);
-                });
-                ui.horizontal(|ui| {
-                    ui.label("Model");
-                    if let Some(models) = &app.ai.models {
-                        craft_ui::ComboBox::from_id_salt("ai-model").selected_text(draft.model.clone()).show_ui(ui, |ui| {
-                            for model in models {
-                                if ui.selectable_label(draft.model == *model, model).clicked() {
-                                    draft.model = model.clone();
-                                }
-                            }
-                        });
-                    } else {
-                        ui.text_edit_singleline(&mut draft.model);
-                    }
-                });
-                ui.horizontal(|ui| {
-                    if ui.button("Fetch models").clicked() {
-                        fetch = true;
-                    }
-                    if app.ai.fetching.is_some() {
-                        ui.spinner();
-                    }
-                });
-                ui.horizontal(|ui| {
-                    ui.label("API key");
-                    ui.add(egui::TextEdit::singleline(&mut draft.key).password(true));
-                });
-                ui.horizontal(|ui| {
-                    if ui.button("Save connection").clicked() {
-                        save = true;
-                    }
-                    if ui.button("Cancel").clicked() {
-                        close_draft = true;
-                    }
-                });
-            }
-        });
-    app.ai.panel = open;
-    let app_id = Ai::app();
-    if add {
-        let provider = local_ai::PROVIDERS.iter().find(|provider| provider.id == "openai").or_else(|| local_ai::PROVIDERS.first());
-        let (id, base, label) = provider.map(|provider| (provider.id, provider.base_url, provider.label)).unwrap_or(("custom", "", "Custom"));
-        app.ai.draft = Some(Draft {
-            id: format!("conn-{}", crate::clock::now_ms() as u64),
-            provider: id.to_string(),
-            label: label.to_string(),
-            base_url: base.to_string(),
-            model: String::new(),
-            key: String::new(),
-        });
-        app.ai.models = None;
-    }
-    if let Some(connection) = edit {
-        app.ai.draft = Some(Draft {
-            id: connection.id.clone(),
-            provider: connection.provider.clone(),
-            label: connection.label.clone(),
-            base_url: connection.base_url.clone(),
-            model: connection.model.clone(),
-            key: String::new(),
-        });
-        app.ai.models = None;
-    }
-    if let Some(id) = delete
-        && let Some(connection) = app.ai.connections.iter().find(|connection| connection.id == id).cloned()
-    {
-        let _ = connection.clear_key(&app_id);
-        app.ai.connections.retain(|connection| connection.id != id);
-        let _ = Connection::save_all(&app_id, &app.ai.connections);
-        app.ai.keys.remove(&id);
-        if app.ai.active.as_deref() == Some(id.as_str()) {
-            app.ai.active = app.ai.connections.first().map(|connection| connection.id.clone());
+    let ctx = ui.ctx().clone();
+    // The app's side of the contract: what the panel is, and what goes as context.
+    app.ai.chat.set_system(SYSTEM_PROMPT);
+    app.ai.chat.set_context(chat_context(&mut app.session));
+    let model = app.ai.model().to_string();
+    let ready = app.ai.ready();
+    let labels = chat_labels(&model, ready);
+    egui::Panel::right("ai-chat").resizable(true).default_size(360.0).max_size(560.0).show(ui, |ui| {
+        let strip = app.ai.strip.show(ui, ai_ui::StripLabels { stop: "Stop", dismiss: "Dismiss" });
+        if strip == ai_ui::StripAction::Stop {
+            app.ai.chat_stop();
         }
-    }
-    if let Some(id) = activate {
-        app.ai.active = Some(id);
-    }
-    if fetch && let Some(draft) = &app.ai.draft {
-        let connection = Connection {
-            id: draft.id.clone(),
-            provider: draft.provider.clone(),
-            label: draft.label.clone(),
-            base_url: draft.base_url.clone(),
-            model: draft.model.clone(),
-        };
-        let key = if draft.key.is_empty() { connection.key(&app_id).unwrap_or_default() } else { draft.key.clone() };
-        let (tx, rx) = mpsc::channel();
-        let worker = ctx.clone();
-        std::thread::spawn(move || {
-            let app = local_ai::App { id: AI_APP_ID, url: AI_APP_URL };
-            let result = local_ai::list_models_with_key(&app, &connection, &key);
-            let _ = tx.send(result);
-            worker.request_repaint();
-        });
-        app.ai.fetching = Some(rx);
-    }
-    if close_draft {
-        app.ai.draft = None;
-        app.ai.models = None;
-    }
-    if save && let Some(draft) = app.ai.draft.take() {
-        let connection = Connection {
-            id: draft.id.clone(),
-            provider: draft.provider.clone(),
-            label: draft.label.clone(),
-            base_url: draft.base_url.clone(),
-            model: draft.model.clone(),
-        };
-        if !draft.key.is_empty()
-            && let Err(error) = connection.set_key(&app_id, &draft.key)
-        {
-            app.ai.error = Some(format!("the key could not be saved: {error}"));
+        ui.separator();
+        match app.ai.chat.show(ui, &labels) {
+            ai_ui::ChatAction::None => {}
+            ai_ui::ChatAction::Send => app.ai.chat_send(&ctx),
+            ai_ui::ChatAction::Retry => {
+                if app.ai.chat.retry() {
+                    app.ai.chat_send(&ctx);
+                }
+            }
+            ai_ui::ChatAction::Stop => app.ai.chat_stop(),
+            ai_ui::ChatAction::Clear => app.ai.chat.clear(),
+            ai_ui::ChatAction::Insert => {
+                app.ai.insert_answer(&mut app.session);
+            }
+            ai_ui::ChatAction::Settings => app.ai.settings_open = true,
+            ai_ui::ChatAction::Close => {
+                app.ai.chat_stop();
+                app.ai.chat_open = false;
+            }
         }
-        if let Some(existing) = app.ai.connections.iter_mut().find(|connection| connection.id == draft.id) {
-            *existing = connection;
-        } else {
-            app.ai.connections.push(connection);
+    });
+}
+
+/// The system prompt: the app's vocabulary and what an answer may not claim (model-facing text).
+const SYSTEM_PROMPT: &str = "You are an assistant inside a presentation app. The deck's outline \
+     travels as context. Answer in the language of the question, plainly and briefly, the way a \
+     slide reads. You cannot change the deck: when the user wants new slides, say what they should \
+     say and let them use the app's own AI actions. Never claim you changed a slide.";
+
+/// The deck's outline as the panel's context: one line per slide, within budget.
+fn chat_context(session: &mut Session) -> Option<ai_ui::ContextSource> {
+    let count = deck_len(session);
+    if count == 0 {
+        return None;
+    }
+    let mut text = String::new();
+    let mut named = 0usize;
+    for index in 0..count.min(OUTLINE_SLIDES) {
+        let parts = slide_parts(session, index).ok()?;
+        let title = parts.title_text().trim().to_string();
+        let body = parts.body_text();
+        let first = body.lines().map(str::trim).find(|line| !line.is_empty()).unwrap_or("");
+        // A slide with no text says nothing about the deck: it is not part of the outline.
+        if title.is_empty() && first.is_empty() {
+            continue;
         }
-        if let Err(error) = Connection::save_all(&app_id, &app.ai.connections) {
-            app.ai.error = Some(format!("the AI connections could not be saved: {error}"));
+        named += 1;
+        text.push_str(&format!("{}. {title}", index + 1));
+        if !first.is_empty() {
+            text.push_str(&format!(" — {first}"));
         }
-        app.ai.active = app.ai.connections.first().map(|connection| connection.id.clone());
-        app.ai.keys_loaded = false;
-        app.ai.models = None;
+        text.push('\n');
+    }
+    if named == 0 {
+        return None;
+    }
+    let label = format!("the deck · {count} slides");
+    Some(ai_ui::ContextSource::new(ai_ui::ContextKind::Document, label, text, CONTEXT_LIMIT, ai_ui::Side::Head))
+}
+
+/// The context chip: what the last request really sent.
+fn chip(info: &ai_ui::ContextInfo) -> String {
+    let mut text = format!("{} · {} of {} characters", info.label, info.sent, info.total);
+    if info.truncated() {
+        text.push_str(" (cut)");
+    }
+    if info.turns > 0 {
+        text.push_str(&format!(" · {}/{} turns", info.turns, info.kept));
+    }
+    text
+}
+
+/// The chat labels, in the app's language (the app's interface is English).
+fn chat_labels<'a>(model: &'a str, ready: bool) -> ai_ui::ChatLabels<'a> {
+    ai_ui::ChatLabels {
+        title: "AI assistant",
+        not_configured: if ready { "" } else { "Configure a connection first." },
+        configure: "Settings",
+        settings: "Settings",
+        clear: "Clear",
+        close: "Close",
+        send: "Send",
+        stop: "Stop",
+        insert: "Insert as a slide",
+        retry: "Retry",
+        dismiss: "Dismiss",
+        empty: "Ask about the deck, or about anything.",
+        input_hint: if ready { "Write to the assistant." } else { "Configure a connection first." },
+        chip: &chip,
+        model,
+        suggestions: &[],
+        to_end: "To the end",
+    }
+}
+
+/// Starts one streamed request on a worker thread: the pieces arrive as events on the channel.
+fn spawn_stream(
+    backend: Arc<dyn Backend>,
+    ctx: &Context,
+    connection: Connection,
+    messages: Vec<Msg>,
+) -> Result<(Receiver<Event>, Arc<AtomicBool>), String> {
+    let (tx, rx) = mpsc::channel();
+    let cancelled = Arc::new(AtomicBool::new(false));
+    let worker_cancelled = cancelled.clone();
+    let worker_ctx = ctx.clone();
+    std::thread::Builder::new()
+        .name("localslides-ai".into())
+        .spawn(move || {
+            let mut on_delta = |delta: &str| {
+                if worker_cancelled.load(Ordering::Relaxed) {
+                    return;
+                }
+                let _ = tx.send(Event::Delta(delta.to_string()));
+                worker_ctx.request_repaint();
+            };
+            let result = backend.stream(&connection, &messages, &mut on_delta);
+            let _ = tx.send(Event::Done(result));
+            worker_ctx.request_repaint();
+        })
+        .map_err(|e| format!("the AI worker could not start: {e}"))?;
+    Ok((rx, cancelled))
+}
+
+/// The answer as one slide: the first line is the title, the rest the body's bullets.
+fn split_answer(answer: &str) -> (String, String) {
+    let mut lines = answer.lines().map(str::trim).filter(|line| !line.is_empty());
+    let title = lines.next().map(clean_line).unwrap_or_default();
+    let body = lines.map(clean_line).filter(|line| !line.is_empty()).collect::<Vec<_>>().join("\n");
+    (title, body)
+}
+
+/// A line without its Markdown list/heading marks (a slide body is text, not Markdown).
+fn clean_line(line: &str) -> String {
+    line.trim_start_matches(['#', '-', '*', ' ', '\t']).trim().to_string()
+}
+
+/// The provider presets the form offers, from the shared client's table.
+fn presets() -> Vec<ai_ui::Preset> {
+    local_ai::PROVIDERS
+        .iter()
+        .map(|provider| ai_ui::Preset { id: provider.id.to_string(), label: provider.label.to_string(), base_url: provider.base_url.to_string() })
+        .collect()
+}
+
+/// The draft the form shows for the connection in use.
+fn draft_of(connection: &Connection) -> ai_ui::ConnectionDraft {
+    ai_ui::ConnectionDraft { provider: connection.provider.clone(), base_url: connection.base_url.clone(), model: connection.model.clone() }
+}
+
+/// The connection a draft describes (one connection per app, so the id is fixed).
+fn connection_of(draft: &ai_ui::ConnectionDraft) -> Connection {
+    let label = local_ai::provider(&draft.provider).map(|provider| provider.label).unwrap_or(draft.provider.as_str());
+    Connection {
+        id: AI_APP_ID.to_lowercase(),
+        provider: draft.provider.trim().to_string(),
+        label: label.to_string(),
+        base_url: draft.base_url.trim().to_string(),
+        model: draft.model.trim().to_string(),
+    }
+}
+
+/// The connections form's words.
+fn form_labels<'a>() -> ai_ui::ConnectionsLabels<'a> {
+    ai_ui::ConnectionsLabels {
+        title: "AI connection",
+        provider: "Provider",
+        base_url: "Base URL",
+        model: "Model",
+        api_key: "API key",
+        list_models: "Fetch models",
+        save: "Save",
+        cancel: "Cancel",
+        hint_url: "Empty uses the provider's own address.",
+        hint_key: "The key lives in the OS keychain; the connection file never holds it.",
     }
 }
 
@@ -973,5 +1114,217 @@ mod tests {
         assert_eq!(placeholder_text(&mut session, 0, "title").as_deref(), Some("Introdução"));
         assert_eq!(placeholder_text(&mut session, 1, "body").as_deref(), Some("Texto."));
         assert_eq!(undo_steps(&session), undo_before + 1, "one undo step for the whole correction");
+    }
+
+    // ---- the suite's chat surface ------------------------------------------------------------
+
+    fn ai() -> Ai {
+        let mut chat = ai_ui::ChatPanel::default();
+        chat.set_policy(ai_ui::WindowPolicy { turns: ai_ui::Turns::LastN(8), total_budget_chars: BUDGET_CHARS });
+        Ai {
+            backend: Arc::new(LiveBackend::new(AI_APP_ID, AI_APP_URL)),
+            connection: None,
+            settings_open: false,
+            connections: ai_ui::ConnectionsPanel::default(),
+            chat,
+            strip: ai_ui::StatusStrip::default(),
+            chat_open: false,
+            chat_running: None,
+            language: "en".into(),
+            dialog: None,
+            fetching: None,
+            running: None,
+            error: None,
+            last: None,
+            themes: Vec::new(),
+        }
+    }
+
+    /// A backend that answers from a canned string, one piece at a time: what the UI path uses.
+    struct Canned(&'static str);
+
+    impl Backend for Canned {
+        fn stream(&self, _: &Connection, _: &[Msg], on_delta: &mut dyn FnMut(&str)) -> Result<String, String> {
+            on_delta(self.0);
+            Ok(self.0.to_string())
+        }
+
+        fn models(&self, _: &Connection) -> Result<Vec<String>, String> {
+            Ok(Vec::new())
+        }
+    }
+
+    /// The policy the panel asks for: the last 8 turns and one budget for everything that leaves.
+    #[test]
+    fn the_chat_keeps_the_last_turns_within_the_budget() {
+        let ai = ai();
+        let policy = ai.chat.policy();
+        assert_eq!(policy.turns, ai_ui::Turns::LastN(8));
+        assert_eq!(policy.total_budget_chars, BUDGET_CHARS);
+    }
+
+    /// The deck's outline is what travels: one line per slide, the title and its first bullet.
+    #[test]
+    fn the_deck_outline_is_the_chats_context() {
+        let mut session = deck();
+        session.execute("slide.new", &json!({ "title": "Dois", "body": "Clorofila\nÁgua" })).unwrap();
+        let context = chat_context(&mut session).expect("the deck's outline");
+        assert_eq!(context.kind, ai_ui::ContextKind::Document);
+        assert_eq!(context.side, ai_ui::Side::Head);
+        assert!(context.label.contains("2 slides"), "{}", context.label);
+        assert!(context.text.contains("2. Dois — Clorofila"), "{}", context.text);
+        assert!(!context.text.contains("1. "), "the empty title slide is not named: {}", context.text);
+    }
+
+    /// An empty deck sends no context at all.
+    #[test]
+    fn an_empty_deck_sends_no_context() {
+        let mut session = Session::with_new();
+        assert!(chat_context(&mut session).is_none());
+    }
+
+    /// Insert turns the answer into a new slide at the end: the first line is the title, the rest is
+    /// the body, and nothing of the deck is overwritten.
+    #[test]
+    fn the_answer_is_inserted_as_a_new_slide() {
+        let mut session = deck();
+        let before = slide_count(&session);
+        let mut ai = ai();
+        ai.chat.push_answer("Energia\n- Fotossíntese\n- Respiração");
+        assert!(ai.insert_answer(&mut session));
+        assert_eq!(slide_count(&session), before + 1);
+        let at = before;
+        assert_eq!(placeholder_text(&mut session, at, "title").as_deref(), Some("Energia"));
+        assert_eq!(placeholder_text(&mut session, at, "body").as_deref(), Some("Fotossíntese\nRespiração"));
+    }
+
+    /// With no deck open and no answer there is nothing to insert.
+    #[test]
+    fn an_empty_chat_inserts_nothing() {
+        let mut session = deck();
+        let before = slide_count(&session);
+        let mut ai = ai();
+        assert!(!ai.insert_answer(&mut session));
+        assert_eq!(slide_count(&session), before);
+    }
+
+    /// A question typed in the panel goes through the app's own client and the answer lands in the
+    /// panel: the shared panel owns the conversation, the app owns the transport.
+    #[test]
+    fn a_chat_question_goes_through_the_apps_client() {
+        let ctx = Context::default();
+        let mut session = deck();
+        let mut ai = ai();
+        ai.connection =
+            Some(Connection { id: "test".into(), provider: "custom".into(), label: "Test".into(), base_url: String::new(), model: "mock".into() });
+        ai.backend = Arc::new(Canned("quarenta e dois"));
+        assert!(ai.chat.ask("quanto é?"), "the panel took the question");
+        ai.chat_send(&ctx);
+        assert!(ai.chat_running.is_some(), "the worker was started");
+        for _ in 0..400 {
+            ai.tick(&mut session);
+            if ai.chat_running.is_none() {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(5));
+        }
+        assert!(ai.chat_running.is_none(), "the answer finished");
+        assert_eq!(ai.chat.last_answer(), Some("quarenta e dois"));
+        assert!(ai.strip.error().is_none(), "no error in the strip");
+    }
+
+    /// The key the ignored real-model test uses: the environment first, then the suite's
+    /// `ai-test.env` on the Desktop (never printed).
+    fn real_key() -> String {
+        if let Ok(key) = std::env::var("OPENROUTER_API_KEY")
+            && !key.trim().is_empty()
+        {
+            return key.trim().to_string();
+        }
+        let path = std::path::Path::new(r"C:\Users\Hades\Desktop\ai-test.env");
+        let text = std::fs::read_to_string(path).expect("ai-test.env on the Desktop");
+        text.lines()
+            .filter_map(|line| line.split_once('='))
+            .find(|(name, _)| name.trim() == "OPENROUTER_API_KEY")
+            .map(|(_, value)| value.trim().trim_matches('"').to_string())
+            .expect("OPENROUTER_API_KEY in ai-test.env")
+    }
+
+    /// The real-model chat, end to end: network and a key, so `#[ignore]`. Run with
+    /// `AI_TEST_MODEL=nvidia/nemotron-3-ultra-550b-a55b:free cargo test -p localslides-ui-egui --lib ai::tests::a_real_model_answers_the_chat -- --ignored --nocapture`.
+    #[test]
+    #[ignore = "network + a real provider key"]
+    fn a_real_model_answers_the_chat() {
+        let key = real_key();
+        let connection = Connection {
+            id: "real".into(),
+            provider: "openrouter".into(),
+            label: "OpenRouter".into(),
+            base_url: String::new(),
+            model: std::env::var("AI_TEST_MODEL").unwrap_or_else(|_| "nvidia/nemotron-3-ultra-550b-a55b:free".into()),
+        };
+        let mut session = deck();
+        session.execute("slide.new", &json!({ "title": "Fotossíntese", "body": "Clorofila converte luz" })).unwrap();
+        let context = chat_context(&mut session).expect("the outline");
+        let messages = vec![
+            Msg::System(SYSTEM_PROMPT.to_string()),
+            Msg::System(format!("{}\n\n{}", context.label, context.text)),
+            Msg::User("Qual é o título da segunda slide?".into()),
+        ];
+        let mut pieces = 0;
+        let answer =
+            local_ai::chat_stream_with_key(&local_ai::App { id: AI_APP_ID, url: AI_APP_URL }, &connection, &key, &messages, &mut |_: &str| {
+                pieces += 1
+            })
+            .expect("a real answer");
+        println!("--- answer ({pieces} pieces) ---\n{answer}\n--------------");
+        assert!(answer.to_lowercase().contains("fotoss"), "{answer}");
+        assert!(pieces > 1, "the answer streamed in pieces");
+    }
+
+    /// Visual QA (ignored in CI): renders the assistant panel and the connections form in both
+    /// themes to PNGs for the vision pass. Run with
+    /// `cargo test -p localslides-ui-egui --lib ai::tests::renders_the_ai_surfaces_for_visual_qa -- --ignored --nocapture`.
+    #[test]
+    #[ignore = "visual QA: renders the AI surfaces to PNGs for review"]
+    fn renders_the_ai_surfaces_for_visual_qa() {
+        use crate::{Services, SlideApp};
+        fn app(brightness: crate::theme::Brightness) -> SlideApp {
+            let mut session = deck();
+            session.execute("slide.new", &json!({ "title": "Luz", "body": "Clorofila\nÁgua" })).unwrap();
+            let mut app = SlideApp::new(session, Services::default());
+            app.ui.brightness = brightness;
+            app.ai.connection = Some(Connection {
+                id: "qa".into(),
+                provider: "custom".into(),
+                label: "Local QA".into(),
+                base_url: String::new(),
+                model: "qa-model".into(),
+            });
+            app
+        }
+        fn draw(ui: &mut Ui, app: &mut SlideApp) {
+            app.logic(ui.ctx());
+            app.ui(ui);
+        }
+        fn save(h: &mut egui_kittest::Harness<'_, SlideApp>, name: &str) {
+            h.run_steps(3);
+            let image = h.render().expect("render");
+            let path = std::env::temp_dir().join(format!("localslides-{name}.png"));
+            image.save(&path).expect("save");
+            println!("{}", path.display());
+        }
+        for (name, brightness) in [("light", crate::theme::Brightness::Light), ("dark", crate::theme::Brightness::Dark)] {
+            let mut a = app(brightness);
+            a.ai.chat_open = true;
+            a.ai.chat.push_answer("The deck has **two** slides.\n\n- Fotossíntese\n- Luz");
+            let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(1400.0, 900.0)).with_accessibility_check(false).build_ui_state(draw, a);
+            save(&mut h, &format!("ai-chat-{name}"));
+
+            let mut b = app(brightness);
+            b.ai.settings_open = true;
+            let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(1000.0, 800.0)).with_accessibility_check(false).build_ui_state(draw, b);
+            save(&mut h, &format!("ai-connections-{name}"));
+        }
     }
 }
