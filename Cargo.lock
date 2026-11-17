@@ -1036,6 +1036,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "craft-mcp"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "craft-media"
 version = "0.1.0"
 dependencies = [
@@ -3047,6 +3054,7 @@ dependencies = [
 name = "localslides-cli"
 version = "0.3.0"
 dependencies = [
+ "craft-mcp",
  "localslides-engine",
  "localslides-mcp",
  "serde_json",

@@ -2,8 +2,9 @@
 
 `localslides-cli mcp` runs a Model Context Protocol server on stdio. By default it drives its own
 headless engine (no window); with `--connect PORT` it drives a running Local Slides started with
-`--control PORT`, so an agent and a person can work on the same deck. `--sample` opens the sample
-deck. Stdio request frames are limited to 16 MiB including the newline; oversized frames receive a
+`--control PORT`, so an agent and a person can work on the same deck. A bare port means `127.0.0.1`,
+where the app listens; a host that isn't loopback is refused before anything connects.
+`--sample` opens the sample deck. Stdio request frames are limited to 16 MiB including the newline; oversized frames receive a
 JSON-RPC error and are drained so the next request can still be handled. Invalid UTF-8 frames receive
 a parse error.
 

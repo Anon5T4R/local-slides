@@ -71,19 +71,7 @@ fn main() -> ExitCode {
         Some("render-transition") => report(render_transition(rest)),
         Some("convert") => report(convert(rest)),
         Some("run") => report(run(rest)),
-        Some("commands") => {
-            let f = rest.first().map(|x| x.to_lowercase());
-            for c in localslides_engine::command_specs()
-                .iter()
-                .filter(|c| f.as_ref().is_none_or(|f| c.id.to_lowercase().contains(f.as_str()) || c.label.to_lowercase().contains(f.as_str())))
-            {
-                match c.params.strip_prefix("{}") {
-                    Some(answer) => outln!("{} — {}{answer}", c.id, c.label),
-                    None => outln!("{} — {}: {}", c.id, c.label, c.params),
-                }
-            }
-            ExitCode::SUCCESS
-        }
+        Some("commands") => report(commands(rest)),
         Some("describe") => report(describe(rest.first().map(String::as_str))),
         Some("app") => report(app(rest)),
         Some("mcp") => report(mcp(rest)),
@@ -95,6 +83,36 @@ fn main() -> ExitCode {
         Some(other) => unknown(other),
         None => usage(),
     }
+}
+
+/// `commands [FILTER] [--search TEXT]`: list the commands whose id or name contains the filter,
+/// ignoring case (the suite's `commands --search`).
+fn commands(args: &[String]) -> Result<(), String> {
+    let mut search: Option<String> = None;
+    let mut positional: Option<String> = None;
+    let mut it = args.iter();
+    while let Some(a) = it.next() {
+        match a.as_str() {
+            "--search" => search = Some(it.next().ok_or("--search needs text")?.clone()),
+            "--help" | "-h" => {
+                outln!("{}", help_page("commands"));
+                return Ok(());
+            }
+            other if other.starts_with("--") => return Err(format!("commands: unknown option `{other}`")),
+            other => positional = Some(other.to_string()),
+        }
+    }
+    let f = search.or(positional).map(|s| s.to_lowercase());
+    for c in localslides_engine::command_specs()
+        .iter()
+        .filter(|c| f.as_ref().is_none_or(|f| c.id.to_lowercase().contains(f.as_str()) || c.label.to_lowercase().contains(f.as_str())))
+    {
+        match c.params.strip_prefix("{}") {
+            Some(answer) => outln!("{} — {}{answer}", c.id, c.label),
+            None => outln!("{} — {}: {}", c.id, c.label, c.params),
+        }
+    }
+    Ok(())
 }
 
 fn is_help(arg: &str) -> bool {
@@ -502,13 +520,64 @@ fn read_command_file_line(reader: &mut impl std::io::BufRead, line: &mut Vec<u8>
 
 /// The same command syntax and execution path for --cmd and each command-file line.
 fn run_command(s: &mut Session, command: &str, print: bool) -> Result<(), String> {
-    let (id, params) = match command.split_once('=') {
-        Some((id, j)) => (id, serde_json::from_str::<Value>(j).map_err(|e| format!("{id}: bad JSON: {e}"))?),
-        None => (command, json!({})),
-    };
-    let r = s.execute(id, &params).map_err(|e| e.to_string())?;
+    let (id, params) = split_command(command)?;
+    let r = s.execute(&id, &params).map_err(|e| e.to_string())?;
     if print {
         outln!("{id} → {r}");
+    }
+    Ok(())
+}
+
+/// One command from `id=PARAMS` or `id`.
+fn split_command(command: &str) -> Result<(String, Value), String> {
+    match command.split_once('=') {
+        Some((id, j)) => Ok((id.to_string(), serde_json::from_str::<Value>(j).map_err(|e| format!("{id}: bad JSON: {e}"))?)),
+        None => Ok((command.to_string(), json!({}))),
+    }
+}
+
+/// The first non-blank content of `path` is `[`: the file is a JSON array of steps rather than one
+/// step per line.
+fn script_is_array(path: &str) -> Result<bool, String> {
+    use std::io::Read;
+    let mut head = [0u8; 64];
+    let mut file = std::fs::File::open(path).map_err(|e| format!("{path}: {e}"))?;
+    let n = file.read(&mut head).map_err(|e| format!("{path}: {e}"))?;
+    let text = String::from_utf8_lossy(&head[..n]);
+    Ok(text.trim_start_matches('\u{feff}').trim_start().starts_with('['))
+}
+
+/// The most a JSON-array script may hold.
+const MAX_ARRAY_SCRIPT_BYTES: u64 = 64 * 1024 * 1024;
+
+/// A JSON array of steps: a string (`"slide.next"`, `"edit.select={\"ids\":[1]}"`) or an object
+/// (`{"command": "slide.next", "params": {…}}`), run in order.
+fn run_array_file(s: &mut Session, path: &str, print: bool) -> Result<(), String> {
+    let size = std::fs::metadata(path).map_err(|e| format!("{path}: {e}"))?.len();
+    if size > MAX_ARRAY_SCRIPT_BYTES {
+        return Err(format!("{path}: script too large (over {} MiB)", MAX_ARRAY_SCRIPT_BYTES / 1024 / 1024));
+    }
+    let text = std::fs::read_to_string(path).map_err(|e| format!("{path}: {e}"))?;
+    let text = text.strip_prefix('\u{feff}').unwrap_or(&text);
+    let list: Value = serde_json::from_str(text).map_err(|e| format!("{path}: {e}"))?;
+    let entries = list.as_array().ok_or_else(|| format!("{path}: not a JSON array"))?;
+    for (i, entry) in entries.iter().enumerate() {
+        let (id, params) = match entry {
+            Value::String(command) => split_command(command).map_err(|e| format!("{path}[{i}]: {e}"))?,
+            Value::Object(o) => {
+                let id = o
+                    .get("command")
+                    .or_else(|| o.get("id"))
+                    .and_then(Value::as_str)
+                    .ok_or_else(|| format!("{path}[{i}]: a step object needs a `command` field"))?;
+                (id.to_string(), o.get("params").cloned().unwrap_or_else(|| json!({})))
+            }
+            _ => return Err(format!("{path}[{i}]: a step is a command string or {{\"command\", \"params\"}}")),
+        };
+        let r = s.execute(&id, &params).map_err(|e| format!("{path}[{i}] ({id}): {e}"))?;
+        if print {
+            outln!("{id} → {r}");
+        }
     }
     Ok(())
 }
@@ -516,6 +585,9 @@ fn run_command(s: &mut Session, command: &str, print: bool) -> Result<(), String
 fn run_command_file(s: &mut Session, path: &str, print: bool) -> Result<(), String> {
     use std::io::BufReader;
 
+    if script_is_array(path)? {
+        return run_array_file(s, path, print);
+    }
     let file = std::fs::File::open(path).map_err(|e| format!("{path}: {e}"))?;
     let mut reader = BufReader::new(file);
     let mut bytes = Vec::new();
@@ -551,6 +623,7 @@ fn run(args: &[String]) -> Result<(), String> {
             "--sample" => sample = true,
             "--cmd" => cmds.push(CommandSource::Inline(it.next().cloned().ok_or("--cmd needs COMMAND[=PARAMS]")?)),
             "--cmd-file" => cmds.push(CommandSource::File(it.next().cloned().ok_or("--cmd-file needs a file")?)),
+            "--script" => cmds.push(CommandSource::File(it.next().cloned().ok_or("--script needs a file")?)),
             "--save" => save = Some(it.next().cloned().ok_or("--save needs a path")?),
             "--export" => export = Some(it.next().cloned().ok_or("--export needs a path")?),
             "--export-params" => {
@@ -688,7 +761,7 @@ fn app(args: &[String]) -> Result<(), String> {
 
 fn mcp(args: &[String]) -> Result<(), String> {
     use localslides_engine::file_access::{self, AutomationRoots};
-    use localslides_mcp::{Backend, Headless, Remote, Server, control_addr};
+    use localslides_mcp::{Backend, Headless, Remote, Server};
     let mut connect: Option<String> = None;
     let mut sample = false;
     let mut roots_args = automation_args::AutomationArgs::new(None, None);
@@ -714,7 +787,12 @@ so drop --connect (or use --connect without the roots)"
             .into());
     }
     let backend: Box<dyn Backend> = match connect {
-        Some(c) => Box::new(Remote::connect(&control_addr(&c)).map_err(|e| format!("can't reach the app at {c}: {e}"))?),
+        Some(c) => {
+            // The suite's `--connect`: a bare port means loopback, and a host that isn't loopback
+            // is refused before any connection (the control token only goes to 127.0.0.1).
+            let addr = craft_mcp::remote::normalize_addr(&c).map_err(|e| format!("mcp: {e}"))?;
+            Box::new(Remote::connect(&addr).map_err(|e| format!("can't reach the app at {addr}: {e}"))?)
+        }
         None => {
             let mut h = Headless::new();
             // `--sample` is the operator's own choice, made before the roots come into force.

@@ -16,6 +16,8 @@ path = "src/main.rs"
 [dependencies]
 localslides-engine = { workspace = true }
 localslides-mcp = { workspace = true }
+# The suite's MCP plumbing: `--connect` normalization (bare port = loopback; public host refused).
+craft-mcp = { workspace = true }
 serde_json = { workspace = true }
 
 [dev-dependencies]

@@ -58,7 +58,7 @@ animated GIF with one frame per slide. Other extensions are refused. Prints OUT.
     },
     Subcommand {
         name: "run",
-        usage: "run [--in FILE | --sample] [--cmd COMMAND[=PARAMS] | --cmd-file FILE]... [--save OUT] [--export OUT [--export-params JSON]] [--print]",
+        usage: "run [--in FILE | --sample] [--cmd COMMAND[=PARAMS] | --cmd-file FILE | --script FILE]... [--save OUT] [--export OUT [--export-params JSON]] [--print]",
         summary: "run commands on a presentation, then save or export it",
         details: "Runs commands, in order, on one presentation: FILE with --in, the sample presentation with --sample,
 else a new one with an empty title slide. Then --save writes the presentation: .deckcraft keeps
@@ -72,11 +72,14 @@ Each --cmd is one command: COMMAND is a command id, then `=`, then the command's
 JSON object. Quote it for the shell. A command that needs no parameters is just its id.
 
 --cmd-file FILE reads the same commands from a UTF-8 text file, one per line, avoiding shell quoting
-and command-line length limits. Each line can be up to 16 MiB, including commands with embedded
-media data. Blank lines and full-line # comments are ignored, as is surrounding whitespace. CRLF
-line endings and an optional UTF-8 BOM at the start of the file are accepted.
+and command-line length limits. --script FILE is the same option, under the suite's name. The file
+may also be a JSON array of steps: `[\"slide.next\", {\"command\": \"edit.select\",
+\"params\": {\"ids\": [1]}}]`. Each line can be up to 16 MiB, including commands with embedded media
+data. Blank lines and full-line # comments are ignored, as is surrounding whitespace. CRLF line
+endings and an optional UTF-8 BOM at the start of the file are accepted.
 Repeat --cmd-file or mix it with --cmd: commands execute in the order those options appear.
-File errors name the path; line-reading, JSON and command errors also name the line number.
+File errors name the path; line-reading, JSON and command errors also name the line number (or the
+array index).
 
   localslides-cli run --cmd-file commands.txt --cmd slide.next --save result.deckcraft
 
@@ -104,10 +107,11 @@ the id of an inserted shape.",
     },
     Subcommand {
         name: "commands",
-        usage: "commands [FILTER]",
+        usage: "commands [FILTER] [--search TEXT]",
         summary: "list the commands run can use, one per line",
         details: "Lists the commands that run --cmd, app and the MCP server take, one per line: the id, its name in
-the app and its parameters. FILTER keeps the commands whose id or name contains it, ignoring case.
+the app and its parameters. FILTER (or --search TEXT, the suite's spelling) keeps the commands whose
+id or name contains it, ignoring case.
 
   localslides-cli commands format.
 
@@ -140,7 +144,8 @@ and prints its answer as JSON. COMMAND [PARAMS] runs a command, as run --cmd doe
         summary: "serve the commands to an agent over MCP on stdio",
         details: "Runs a Model Context Protocol server on stdin and stdout. It works on its own presentation without a
 window, or with --connect PORT (or host:port) on the Local Slides app started with --control PORT.
---sample opens the sample presentation.
+A bare port means 127.0.0.1, where the app listens; a host that isn't loopback is refused before
+anything connects. --sample opens the sample presentation.
 
 --automation-read-root DIR and --automation-write-root DIR confine every file the agent's commands read
 (open, pictures, audio, video) and write (save, export, PDF) to those folders, links followed. Repeat either

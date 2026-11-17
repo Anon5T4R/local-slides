@@ -25,6 +25,14 @@ Rust puro + egui. Sem conta, sem telemetria, sem dependência de servidores de t
   macOS, FreeBSD, web
 - `xtask/` — tarefas de build/CI (`cargo xtask ci`, `layers`, `wasm`, `parity`)
 
+## Agent-native (MCP)
+`crates/mcp` (servidor stdio + backends headless/`Remote` do control channel, porta com token) e
+`localslides-cli mcp` (headless ou `--connect PORT|HOST:PORT`, loopback only). A crate compartilhada
+da suíte é **`craft-mcp`** (fonte `local-libs`, espelho em `libs/craft-libs/crates/mcp`), usada aqui
+no `--connect`; `run --script` (alias de `--cmd-file`) aceita JSON Lines ou um array de passos;
+`commands --search TEXT` filtra o catálogo. As flags `--automation-read-root/write-root` são
+repetíveis (multi-root, como no deckcraft). Docs: `docs/mcp.md`.
+
 ## Build
 ```
 cargo build --locked          # debug
