@@ -51,7 +51,9 @@ fn big_button_width(text_w: f32, split: bool) -> f32 {
 pub fn big_button_ex(ui: &mut Ui, icon: Icon, label: &str, enabled: bool, split: bool, selected: bool) -> (Response, Option<Response>) {
     let t = Tokens::get(ui.ctx());
     let font = theme::font(11.0);
-    let lines: Vec<&str> = wrap_label(label);
+    // Visible text in the interface language; the accessible name below stays English, the stable
+    // name UI tests and the control channel address.
+    let lines: Vec<&str> = wrap_label(tl!(label));
     let text_w = lines.iter().map(|l| ui.fonts_mut(|f| f.layout_no_wrap(l.to_string(), font.clone(), t.text).size().x)).fold(0.0f32, f32::max);
     let w = big_button_width(text_w, split);
     // The whole button runs the main command; the narrow strip at the end of the label row is the
@@ -150,6 +152,8 @@ pub fn small_button_named(
 ) -> (Response, Option<Response>) {
     let t = Tokens::get(ui.ctx());
     let font = theme::font(12.0);
+    // Visible text translated; `name` (the accessible name) stays English.
+    let label = tl!(label);
     let tw = if label.is_empty() { 0.0 } else { ui.fonts_mut(|f| f.layout_no_wrap(label.to_string(), font.clone(), t.text).size().x) + 5.0 };
     let arrow_w = if split { 12.0 } else { 0.0 };
     let w = 24.0 + tw + arrow_w;

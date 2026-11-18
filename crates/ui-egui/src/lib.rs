@@ -16,6 +16,9 @@ pub const UPDATE_APP: craft_update::app::App = craft_update::app::App {
 };
 
 #[cfg(not(target_arch = "wasm32"))]
+// First: `tl!` (interface strings in the current language) is used by every module below.
+#[macro_use]
+pub mod i18n;
 pub mod ai;
 pub mod backstage;
 pub mod canvas;
@@ -119,6 +122,7 @@ pub const UI_COMMANDS: &[(&str, &str, Option<&str>, &str)] = &[
     ("view.collapseRibbon", "Collapse the Ribbon", Some("Cmd+F1"), "{}"),
     ("view.dark", "Dark Mode", None, "{on?: bool}"),
     ("view.theme", "Appearance Theme", None, "{mode: system|light|dark}"),
+    ("view.language", "Interface Language", None, "{language: auto|en|pt-br|es}"),
     ("view.grayscale", "Grayscale", None, "{on?: bool}"),
     ("view.newWindow", "New Window", None, "{on?: bool}"),
     ("show.start", "Slide Show", Some("F5"), "{from?: index, custom?: name}"),

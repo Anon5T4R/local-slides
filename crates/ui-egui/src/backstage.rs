@@ -466,13 +466,13 @@ fn separator(ui: &mut Ui, t: &Tokens) {
 
 fn heading(ui: &mut Ui, text: &str) {
     let t = Tokens::get(ui.ctx());
-    ui.label(RichText::new(text).font(theme::bold(16.0)).color(t.text));
+    ui.label(RichText::new(tl!(text)).font(theme::bold(16.0)).color(t.text));
     ui.add_space(8.0);
 }
 
 fn dim(ui: &mut Ui, text: &str) {
     let t = Tokens::get(ui.ctx());
-    ui.label(RichText::new(text).font(theme::font(12.5)).color(t.text_dim));
+    ui.label(RichText::new(tl!(text)).font(theme::font(12.5)).color(t.text_dim));
 }
 
 /// A link with an arrow (More themes →): true when clicked.

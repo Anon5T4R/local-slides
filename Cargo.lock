@@ -3294,6 +3294,7 @@ name = "localslides-ui-egui"
 version = "0.3.3"
 dependencies = [
  "craft-ai-ui",
+ "craft-i18n",
  "craft-ui",
  "craft-update",
  "craft-window",

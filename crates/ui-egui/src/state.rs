@@ -53,6 +53,8 @@ pub struct UiState {
     pub brightness: theme::Brightness,
     /// Follow the operating system's light/dark setting (the default until the user picks one).
     pub system_theme: bool,
+    /// Interface language: `auto` (the system's) or a code from `i18n::LANGUAGES`.
+    pub language: String,
     pub tab: String,
     pub ribbon_collapsed: bool,
     pub view: ViewMode,
@@ -103,6 +105,7 @@ impl Default for UiState {
         UiState {
             brightness: theme::Brightness::Light,
             system_theme: true,
+            language: crate::i18n::AUTO.into(),
             tab: "Home".into(),
             ribbon_collapsed: false,
             view: ViewMode::Normal,

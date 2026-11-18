@@ -48,9 +48,7 @@ fn pure_provider() -> Arc<rustls::crypto::CryptoProvider> {
 fn agent() -> &'static ureq::Agent {
     static AGENT: OnceLock<ureq::Agent> = OnceLock::new();
     AGENT.get_or_init(|| {
-        let tls = ureq::tls::TlsConfig::builder()
-            .unversioned_rustls_crypto_provider(pure_provider())
-            .build();
+        let tls = ureq::tls::TlsConfig::builder().unversioned_rustls_crypto_provider(pure_provider()).build();
         ureq::Agent::config_builder()
             .tls_config(tls)
             // A non-2xx is a response, not a transport failure: the body carries the provider's
@@ -90,36 +88,11 @@ pub struct Provider {
 }
 
 pub const PROVIDERS: &[Provider] = &[
-    Provider {
-        id: "gemini",
-        label: "Google Gemini",
-        base_url: "https://generativelanguage.googleapis.com/v1beta/openai",
-        vision: true,
-    },
-    Provider {
-        id: "openai",
-        label: "OpenAI (GPT)",
-        base_url: "https://api.openai.com/v1",
-        vision: true,
-    },
-    Provider {
-        id: "groq",
-        label: "Groq",
-        base_url: "https://api.groq.com/openai/v1",
-        vision: true,
-    },
-    Provider {
-        id: "openrouter",
-        label: "OpenRouter",
-        base_url: "https://openrouter.ai/api/v1",
-        vision: true,
-    },
-    Provider {
-        id: "opencode-zen",
-        label: "OpenCode Zen",
-        base_url: "https://opencode.ai/zen/v1",
-        vision: false,
-    },
+    Provider { id: "gemini", label: "Google Gemini", base_url: "https://generativelanguage.googleapis.com/v1beta/openai", vision: true },
+    Provider { id: "openai", label: "OpenAI (GPT)", base_url: "https://api.openai.com/v1", vision: true },
+    Provider { id: "groq", label: "Groq", base_url: "https://api.groq.com/openai/v1", vision: true },
+    Provider { id: "openrouter", label: "OpenRouter", base_url: "https://openrouter.ai/api/v1", vision: true },
+    Provider { id: "opencode-zen", label: "OpenCode Zen", base_url: "https://opencode.ai/zen/v1", vision: false },
     Provider {
         id: "opencode-go",
         label: "OpenCode GO",
@@ -129,12 +102,7 @@ pub const PROVIDERS: &[Provider] = &[
         base_url: "https://opencode.ai/inference/go/openai/v1",
         vision: false,
     },
-    Provider {
-        id: "custom",
-        label: "Custom (OpenAI-compatible)",
-        base_url: "",
-        vision: false,
-    },
+    Provider { id: "custom", label: "Custom (OpenAI-compatible)", base_url: "", vision: false },
 ];
 
 pub fn provider(id: &str) -> Option<&'static Provider> {
@@ -201,14 +169,11 @@ impl Connection {
 
     /// The keychain entry for this connection's key. The service name groups them under the app.
     fn keyring_entry(&self, app: &App) -> Result<keyring::Entry, String> {
-        keyring::Entry::new(app.id, &format!("ai-connection-{}", self.id))
-            .map_err(|e| e.to_string())
+        keyring::Entry::new(app.id, &format!("ai-connection-{}", self.id)).map_err(|e| e.to_string())
     }
 
     pub fn set_key(&self, app: &App, key: &str) -> Result<(), String> {
-        self.keyring_entry(app)?
-            .set_password(key)
-            .map_err(|e| e.to_string())
+        self.keyring_entry(app)?.set_password(key).map_err(|e| e.to_string())
     }
 
     pub fn key(&self, app: &App) -> Result<String, String> {
@@ -233,13 +198,7 @@ impl Connection {
 
     fn effective_base(&self) -> String {
         let base = self.base_url.trim().trim_end_matches('/').to_owned();
-        if base.is_empty() {
-            provider(&self.provider)
-                .map(|p| p.base_url.trim_end_matches('/').to_owned())
-                .unwrap_or_default()
-        } else {
-            base
-        }
+        if base.is_empty() { provider(&self.provider).map(|p| p.base_url.trim_end_matches('/').to_owned()).unwrap_or_default() } else { base }
     }
 }
 
@@ -298,7 +257,22 @@ fn uuid_v4() -> String {
     bytes[8] = (bytes[8] & 0x3f) | 0x80;
     format!(
         "{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
-        bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7], bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]
+        bytes[0],
+        bytes[1],
+        bytes[2],
+        bytes[3],
+        bytes[4],
+        bytes[5],
+        bytes[6],
+        bytes[7],
+        bytes[8],
+        bytes[9],
+        bytes[10],
+        bytes[11],
+        bytes[12],
+        bytes[13],
+        bytes[14],
+        bytes[15]
     )
 }
 
@@ -313,20 +287,14 @@ fn normalize_connection(conn: &mut Connection) {
     if own.base_url.is_empty() || base.is_empty() || base == own.base_url.trim_end_matches('/') {
         return;
     }
-    let stale = PROVIDERS
-        .iter()
-        .any(|other| other.id != own.id && !other.base_url.is_empty() && other.base_url.trim_end_matches('/') == base);
+    let stale = PROVIDERS.iter().any(|other| other.id != own.id && !other.base_url.is_empty() && other.base_url.trim_end_matches('/') == base);
     if stale {
         conn.base_url = own.base_url.to_owned();
     }
 }
 
 /// The `/models` URL and its headers for the OpenAI-compatible providers.
-fn models_url(
-    app: &App,
-    conn: &Connection,
-    key: &str,
-) -> Result<(String, Vec<(String, String)>), String> {
+fn models_url(app: &App, conn: &Connection, key: &str) -> Result<(String, Vec<(String, String)>), String> {
     let base = conn.effective_base();
     if base.is_empty() {
         return Err("the connection has no base URL".into());
@@ -432,10 +400,7 @@ pub fn chat(app: &App, conn: &Connection, history: &[Msg]) -> Result<String, Str
     }
     let mut response = builder.send(body.as_bytes()).map_err(|e| e.to_string())?;
     let status = response.status();
-    let text = response
-        .body_mut()
-        .read_to_string()
-        .map_err(|e| e.to_string())?;
+    let text = response.body_mut().read_to_string().map_err(|e| e.to_string())?;
     if !status.is_success() {
         return Err(provider_error(status, &text));
     }
@@ -443,12 +408,7 @@ pub fn chat(app: &App, conn: &Connection, history: &[Msg]) -> Result<String, Str
 }
 
 /// A vision request: one picture plus the instruction, as a one-turn conversation.
-pub fn vision(
-    app: &App,
-    conn: &Connection,
-    instruction: &str,
-    png: &[u8],
-) -> Result<String, String> {
+pub fn vision(app: &App, conn: &Connection, instruction: &str, png: &[u8]) -> Result<String, String> {
     let base = conn.effective_base();
     if base.is_empty() {
         return Err("the connection has no base URL".into());
@@ -472,10 +432,7 @@ pub fn vision(
     }
     let mut response = builder.send(body.as_bytes()).map_err(|e| e.to_string())?;
     let status = response.status();
-    let text = response
-        .body_mut()
-        .read_to_string()
-        .map_err(|e| e.to_string())?;
+    let text = response.body_mut().read_to_string().map_err(|e| e.to_string())?;
     if !status.is_success() {
         return Err(provider_error(status, &text));
     }
@@ -489,12 +446,7 @@ pub fn vision(
 /// JSON object per event carrying `choices[0].delta.content`, and `data: [DONE]` closes it. Ollama,
 /// llama-server and every OpenAI-compatible gateway speak it; a provider that ignores `stream`
 /// answers with a plain body, which [`read_stream`] still reads (one event, whole text).
-pub fn chat_stream(
-    app: &App,
-    conn: &Connection,
-    history: &[Msg],
-    on_delta: impl FnMut(&str),
-) -> Result<String, String> {
+pub fn chat_stream(app: &App, conn: &Connection, history: &[Msg], on_delta: impl FnMut(&str)) -> Result<String, String> {
     let key = conn.key(app)?;
     chat_stream_with_key(app, conn, &key, history, on_delta)
 }
@@ -503,13 +455,7 @@ pub fn chat_stream(
 /// The suite keeps its key there; a test (or a caller that stores the secret elsewhere) supplies it
 /// directly, so the transport can be exercised end to end without touching the keychain. The key is
 /// never written anywhere by this crate.
-pub fn chat_stream_with_key(
-    app: &App,
-    conn: &Connection,
-    key: &str,
-    history: &[Msg],
-    mut on_delta: impl FnMut(&str),
-) -> Result<String, String> {
+pub fn chat_stream_with_key(app: &App, conn: &Connection, key: &str, history: &[Msg], mut on_delta: impl FnMut(&str)) -> Result<String, String> {
     let base = conn.effective_base();
     if base.is_empty() {
         return Err("the connection has no base URL".into());
@@ -525,8 +471,7 @@ pub fn chat_stream_with_key(
             Msg::Assistant(t) => serde_json::json!({ "role": "assistant", "content": t }),
         })
         .collect();
-    let body = serde_json::json!({ "model": conn.model, "messages": messages, "stream": true })
-        .to_string();
+    let body = serde_json::json!({ "model": conn.model, "messages": messages, "stream": true }).to_string();
     let mut builder = agent().post(&format!("{base}/chat/completions")).header("Content-Type", "application/json");
     for (k, v) in authorize(app, conn, key) {
         builder = builder.header(&k, &v);
@@ -538,18 +483,12 @@ pub fn chat_stream_with_key(
         let text = response.body_mut().read_to_string().unwrap_or_default();
         return Err(provider_error(status, &text));
     }
-    read_stream(
-        std::io::BufReader::new(response.body_mut().as_reader()),
-        &mut on_delta,
-    )
+    read_stream(std::io::BufReader::new(response.body_mut().as_reader()), &mut on_delta)
 }
 
 /// Reads an OpenAI-style SSE body. Split from the request so the contract is testable without a
 /// network: the deltas in order, the joined answer, the provider's error, and a plain body.
-fn read_stream(
-    reader: impl std::io::BufRead,
-    on_delta: &mut impl FnMut(&str),
-) -> Result<String, String> {
+fn read_stream(reader: impl std::io::BufRead, on_delta: &mut impl FnMut(&str)) -> Result<String, String> {
     let mut answer = String::new();
     for line in reader.lines() {
         let line = match line {
@@ -582,29 +521,19 @@ fn read_stream(
             Err(_) => return parse_chat(data),
         };
         if let Some(error) = value.get("error") {
-            let message = error
-                .get("message")
-                .and_then(|m| m.as_str())
-                .unwrap_or("unknown provider error");
+            let message = error.get("message").and_then(|m| m.as_str()).unwrap_or("unknown provider error");
             return Err(message.to_owned());
         }
         // A non-streaming answer inside a `data:` line: the whole chat JSON, done.
         if value.pointer("/choices/0/message/content").is_some() {
             return parse_chat(data);
         }
-        if let Some(delta) = value
-            .pointer("/choices/0/delta/content")
-            .and_then(|c| c.as_str())
-        {
+        if let Some(delta) = value.pointer("/choices/0/delta/content").and_then(|c| c.as_str()) {
             answer.push_str(delta);
             on_delta(delta);
         }
     }
-    if answer.is_empty() {
-        Err("the stream ended without text".into())
-    } else {
-        Ok(answer)
-    }
+    if answer.is_empty() { Err("the stream ended without text".into()) } else { Ok(answer) }
 }
 
 /// The provider's reason for a non-2xx answer: the `error.message` every OpenAI-compatible gateway
@@ -632,30 +561,18 @@ fn provider_error(status: impl std::fmt::Display, body: &str) -> String {
         }
     }
     let text = body.trim();
-    if text.is_empty() {
-        format!("HTTP {status}")
-    } else {
-        format!("HTTP {status}: {text}")
-    }
+    if text.is_empty() { format!("HTTP {status}") } else { format!("HTTP {status}: {text}") }
 }
 
 /// The one shape every OpenAI-compatible chat answer takes. A provider error body has no
 /// choices: surface its text so the panel can show why.
 fn parse_chat(body: &str) -> Result<String, String> {
-    let value: serde_json::Value =
-        serde_json::from_str(body).map_err(|e| format!("unreadable answer: {e}"))?;
+    let value: serde_json::Value = serde_json::from_str(body).map_err(|e| format!("unreadable answer: {e}"))?;
     if let Some(err) = value.get("error") {
-        let message = err
-            .get("message")
-            .and_then(|m| m.as_str())
-            .unwrap_or("unknown provider error");
+        let message = err.get("message").and_then(|m| m.as_str()).unwrap_or("unknown provider error");
         return Err(message.to_owned());
     }
-    value
-        .pointer("/choices/0/message/content")
-        .and_then(|c| c.as_str())
-        .map(str::to_owned)
-        .ok_or_else(|| format!("the answer has no text: {body}"))
+    value.pointer("/choices/0/message/content").and_then(|c| c.as_str()).map(str::to_owned).ok_or_else(|| format!("the answer has no text: {body}"))
 }
 
 /// Standard base64 (RFC 4648), padding included: data URIs want it.
@@ -663,24 +580,12 @@ fn base64(data: &[u8]) -> String {
     const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut out = String::with_capacity(data.len().div_ceil(3) * 4);
     for chunk in data.chunks(3) {
-        let b = [
-            chunk[0],
-            *chunk.get(1).unwrap_or(&0),
-            *chunk.get(2).unwrap_or(&0),
-        ];
+        let b = [chunk[0], *chunk.get(1).unwrap_or(&0), *chunk.get(2).unwrap_or(&0)];
         let n = (u32::from(b[0]) << 16) | (u32::from(b[1]) << 8) | u32::from(b[2]);
         out.push(TABLE[(n >> 18) as usize & 63] as char);
         out.push(TABLE[(n >> 12) as usize & 63] as char);
-        out.push(if chunk.len() > 1 {
-            TABLE[(n >> 6) as usize & 63] as char
-        } else {
-            '='
-        });
-        out.push(if chunk.len() > 2 {
-            TABLE[n as usize & 63] as char
-        } else {
-            '='
-        });
+        out.push(if chunk.len() > 1 { TABLE[(n >> 6) as usize & 63] as char } else { '=' });
+        out.push(if chunk.len() > 2 { TABLE[n as usize & 63] as char } else { '=' });
     }
     out
 }
@@ -745,10 +650,7 @@ data: {\"choices\":[{\"index\":0,\"delta\":{\"content\":\" é grave\"}}]}\n\
 \n\
 data: [DONE]\n";
         let mut deltas = Vec::new();
-        let answer = read_stream(std::io::Cursor::new(body), &mut |delta| {
-            deltas.push(delta.to_owned())
-        })
-        .unwrap();
+        let answer = read_stream(std::io::Cursor::new(body), &mut |delta| deltas.push(delta.to_owned())).unwrap();
         assert_eq!(deltas, ["Se", "pse", " é grave"]);
         assert_eq!(answer, "Sepse é grave");
     }
@@ -780,12 +682,7 @@ data: [DONE]\n";
     #[test]
     fn the_shared_agent_is_wired_to_the_pure_provider() {
         let provider = pure_provider();
-        assert!(
-            provider
-                .cipher_suites
-                .iter()
-                .any(|s| s.suite() == rustls::CipherSuite::TLS13_AES_256_GCM_SHA384)
-        );
+        assert!(provider.cipher_suites.iter().any(|s| s.suite() == rustls::CipherSuite::TLS13_AES_256_GCM_SHA384));
     }
 
     /// Every phase of the shared agent has a deadline. Without them a provider that goes quiet
@@ -821,10 +718,7 @@ data: [DONE]\n";
         });
 
         let started = Instant::now();
-        let mut response = short_agent(1)
-            .post(&format!("http://127.0.0.1:{port}/v1/chat/completions"))
-            .send(b"{}".as_slice())
-            .expect("headers");
+        let mut response = short_agent(1).post(&format!("http://127.0.0.1:{port}/v1/chat/completions")).send(b"{}".as_slice()).expect("headers");
         let error = read_stream(std::io::BufReader::new(response.body_mut().as_reader()), &mut |_| {}).expect_err("no body must time out");
         assert!(started.elapsed() < Duration::from_secs(3), "the deadline stops the wait");
         assert!(!error.is_empty());
@@ -845,7 +739,11 @@ data: [DONE]\n";
             if let Ok((mut socket, _)) = listener.accept() {
                 let mut buf = [0u8; 4096];
                 let _ = socket.read(&mut buf);
-                let head = format!("HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nTransfer-Encoding: chunked\r\n\r\n{:x}\r\n{}\r\n", body.len(), body);
+                let head = format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nTransfer-Encoding: chunked\r\n\r\n{:x}\r\n{}\r\n",
+                    body.len(),
+                    body
+                );
                 let _ = socket.write_all(head.as_bytes());
                 let _ = socket.flush();
                 std::thread::sleep(Duration::from_secs(3));
@@ -853,21 +751,16 @@ data: [DONE]\n";
         });
 
         let started = Instant::now();
-        let mut response = short_agent(1)
-            .post(&format!("http://127.0.0.1:{port}/v1/chat/completions"))
-            .send(b"{}".as_slice())
-            .expect("headers");
-        let answer = read_stream(std::io::BufReader::new(response.body_mut().as_reader()), &mut |_| {}).expect("the text arrives before the deadline");
+        let mut response = short_agent(1).post(&format!("http://127.0.0.1:{port}/v1/chat/completions")).send(b"{}".as_slice()).expect("headers");
+        let answer =
+            read_stream(std::io::BufReader::new(response.body_mut().as_reader()), &mut |_| {}).expect("the text arrives before the deadline");
         assert_eq!(answer, "pronto");
         assert!(started.elapsed() < Duration::from_secs(3), "the deadline stops the wait");
     }
 
     /// An agent with a short body deadline, for the socket tests.
     fn short_agent(body_secs: u64) -> ureq::Agent {
-        ureq::Agent::config_builder()
-            .timeout_recv_body(Some(Duration::from_secs(body_secs)))
-            .build()
-            .new_agent()
+        ureq::Agent::config_builder().timeout_recv_body(Some(Duration::from_secs(body_secs))).build().new_agent()
     }
 
     /// End to end: the configured agent completes a real TLS handshake. Ignored by default (it
@@ -875,23 +768,13 @@ data: [DONE]\n";
     #[test]
     #[ignore = "network: real TLS handshake with api.github.com"]
     fn the_shared_agent_completes_a_real_handshake() -> Result<(), String> {
-        let mut response = agent()
-            .get("https://api.github.com/")
-            .call()
-            .map_err(|e| e.to_string())?;
-        response
-            .body_mut()
-            .read_to_string()
-            .map(|_body| ())
-            .map_err(|e| e.to_string())
+        let mut response = agent().get("https://api.github.com/").call().map_err(|e| e.to_string())?;
+        response.body_mut().read_to_string().map(|_body| ()).map_err(|e| e.to_string())
     }
 
     #[test]
     fn the_store_path_lives_under_the_apps_folder() {
-        let app = App {
-            id: "TestApp",
-            url: "",
-        };
+        let app = App { id: "TestApp", url: "" };
         // Path separators differ per OS; the identity folder and file name are what matter.
         let path = Connection::store_path(&app).unwrap();
         assert!(path.to_string_lossy().contains("TestApp"));
@@ -907,7 +790,13 @@ data: [DONE]\n";
         assert_eq!(go.base_url, "https://opencode.ai/inference/go/openai/v1");
 
         let app = App { id: "LocalMind", url: "" };
-        let conn = Connection { id: "conv-7".into(), provider: "opencode-go".into(), label: "Go".into(), base_url: String::new(), model: "deepseek-v4.1-flash".into() };
+        let conn = Connection {
+            id: "conv-7".into(),
+            provider: "opencode-go".into(),
+            label: "Go".into(),
+            base_url: String::new(),
+            model: "deepseek-v4.1-flash".into(),
+        };
         let headers = authorize(&app, &conn, "k");
         let session = headers.iter().find(|(key, _)| key == "x-opencode-session").map(|(_, value)| value.clone()).expect("the session header");
         assert_eq!(session.len(), 36, "a UUID, like crypto.randomUUID(): {session}");
@@ -934,7 +823,13 @@ data: [DONE]\n";
     /// that is neither preset's default is left alone.
     #[test]
     fn a_stale_opencode_go_base_moves_to_the_go_base() {
-        let mut stale = Connection { id: "go".into(), provider: "opencode-go".into(), label: "Go".into(), base_url: "https://opencode.ai/zen/v1".into(), model: "deepseek-v4.1-flash".into() };
+        let mut stale = Connection {
+            id: "go".into(),
+            provider: "opencode-go".into(),
+            label: "Go".into(),
+            base_url: "https://opencode.ai/zen/v1".into(),
+            model: "deepseek-v4.1-flash".into(),
+        };
         normalize_connection(&mut stale);
         assert_eq!(stale.base_url, "https://opencode.ai/inference/go/openai/v1");
 

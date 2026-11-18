@@ -73,6 +73,8 @@ craft-update = { path = "libs/craft-libs/crates/update/", version = "=0.1.0", fe
 # root flags); source of truth in local-libs, vendored here and replicated by its sync.ps1.
 craft-mcp = { path = "libs/craft-libs/crates/mcp/" }
 craft-ui = { path = "libs/craft-libs/crates/ui/", version = "=0.1.0" }
+# Interface languages: the TSV catalogs under i18n/locales, embedded by crates/ui-egui/build.rs.
+craft-i18n = { path = "libs/craft-libs/crates/i18n/" }
 # The suite's AI surface (connections form, status strip, chat panel and the window policy); source
 # of truth in local-libs, vendored here and replicated by its sync.ps1.
 craft-ai-ui = { path = "libs/craft-libs/crates/ai-ui/" }

@@ -190,6 +190,14 @@ impl SlideApp {
                 }
                 self.restyle = true;
             }
+            "view.language" => {
+                let code = p.get("language").and_then(Value::as_str).unwrap_or_default();
+                if code != crate::i18n::AUTO && !crate::i18n::LANGUAGES.contains(&code) {
+                    return Err(format!("language must be auto or one of {}", crate::i18n::LANGUAGES.join(", ")));
+                }
+                self.ui.language = code.to_string();
+                crate::i18n::apply(code);
+            }
             "view.grayscale" => self.ui.grayscale = self.flag(p, self.ui.grayscale),
             "view.newWindow" => return self.new_window_command(p),
             "show.start" => {

@@ -17,6 +17,7 @@ impl SlideApp {
             ctx.request_discard("install interface fonts before layout");
             return false;
         }
+        crate::i18n::apply(&self.ui.language);
         if self.ui.system_theme {
             let system = match ctx.system_theme() {
                 Some(egui::Theme::Dark) => theme::Brightness::Dark,

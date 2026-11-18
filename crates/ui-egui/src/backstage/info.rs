@@ -247,6 +247,24 @@ pub(super) fn about(app: &mut SlideApp, ui: &mut Ui) {
                 })
                 .response
                 .widget_info(|| egui::WidgetInfo::labeled(egui::Role::ComboBox, true, "Appearance"));
+            ui.add_space(16.0);
+            heading(ui, "Language");
+            let current = app.ui.language.clone();
+            let auto = tl!("Automatic (system)");
+            let shown = if current == crate::i18n::AUTO { auto } else { crate::i18n::name_of(&current) };
+            craft_ui::ComboBox::from_id_salt("backstage_language")
+                .width(260.0)
+                .selected_text(shown)
+                .show_ui(ui, |ui| {
+                    let choices = std::iter::once((crate::i18n::AUTO, auto)).chain(crate::i18n::languages());
+                    for (code, name) in choices {
+                        if ui.selectable_label(current == code, name).clicked() {
+                            let _ = app.run("view.language", json!({ "language": code }));
+                        }
+                    }
+                })
+                .response
+                .widget_info(|| egui::WidgetInfo::labeled(egui::Role::ComboBox, true, "Language"));
         });
     });
 }

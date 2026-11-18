@@ -6,6 +6,10 @@
 //!   JSON says the entry was verified (`people_entry`).
 //!
 //! A missing or malformed file gives empty tables (or no names) and a warning.
+//!
+//! Also **`craft_i18n.rs`**: `CRAFT_I18N`, the (locale, shared catalog, app catalog) list
+//! `craft-i18n` reads, from `CRAFT_I18N_DIR` (the in-repo `i18n/` by default).
+//! `CRAFT_I18N_REQUIRED=1` makes a missing catalog set an error; otherwise the UI is English only.
 
 use std::fmt::Write as _;
 
@@ -23,6 +27,89 @@ fn main() {
     if let Err(e) = std::fs::write(&out, generate(&json, &people)) {
         println!("cargo::warning=writing {}: {e}", out.display());
     }
+    let i18n = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap_or_default()).join("craft_i18n.rs");
+    if let Err(e) = std::fs::write(&i18n, craft_i18n()) {
+        println!("cargo::warning=writing {}: {e}", i18n.display());
+    }
+}
+
+// ---- craft-i18n ----------------------------------------------------------------------------------
+
+/// This app's catalog file name inside each `i18n/locales/<code>/`.
+const APP_CATALOG: &str = "localslides.tsv";
+
+fn env_flag(name: &str) -> bool {
+    std::env::var(name).is_ok_and(|v| v.trim() == "1")
+}
+
+/// The workspace root (this crate lives in `<root>/crates/ui-egui`).
+fn workspace_root() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
+}
+
+/// `dir` against the workspace root when relative, so `CRAFT_I18N_DIR=i18n` means the same everywhere.
+fn absolute(dir: std::path::PathBuf) -> std::path::PathBuf {
+    if dir.is_absolute() { dir } else { workspace_root().join(dir) }
+}
+
+/// `CRAFT_I18N` from `CRAFT_I18N_DIR` (the in-repo `i18n/` by default), the `Embedded` list the
+/// craft-i18n crate reads.
+fn craft_i18n() -> String {
+    println!("cargo::rerun-if-env-changed=CRAFT_I18N_DIR");
+    println!("cargo::rerun-if-env-changed=CRAFT_I18N_REQUIRED");
+    let required = env_flag("CRAFT_I18N_REQUIRED");
+    // Canonicalizing is avoided: on Windows it gives `\\?\C:\...`, which `include_str!` can't read.
+    let dir = match std::env::var_os("CRAFT_I18N_DIR").filter(|d| !d.is_empty()) {
+        Some(dir) => absolute(std::path::PathBuf::from(dir)),
+        None => workspace_root().join("i18n"),
+    };
+    let entries = locales(&dir.join("locales")).unwrap_or_else(|e| {
+        let level = if required { "error" } else { "warning" };
+        println!("cargo::{level}=i18n catalogs: {e}; the interface is English only");
+        Vec::new()
+    });
+    let mut o = String::from("/// (locale, shared catalog, this app's catalog), one entry per locale; `\"\"` for a missing file.\n");
+    o.push_str("pub static CRAFT_I18N: &craft_i18n::Embedded = &[\n");
+    for (code, shared, app) in entries {
+        // `{:?}` escapes the path (Windows backslashes) as a Rust string literal.
+        let shared = shared.map_or_else(|| "\"\"".to_string(), |p| format!("include_str!({p:?})"));
+        let _ = writeln!(o, "    ({code:?}, {shared}, include_str!({app:?})),");
+    }
+    o.push_str("];\n");
+    o
+}
+
+/// Every locale under `dir` with this app's catalog, by code: (code, its `common.tsv` if any, its
+/// app catalog). An error when `dir` isn't a craft-i18n `locales/` directory.
+#[allow(clippy::type_complexity)]
+fn locales(dir: &std::path::Path) -> Result<Vec<(String, Option<std::path::PathBuf>, std::path::PathBuf)>, String> {
+    // Build scripts run in the crate's directory and `include_str!` resolves against `OUT_DIR`, so
+    // a relative path would mean two different places.
+    if !dir.is_absolute() {
+        return Err(format!("{} is not an absolute path", dir.display()));
+    }
+    let list = std::fs::read_dir(dir).map_err(|e| format!("{} is not a craft-i18n locales directory ({e})", dir.display()))?;
+    println!("cargo::rerun-if-changed={}", dir.display());
+    let mut out = Vec::new();
+    for entry in list.flatten() {
+        let path = entry.path();
+        let Some(code) = path.file_name().and_then(std::ffi::OsStr::to_str).map(str::to_string) else { continue };
+        let app = path.join(APP_CATALOG);
+        if !app.is_file() {
+            continue;
+        }
+        println!("cargo::rerun-if-changed={}", app.display());
+        let shared = Some(path.join("common.tsv")).filter(|p| p.is_file());
+        if let Some(p) = &shared {
+            println!("cargo::rerun-if-changed={}", p.display());
+        }
+        out.push((code, shared, app));
+    }
+    if out.is_empty() {
+        return Err(format!("{} has no locale with a {APP_CATALOG}", dir.display()));
+    }
+    out.sort();
+    Ok(out)
 }
 
 fn read<T>(path: &std::path::Path, fallback: &str, parse: impl Fn(&str) -> Result<T, String>) -> Option<T> {
