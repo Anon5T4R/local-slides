@@ -200,7 +200,7 @@ impl SlideApp {
             "deckcraft" => ("deckcraft", "deckcraft", false),
             "gif" => ("gif", "gif", false),
             other => {
-                self.set_status(format!("Local Slides can't export “{other}”"));
+                self.set_status(crate::i18n::tr_fmt("Local Slides can't export “{kind}”", &[("kind", other)]));
                 return false;
             }
         };
@@ -213,7 +213,7 @@ impl SlideApp {
             }
             return match self.run("file.export", params) {
                 Ok(_) => {
-                    self.set_status(format!("Exported {path}"));
+                    self.set_status(crate::i18n::tr_fmt("Exported {path}", &[("path", &path)]));
                     true
                 }
                 Err(_) => false,
@@ -251,7 +251,7 @@ impl SlideApp {
                 false
             }
             (Ok(_), None) => {
-                self.set_status("Saving a copy needs a file picker, which this window doesn't have.");
+                self.set_status(tl!("Saving a copy needs a file picker, which this window doesn't have."));
                 false
             }
         }
@@ -271,7 +271,7 @@ impl SlideApp {
         let preview_path = match self.print_previews.create(&title) {
             Ok(path) => path,
             Err(e) => {
-                self.set_status(format!("Couldn't create a private print preview: {e}"));
+                self.set_status(crate::i18n::tr_fmt("Couldn't create a private print preview: {error}", &[("error", &e.to_string())]));
                 return false;
             }
         };
@@ -283,7 +283,7 @@ impl SlideApp {
         match self.run("file.export", params) {
             Ok(_) => {
                 self.open_url(&format!("file:///{}", path.replace('\\', "/").trim_start_matches('/')));
-                self.set_status("Opened the presentation as a PDF to print");
+                self.set_status(tl!("Opened the presentation as a PDF to print"));
                 true
             }
             Err(_) => {
@@ -370,7 +370,7 @@ impl SlideApp {
     /// current one (desktop only: the browser picker opens what it picks as a document).
     pub(super) fn pick_and_reuse(&mut self, keep: bool) {
         let Some(pick) = self.services.pick_open.as_mut() else {
-            self.set_status("Reuse Slides needs the desktop app".to_string());
+            self.set_status(tl!("Reuse Slides needs the desktop app"));
             return;
         };
         let Some(path) = pick("open") else { return };
@@ -416,7 +416,7 @@ impl SlideApp {
         match result {
             Ok(()) => {
                 self.reuse_target = None;
-                self.set_status(format!("Inserted {} slides", picked.len()));
+                self.set_status(crate::i18n::tr_fmt("Inserted {n} slides", &[("n", &picked.len().to_string())]));
                 true
             }
             Err(e) => {
@@ -473,7 +473,7 @@ impl SlideApp {
             if let Some(path) = pick(&suggested) {
                 match self.session.execute("file.saveAs", &json!({"path": path})) {
                     Ok(_) => {
-                        self.set_status(format!("Saved {path}"));
+                        self.set_status(crate::i18n::tr_fmt("Saved {path}", &[("path", &path)]));
                         self.ui.recent.retain(|p| *p != path);
                         self.ui.recent.insert(0, path);
                     }
@@ -507,7 +507,7 @@ impl SlideApp {
     pub fn save(&mut self) {
         if self.session.active().and_then(|d| d.path.clone()).is_some() {
             match self.session.execute("file.save", &json!({})) {
-                Ok(_) => self.set_status("Saved"),
+                Ok(_) => self.set_status(tl!("Saved")),
                 Err(e) => self.set_status(e.to_string()),
             }
         } else {

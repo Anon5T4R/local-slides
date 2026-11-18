@@ -175,13 +175,16 @@ impl View {
         let key = |name: &str| Command::Key { name: name.into(), command: false, shift: false, alt: false, ctrl: false };
         ui.horizontal_wrapped(|ui| {
             ui.heading(&snapshot.elapsed);
-            ui.label(format!("Slide {} of {}", snapshot.slide.saturating_add(1), snapshot.total));
+            ui.label(crate::i18n::tr_fmt(
+                "Slide {n} of {total}",
+                &[("n", &snapshot.slide.saturating_add(1).to_string()), ("total", &snapshot.total.to_string())],
+            ));
             for (label, name) in [("◀ Previous", "ArrowLeft"), ("Next ▶", "ArrowRight")] {
-                if ui.button(label).clicked() {
+                if ui.button(tl!(label)).clicked() {
                     commands.push(key(name));
                 }
             }
-            if ui.button("End Show").clicked() {
+            if ui.button(tl!("End Show")).clicked() {
                 commands.push(Command::End);
             }
         });
@@ -194,7 +197,7 @@ impl View {
                 ("All slides", "G"),
                 ("Zoom", "Z"),
             ] {
-                if ui.button(label).clicked() {
+                if ui.button(tl!(label)).clicked() {
                     commands.push(key(name));
                 }
             }
@@ -203,7 +206,7 @@ impl View {
         ui.columns(2, |columns| {
             let left = &mut columns[0];
             if snapshot.ended {
-                left.heading("End of slide show");
+                left.heading(tl!("End of slide show"));
             } else if let Some(texture) = &self.current {
                 let response = left.add(
                     egui::Image::new(texture)
@@ -225,13 +228,13 @@ impl View {
                 }
             }
             if snapshot.zoom_armed {
-                left.label("Click the preview to zoom.");
+                left.label(tl!("Click the preview to zoom."));
             }
             if snapshot.grid {
-                left.label("Choose a slide in the audience window, or press G to return.");
+                left.label(tl!("Choose a slide in the audience window, or press G to return."));
             }
             let right = &mut columns[1];
-            right.label("Next");
+            right.label(tl!("Next"));
             if let Some(texture) = &self.next {
                 right.add(egui::Image::new(texture).fit_to_exact_size(fit_preview(
                     texture.size_vec2(),
@@ -239,10 +242,10 @@ impl View {
                     right.available_height() * 0.45,
                 )));
             } else {
-                right.label("End of slide show");
+                right.label(tl!("End of slide show"));
             }
             right.horizontal(|ui| {
-                ui.label("Notes");
+                ui.label(tl!("Notes"));
                 if ui.button("A−").clicked() {
                     commands.push(key(egui::Key::OpenBracket.name()));
                 }
@@ -252,7 +255,7 @@ impl View {
             });
             egui::ScrollArea::vertical().show(right, |ui| {
                 ui.label(
-                    egui::RichText::new(if snapshot.notes.is_empty() { "No notes." } else { &snapshot.notes })
+                    egui::RichText::new(if snapshot.notes.is_empty() { tl!("No notes.") } else { &snapshot.notes })
                         .size(snapshot.notes_px.clamp(10.0, 72.0)),
                 );
             });

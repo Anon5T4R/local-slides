@@ -20,12 +20,16 @@ pub fn missing_fonts_message(fonts: &[String]) -> Option<String> {
     let names = match fonts {
         [] => return None,
         [a] => a.clone(),
-        [a, b] => format!("{a} and {b}"),
-        [a, b, c] => format!("{a}, {b} and {c}"),
-        [a, b, c, rest @ ..] => format!("{a}, {b}, {c} and {} more", rest.len()),
+        [a, b] => crate::i18n::tr_fmt("{a} and {b}", &[("a", a), ("b", b)]),
+        [a, b, c] => crate::i18n::tr_fmt("{a}, {b} and {c}", &[("a", a), ("b", b), ("c", c)]),
+        [a, b, c, rest @ ..] => crate::i18n::tr_fmt("{a}, {b}, {c} and {n} more", &[("a", a), ("b", b), ("c", c), ("n", &rest.len().to_string())]),
     };
-    let (it, them) = if fonts.len() == 1 { ("isn't", "it") } else { ("aren't", "them") };
-    Some(format!("{names} {it} installed on this computer. Text that uses {them} is shown in a similar font."))
+    let sentence = if fonts.len() == 1 {
+        "{names} isn't installed on this computer. Text that uses it is shown in a similar font."
+    } else {
+        "{names} aren't installed on this computer. Text that uses them is shown in a similar font."
+    };
+    Some(crate::i18n::tr_fmt(sentence, &[("names", &names)]))
 }
 
 /// Toast the active presentation's missing fonts, once per opened document.
@@ -66,7 +70,7 @@ pub fn show(app: &mut SlideApp, ctx: &egui::Context) {
                         ui.painter().rect_filled(r, CornerRadius::same(4), t.hover);
                     }
                     icons::paint(ui.painter(), r.shrink(3.0), Icon::Close, t.text_dim, false);
-                    if resp.on_hover_text("Close").clicked() {
+                    if resp.on_hover_text(tl!("Close")).clicked() {
                         close = true;
                     }
                 });

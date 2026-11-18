@@ -433,7 +433,7 @@ impl Ai {
     /// Opens the rewrite dialog on the current slide, reading its text first.
     pub(crate) fn open_edit(&mut self, session: &mut Session) {
         let Some(index) = current_slide(session) else {
-            self.error = Some("Open a presentation first.".into());
+            self.error = Some(tl!("Open a presentation first.").into());
             return;
         };
         match slide_parts(session, index) {
@@ -447,7 +447,7 @@ impl Ai {
 
     pub(crate) fn open_fix(&mut self, session: &mut Session) {
         if current_slide(session).is_none() {
-            self.error = Some("Open a presentation first.".into());
+            self.error = Some(tl!("Open a presentation first.").into());
             return;
         }
         self.dialog = Some(Dialog::Fix { all: false, error: None });
@@ -608,7 +608,7 @@ pub(crate) fn status_strip(app: &mut SlideApp, ui: &mut Ui) {
     if let Some(error) = app.ai.error.clone() {
         ui.horizontal_wrapped(|ui| {
             ui.colored_label(ui.visuals().error_fg_color, error);
-            if ui.button("Dismiss").clicked() {
+            if ui.button(tl!("Dismiss")).clicked() {
                 dismiss = true;
             }
         });
@@ -629,7 +629,7 @@ pub(crate) fn status_strip(app: &mut SlideApp, ui: &mut Ui) {
         if !tail.trim().is_empty() {
             ui.label(RichText::new(tail.replace('\n', " ")).weak());
         }
-        if ui.button("Stop").clicked() {
+        if ui.button(tl!("Stop")).clicked() {
             stop = true;
         }
     });
@@ -657,7 +657,7 @@ pub(crate) fn chat_panel(app: &mut SlideApp, ui: &mut Ui) {
     let ready = app.ai.ready();
     let labels = chat_labels(&model, ready);
     egui::Panel::right("ai-chat").resizable(true).default_size(360.0).max_size(560.0).show(ui, |ui| {
-        let strip = app.ai.strip.show(ui, ai_ui::StripLabels { stop: "Stop", dismiss: "Dismiss" });
+        let strip = app.ai.strip.show(ui, ai_ui::StripLabels { stop: tl!("Stop"), dismiss: tl!("Dismiss") });
         if strip == ai_ui::StripAction::Stop {
             app.ai.chat_stop();
         }
@@ -717,18 +717,21 @@ fn chat_context(session: &mut Session) -> Option<ai_ui::ContextSource> {
     if named == 0 {
         return None;
     }
-    let label = format!("the deck · {count} slides");
+    let label = crate::i18n::tr_fmt("the deck · {count} slides", &[("count", &count.to_string())]);
     Some(ai_ui::ContextSource::new(ai_ui::ContextKind::Document, label, text, CONTEXT_LIMIT, ai_ui::Side::Head))
 }
 
 /// The context chip: what the last request really sent.
 fn chip(info: &ai_ui::ContextInfo) -> String {
-    let mut text = format!("{} · {} of {} characters", info.label, info.sent, info.total);
+    let mut text = crate::i18n::tr_fmt(
+        "{label} · {sent} of {total} characters",
+        &[("label", &info.label), ("sent", &info.sent.to_string()), ("total", &info.total.to_string())],
+    );
     if info.truncated() {
-        text.push_str(" (cut)");
+        text.push_str(tl!(" (cut)"));
     }
     if info.turns > 0 {
-        text.push_str(&format!(" · {}/{} turns", info.turns, info.kept));
+        text.push_str(&crate::i18n::tr_fmt(" · {turns}/{kept} turns", &[("turns", &info.turns.to_string()), ("kept", &info.kept.to_string())]));
     }
     text
 }
@@ -736,23 +739,23 @@ fn chip(info: &ai_ui::ContextInfo) -> String {
 /// The chat labels, in the app's language (the app's interface is English).
 fn chat_labels<'a>(model: &'a str, ready: bool) -> ai_ui::ChatLabels<'a> {
     ai_ui::ChatLabels {
-        title: "AI assistant",
-        not_configured: if ready { "" } else { "Configure a connection first." },
-        configure: "Settings",
-        settings: "Settings",
-        clear: "Clear",
-        close: "Close",
-        send: "Send",
-        stop: "Stop",
-        insert: "Insert as a slide",
-        retry: "Retry",
-        dismiss: "Dismiss",
-        empty: "Ask about the deck, or about anything.",
-        input_hint: if ready { "Write to the assistant." } else { "Configure a connection first." },
+        title: tl!("AI assistant"),
+        not_configured: if ready { "" } else { tl!("Configure a connection first.") },
+        configure: tl!("Settings"),
+        settings: tl!("Settings"),
+        clear: tl!("Clear"),
+        close: tl!("Close"),
+        send: tl!("Send"),
+        stop: tl!("Stop"),
+        insert: tl!("Insert as a slide"),
+        retry: tl!("Retry"),
+        dismiss: tl!("Dismiss"),
+        empty: tl!("Ask about the deck, or about anything."),
+        input_hint: if ready { tl!("Write to the assistant.") } else { tl!("Configure a connection first.") },
         chip: &chip,
         model,
         suggestions: &[],
-        to_end: "To the end",
+        to_end: tl!("To the end"),
     }
 }
 
@@ -826,16 +829,16 @@ fn connection_of(draft: &ai_ui::ConnectionDraft) -> Connection {
 /// The connections form's words.
 fn form_labels<'a>() -> ai_ui::ConnectionsLabels<'a> {
     ai_ui::ConnectionsLabels {
-        title: "AI connection",
-        provider: "Provider",
-        base_url: "Base URL",
-        model: "Model",
-        api_key: "API key",
-        list_models: "Fetch models",
-        save: "Save",
-        cancel: "Cancel",
-        hint_url: "Empty uses the provider's own address.",
-        hint_key: "The key lives in the OS keychain; the connection file never holds it.",
+        title: tl!("AI connection"),
+        provider: tl!("Provider"),
+        base_url: tl!("Base URL"),
+        model: tl!("Model"),
+        api_key: tl!("API key"),
+        list_models: tl!("Fetch models"),
+        save: tl!("Save"),
+        cancel: tl!("Cancel"),
+        hint_url: tl!("Empty uses the provider's own address."),
+        hint_key: tl!("The key lives in the OS keychain; the connection file never holds it."),
     }
 }
 
@@ -845,24 +848,24 @@ fn dialog_window(app: &mut SlideApp, ctx: &Context) {
     let mut close = false;
     let mut error: Option<String> = None;
     let title = match &dialog {
-        Dialog::Generate { .. } => "Generate presentation",
-        Dialog::Edit { .. } => "Rewrite slide",
-        Dialog::Fix { .. } => "Correct slides",
+        Dialog::Generate { .. } => tl!("Generate presentation"),
+        Dialog::Edit { .. } => tl!("Rewrite slide"),
+        Dialog::Fix { .. } => tl!("Correct slides"),
     };
     egui::Window::new(title).collapsible(false).resizable(false).default_width(500.0).anchor(egui::Align2::CENTER_CENTER, egui::Vec2::ZERO).show(
         ctx,
         |ui| match &mut dialog {
             Dialog::Generate { topic, slides, theme, error: dialog_error } => {
-                ui.label("Describe the presentation: a topic, an audience, or a whole text to organize.");
+                ui.label(tl!("Describe the presentation: a topic, an audience, or a whole text to organize."));
                 ui.add(egui::TextEdit::multiline(topic).desired_rows(4).desired_width(f32::INFINITY));
                 ui.horizontal(|ui| {
-                    ui.label("Slides");
+                    ui.label(tl!("Slides"));
                     ui.add(egui::DragValue::new(slides).range(1..=localslides_ai::actions::MAX_SLIDES));
                 });
                 // The identity preset: the engine's own themes, "None" first (opt-in).
                 ui.horizontal(|ui| {
-                    ui.label("Theme");
-                    if ui.selectable_label(theme.is_none(), "None").clicked() {
+                    ui.label(tl!("Theme"));
+                    if ui.selectable_label(theme.is_none(), tl!("None")).clicked() {
                         *theme = None;
                     }
                     for name in &app.ai.themes {
@@ -875,50 +878,50 @@ fn dialog_window(app: &mut SlideApp, ctx: &Context) {
                     ui.colored_label(ui.visuals().error_fg_color, message);
                 }
                 ui.horizontal(|ui| {
-                    if ui.button("Generate").clicked() {
+                    if ui.button(tl!("Generate")).clicked() {
                         run = Some((Request::GenerateDeck { topic: topic.clone(), slides: *slides }, Apply::Deck { theme: theme.clone() }));
                     }
-                    if ui.button("Cancel").clicked() {
+                    if ui.button(tl!("Cancel")).clicked() {
                         close = true;
                     }
                 });
             }
             Dialog::Edit { index, title, body, instruction, error: dialog_error } => {
-                ui.label(format!("Slide {}:", *index + 1));
+                ui.label(crate::i18n::tr_fmt("Slide {n}:", &[("n", &(*index + 1).to_string())]));
                 ui.label(RichText::new(title.as_str()).monospace());
                 ui.label(RichText::new(body.as_str()).monospace().weak().small());
                 ui.separator();
-                ui.label("Instruction (for example: shorter, translate, reorder the bullets).");
+                ui.label(tl!("Instruction (for example: shorter, translate, reorder the bullets)."));
                 ui.add(egui::TextEdit::multiline(instruction).desired_rows(3).desired_width(f32::INFINITY));
                 if let Some(message) = dialog_error.as_ref() {
                     ui.colored_label(ui.visuals().error_fg_color, message);
                 }
                 ui.horizontal(|ui| {
-                    if ui.button("Rewrite").clicked() {
+                    if ui.button(tl!("Rewrite")).clicked() {
                         run = Some((
                             Request::EditSlide { index: *index, title: title.clone(), body: body.clone(), instruction: instruction.clone() },
                             Apply::Slide { index: *index },
                         ));
                     }
-                    if ui.button("Cancel").clicked() {
+                    if ui.button(tl!("Cancel")).clicked() {
                         close = true;
                     }
                 });
             }
             Dialog::Fix { all, error: dialog_error } => {
-                ui.label("Correct the spelling, grammar and punctuation. The meaning, the length and the language stay.");
-                ui.checkbox(all, "All slides (otherwise only this one)");
+                ui.label(tl!("Correct the spelling, grammar and punctuation. The meaning, the length and the language stay."));
+                ui.checkbox(all, tl!("All slides (otherwise only this one)"));
                 if let Some(message) = dialog_error.as_ref() {
                     ui.colored_label(ui.visuals().error_fg_color, message);
                 }
                 ui.horizontal(|ui| {
-                    if ui.button("Correct").clicked() {
+                    if ui.button(tl!("Correct")).clicked() {
                         match collect_slides(&mut app.session, *all) {
                             Ok(slides) => run = Some((Request::FixSlides { slides }, Apply::Fix)),
                             Err(message) => error = Some(message),
                         }
                     }
-                    if ui.button("Cancel").clicked() {
+                    if ui.button(tl!("Cancel")).clicked() {
                         close = true;
                     }
                 });
