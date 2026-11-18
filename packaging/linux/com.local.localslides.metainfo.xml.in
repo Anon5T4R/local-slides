@@ -57,6 +57,9 @@
   <provides>
     <binary>localslides</binary>
     <mediatype>application/x-deckcraft</mediatype>
+    <mediatype>application/vnd.openxmlformats-officedocument.presentationml.presentation</mediatype>
+    <mediatype>application/vnd.openxmlformats-officedocument.presentationml.template</mediatype>
+    <mediatype>application/vnd.openxmlformats-officedocument.presentationml.slideshow</mediatype>
   </provides>
   <content_rating type="oars-1.1"/>
   <releases>

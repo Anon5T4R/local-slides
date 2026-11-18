@@ -115,6 +115,16 @@
         <RegistryValue Root="HKMU" Key="Software\Classes\Applications\localslides.exe\SupportedTypes" Name=".potx" Value="" Type="string" />
         <RegistryValue Root="HKMU" Key="Software\Classes\Applications\localslides.exe\SupportedTypes" Name=".ppsx" Value="" Type="string" />
         <RegistryValue Root="HKMU" Key="Software\Microsoft\Windows\CurrentVersion\App Paths\localslides.exe" Value="[#LocalSlidesExe]" Type="string" />
+        <!-- Default Programs registration (Settings > Default apps): Capabilities + RegisteredApplications,
+             the same extensions as OpenWithProgids above. Only lists the app; never sets a default. -->
+        <RegistryValue Root="HKMU" Key="Software\LocalSlides\Capabilities" Name="ApplicationName" Value="Local Slides" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\LocalSlides\Capabilities" Name="ApplicationDescription" Value="Open-source presentation editor" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\LocalSlides\Capabilities" Name="ApplicationIcon" Value="[#LocalSlidesExe],0" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\LocalSlides\Capabilities\FileAssociations" Name=".deckcraft" Value="LocalSlides.Presentation" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\LocalSlides\Capabilities\FileAssociations" Name=".pptx" Value="LocalSlides.Presentation" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\LocalSlides\Capabilities\FileAssociations" Name=".potx" Value="LocalSlides.Presentation" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\LocalSlides\Capabilities\FileAssociations" Name=".ppsx" Value="LocalSlides.Presentation" Type="string" />
+        <RegistryValue Root="HKMU" Key="Software\RegisteredApplications" Name="LocalSlides" Value="Software\LocalSlides\Capabilities" Type="string" />
         <!-- Where this MSI installed the app. The app's own updater reads it under the suite's key
              to know this is an MSI install, so it updates with the new MSI rather than the
              portable zip. HKMU follows the package's scope: HKLM per-machine, HKCU per-user. -->
