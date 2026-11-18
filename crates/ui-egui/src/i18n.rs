@@ -23,12 +23,10 @@ include!(concat!(env!("OUT_DIR"), "/craft_i18n.rs"));
 pub const AUTO: &str = "auto";
 
 /// The languages this app offers (BCP 47, lowercase), when their catalogs are embedded. English
-/// first: it is the fallback and the source language.
-pub const LANGUAGES: [&str; 3] = [
-    "en", // Brazilian Portuguese; `pt-BR` and `pt-BR-*` resolve here.
-    "pt-br", // Spanish, neutral across Spain and Latin America; `es-ES`, `es-MX` and `es-419` resolve here.
-    "es",
-];
+/// first: it is the fallback and the source language. `pt-br` is Brazilian Portuguese (`pt-BR` and
+/// `pt-BR-*` resolve to it); `es` is Spanish, neutral across Spain and Latin America (`es-ES`,
+/// `es-MX` and `es-419` resolve to it).
+pub const LANGUAGES: [&str; 3] = ["en", "pt-br", "es"];
 
 /// The embedded catalogs, offering exactly [`LANGUAGES`]. Built on first use; a locale is parsed
 /// on its first lookup.
