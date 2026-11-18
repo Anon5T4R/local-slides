@@ -29,7 +29,7 @@ pub(super) fn animation(app: &mut SlideApp, ui: &mut Ui) {
             (false, Some(_)) => "▶ Play From",
             (false, None) => "▶ Play All",
         };
-        if ui.button(label).clicked() {
+        if ui.button(tl!(label)).clicked() {
             let p = match (playing, from) {
                 (false, Some(i)) => json!({"on": true, "from": i}),
                 _ => json!({"on": !playing}),
@@ -39,7 +39,7 @@ pub(super) fn animation(app: &mut SlideApp, ui: &mut Ui) {
     });
     ui.separator();
     if anims.is_empty() {
-        ui.label(egui::RichText::new("Select an object on the slide and add an animation from the Animations tab.").color(t.text_dim));
+        ui.label(egui::RichText::new(tl!("Select an object on the slide and add an animation from the Animations tab.")).color(t.text_dim));
         return;
     }
     let bars = animtimeline::bars(anims.len(), &effects);
@@ -51,7 +51,11 @@ pub(super) fn animation(app: &mut SlideApp, ui: &mut Ui) {
         if a.start == AnimStart::OnClick {
             click += 1;
         }
-        let name = names.iter().find(|(id, _)| *id == a.shape.0).map(|(_, n)| n.clone()).unwrap_or_else(|| format!("Shape {}", a.shape));
+        let name = names
+            .iter()
+            .find(|(id, _)| *id == a.shape.0)
+            .map(|(_, n)| n.clone())
+            .unwrap_or_else(|| crate::i18n::tr_fmt("Shape {id}", &[("id", &a.shape.to_string())]));
         let (r, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 30.0), Sense::click());
         let sel = selected.contains(&a.shape.0);
         if sel || resp.hovered() {
@@ -146,23 +150,23 @@ pub(super) fn animation(app: &mut SlideApp, ui: &mut Ui) {
         }
         resp.context_menu(|ui| {
             for (l, v) in [("Start On Click", "onClick"), ("Start With Previous", "withPrevious"), ("Start After Previous", "afterPrevious")] {
-                if ui.button(l).clicked() {
+                if ui.button(tl!(l)).clicked() {
                     run(app, "animation.timing", json!({"index": i, "start": v}));
                     ui.close();
                 }
             }
             ui.separator();
-            if ui.button("Move Up").clicked() {
+            if ui.button(tl!("Move Up")).clicked() {
                 ui.data_mut(|m| m.remove::<usize>(pick_id));
                 run(app, "animation.move", json!({"index": i, "to": i.saturating_sub(1)}));
                 ui.close();
             }
-            if ui.button("Move Down").clicked() {
+            if ui.button(tl!("Move Down")).clicked() {
                 ui.data_mut(|m| m.remove::<usize>(pick_id));
                 run(app, "animation.move", json!({"index": i, "to": i + 1}));
                 ui.close();
             }
-            if ui.button("Remove").clicked() {
+            if ui.button(tl!("Remove")).clicked() {
                 ui.data_mut(|m| m.remove::<usize>(pick_id));
                 run(app, "animation.remove", json!({"index": i}));
                 ui.close();

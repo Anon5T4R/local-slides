@@ -39,7 +39,7 @@ pub(super) fn shadow_row(ui: &mut Ui, current: &str) -> Option<&'static str> {
     let mut picked = None;
     ui.horizontal_wrapped(|ui| {
         for (id, label) in SHADOWS {
-            if tile(ui, label, id == current, |p, r| paint_shadow(p, r, id)).clicked() {
+            if tile(ui, label, tl!(label), id == current, |p, r| paint_shadow(p, r, id)).clicked() {
                 picked = Some(id);
             }
         }
@@ -53,7 +53,8 @@ pub(super) fn glow_row(ui: &mut Ui, current: f64) -> Option<f64> {
     ui.horizontal_wrapped(|ui| {
         for r in std::iter::once(0.0).chain(GLOWS) {
             let label = if r == 0.0 { "No glow".to_string() } else { format!("{r} pt glow") };
-            if tile(ui, &label, r == current, |p, rect| paint_glow(p, rect, r)).clicked() {
+            let shown = if r == 0.0 { tl!("No glow").to_string() } else { crate::i18n::tr_fmt("{r} pt glow", &[("r", &r.to_string())]) };
+            if tile(ui, &label, &shown, r == current, |p, rect| paint_glow(p, rect, r)).clicked() {
                 picked = Some(r);
             }
         }
@@ -67,7 +68,8 @@ pub(super) fn soft_edge_row(ui: &mut Ui, current: f64) -> Option<f64> {
     ui.horizontal_wrapped(|ui| {
         for r in SOFT_EDGES {
             let label = if r == 0.0 { "No soft edges".to_string() } else { format!("{r} pt soft edges") };
-            if tile(ui, &label, r == current, |p, rect| paint_soft(p, rect, r)).clicked() {
+            let shown = if r == 0.0 { tl!("No soft edges").to_string() } else { crate::i18n::tr_fmt("{r} pt soft edges", &[("r", &r.to_string())]) };
+            if tile(ui, &label, &shown, r == current, |p, rect| paint_soft(p, rect, r)).clicked() {
                 picked = Some(r);
             }
         }
@@ -75,7 +77,7 @@ pub(super) fn soft_edge_row(ui: &mut Ui, current: f64) -> Option<f64> {
     picked
 }
 
-fn tile(ui: &mut Ui, label: &str, selected: bool, paint: impl FnOnce(&Painter, Rect)) -> egui::Response {
+fn tile(ui: &mut Ui, label: &str, shown: &str, selected: bool, paint: impl FnOnce(&Painter, Rect)) -> egui::Response {
     let t = Tokens::get(ui.ctx());
     let (rect, resp) = ui.allocate_exact_size(TILE, Sense::click());
     resp.widget_info(|| WidgetInfo::selected(Role::Button, true, selected, label));
@@ -85,7 +87,7 @@ fn tile(ui: &mut Ui, label: &str, selected: bool, paint: impl FnOnce(&Painter, R
     paint(&p.with_clip_rect(rect.shrink(1.0)), rect);
     let stroke = if selected { Stroke::new(2.0, t.accent) } else { Stroke::new(1.0, t.border) };
     p.rect_stroke(rect, round, stroke, StrokeKind::Inside);
-    resp.on_hover_text(label)
+    resp.on_hover_text(shown)
 }
 
 /// The sample card every preview draws on, centred in `tile`.

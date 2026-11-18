@@ -32,13 +32,13 @@ pub(super) fn draw_guides(app: &SlideApp, painter: &egui::Painter, xf: Xf, slide
             let centre = if g.vertical { size.width / 2.0 } else { size.height / 2.0 };
             let off = pos - centre;
             let side = match (g.vertical, off < 0.0, off > 0.0) {
-                (true, true, _) => " left of centre",
-                (true, _, true) => " right of centre",
-                (false, true, _) => " above centre",
-                (false, _, true) => " below centre",
-                _ => " (centre)",
+                (true, true, _) => tl!("{n} pt left of centre"),
+                (true, _, true) => tl!("{n} pt right of centre"),
+                (false, true, _) => tl!("{n} pt above centre"),
+                (false, _, true) => tl!("{n} pt below centre"),
+                _ => tl!("{n} pt (centre)"),
             };
-            let label = format!("{:.0} pt{side}", off.abs());
+            let label = crate::i18n::tr_fmt(side, &[("n", &format!("{:.0}", off.abs()))]);
             let at = if g.vertical { pos2(a.x + 6.0, slide.min.y + 6.0) } else { pos2(slide.min.x + 6.0, a.y + 4.0) };
             let galley = painter.layout_no_wrap(label, theme::font(11.0), t.text);
             let r = Rect::from_min_size(at, galley.size()).expand(3.0);
