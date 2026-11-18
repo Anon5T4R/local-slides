@@ -24,7 +24,7 @@ fn tile(ui: &mut Ui, label: &str, theme: Option<&localslides_model::Theme>, big:
     if resp.hovered() {
         p.rect_stroke(thumb, CornerRadius::same(2), Stroke::new(2.0, t.accent), StrokeKind::Outside);
     }
-    let galley = p.layout(label.to_string(), theme::font(12.0), t.text, rect.width() - 8.0);
+    let galley = p.layout(tl!(label).to_string(), theme::font(12.0), t.text, rect.width() - 8.0);
     p.galley(pos2(rect.center().x - galley.size().x / 2.0, thumb.bottom() + 8.0), galley, t.text);
     resp
 }
@@ -104,7 +104,7 @@ fn recent_list(app: &mut SlideApp, ui: &mut Ui, query: &str, limit: usize) {
     let list: Vec<String> =
         app.ui.recent.iter().filter(|p| q.is_empty() || split_path(p).0.to_lowercase().contains(&q)).take(limit).cloned().collect();
     if list.is_empty() {
-        dim(ui, &format!("No recent presentations match “{}”.", query.trim()));
+        dim(ui, &crate::i18n::tr_fmt("No recent presentations match “{query}”.", &[("query", query.trim())]));
         return;
     }
     let width = ui.available_width().min(CONTENT_W);
@@ -128,10 +128,14 @@ fn recent_list(app: &mut SlideApp, ui: &mut Ui, query: &str, limit: usize) {
             p.text(pos2(rect.left() + 44.0, rect.center().y + 9.0), Align2::LEFT_CENTER, &folder, theme::font(11.0), t.text_dim);
             // A missing file says so before it is clicked (#172).
             if missing {
-                p.text(pos2(visible_right - 82.0, rect.center().y), Align2::RIGHT_CENTER, "(missing)", theme::font(11.0), t.text_dim);
+                p.text(pos2(visible_right - 82.0, rect.center().y), Align2::RIGHT_CENTER, tl!("(missing)"), theme::font(11.0), t.text_dim);
             }
         }
-        let resp = if missing { resp.on_hover_text(format!("{path} — this file can't be found")) } else { resp.on_hover_text(&path) };
+        let resp = if missing {
+            resp.on_hover_text(crate::i18n::tr_fmt("{path} — this file can't be found", &[("path", &path)]))
+        } else {
+            resp.on_hover_text(&path)
+        };
         // Remove from the list: a real labelled widget on top of the row, with a code-drawn icon
         // (a text glyph would need a font that has it).
         let x = ui.allocate_rect(
@@ -143,7 +147,7 @@ fn recent_list(app: &mut SlideApp, ui: &mut Ui, query: &str, limit: usize) {
             ui.painter().rect_filled(x.rect, CornerRadius::same(3), t.hover);
         }
         icons::paint(ui.painter(), Rect::from_center_size(x.rect.center(), vec2(14.0, 14.0)), Icon::Close, t.text_dim, false);
-        if x.on_hover_text("Remove from Recent").clicked() {
+        if x.on_hover_text(tl!("Remove from Recent")).clicked() {
             app.forget_recent(&path);
         }
         if resp.clicked() {
@@ -162,7 +166,7 @@ pub(super) fn square_button(ui: &mut Ui, icon: Icon, label: &str, enabled: bool)
     p.rect_stroke(rect, CornerRadius::same(3), Stroke::new(1.0, if resp.hovered() && enabled { t.accent } else { t.border }), StrokeKind::Inside);
     icons::paint(p, Rect::from_center_size(pos2(rect.center().x, rect.top() + 26.0), vec2(26.0, 26.0)), icon, t.text, !enabled);
     let ink = if enabled { t.text } else { t.text_faint };
-    let galley = p.layout(label.to_string(), theme::font(12.0), ink, rect.width() - 8.0);
+    let galley = p.layout(tl!(label).to_string(), theme::font(12.0), ink, rect.width() - 8.0);
     p.galley(pos2(rect.center().x - galley.size().x / 2.0, rect.top() + 46.0), galley, ink);
     resp
 }
@@ -180,7 +184,7 @@ pub(super) fn place_row(ui: &mut Ui, icon: Icon, label: &str, selected: bool, wi
         p.rect_filled(rect, CornerRadius::same(2), t.hover);
     }
     icons::paint(p, Rect::from_center_size(pos2(rect.left() + 22.0, rect.center().y), vec2(24.0, 24.0)), icon, t.text, false);
-    p.text(pos2(rect.left() + 46.0, rect.center().y), Align2::LEFT_CENTER, label, theme::font(13.5), t.text);
+    p.text(pos2(rect.left() + 46.0, rect.center().y), Align2::LEFT_CENTER, tl!(label), theme::font(13.5), t.text);
     resp
 }
 
@@ -193,7 +197,7 @@ pub(super) fn task(ui: &mut Ui, icon: Icon, button: &str, title: &str, detail: &
         ui.add_space(12.0);
         ui.vertical(|ui| {
             ui.add_space(4.0);
-            ui.label(RichText::new(title).font(theme::font(15.0)).color(t.text));
+            ui.label(RichText::new(tl!(title)).font(theme::font(15.0)).color(t.text));
             dim(ui, detail);
         });
     });
@@ -210,11 +214,11 @@ pub(super) fn home(app: &mut SlideApp, ui: &mut Ui, bs: &mut Backstage, out: &mu
     ui.horizontal(|ui| {
         let (r, _) = ui.allocate_exact_size(vec2(36.0, 36.0), Sense::hover());
         crate::dialogs::paint_logo(ui.painter(), r);
-        ui.label(RichText::new("Local Slides").font(theme::bold(24.0)).color(t.text));
+        ui.label(RichText::new(tl!("Local Slides")).font(theme::bold(24.0)).color(t.text));
     });
     ui.add_space(18.0);
     ui.horizontal(|ui| {
-        ui.label(RichText::new("New").font(theme::bold(16.0)).color(t.text));
+        ui.label(RichText::new(tl!("New")).font(theme::bold(16.0)).color(t.text));
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             if arrow_link(ui, "More themes") {
                 out.page = Some(Page::New);
@@ -225,7 +229,7 @@ pub(super) fn home(app: &mut SlideApp, ui: &mut Ui, bs: &mut Backstage, out: &mu
     new_tiles(app, ui, "", 5, true);
     ui.add_space(22.0);
     ui.horizontal(|ui| {
-        ui.label(RichText::new("Templates").font(theme::bold(16.0)).color(t.text));
+        ui.label(RichText::new(tl!("Templates")).font(theme::bold(16.0)).color(t.text));
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             if arrow_link(ui, "More templates") {
                 out.page = Some(Page::New);
@@ -236,7 +240,7 @@ pub(super) fn home(app: &mut SlideApp, ui: &mut Ui, bs: &mut Backstage, out: &mu
     template_tiles(app, ui, "", 3);
     ui.add_space(22.0);
     ui.horizontal(|ui| {
-        ui.label(RichText::new("Recent").font(theme::bold(16.0)).color(t.text));
+        ui.label(RichText::new(tl!("Recent")).font(theme::bold(16.0)).color(t.text));
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             search(ui, &mut bs.query, "Search for a file", 280.0);
         });
@@ -252,7 +256,7 @@ pub(super) fn home(app: &mut SlideApp, ui: &mut Ui, bs: &mut Backstage, out: &mu
         });
     }
     ui.add_space(30.0);
-    ui.hyperlink_to("Community discussions on GitHub", localslides_engine::links::COMMUNITY);
+    ui.hyperlink_to(tl!("Community discussions on GitHub"), localslides_engine::links::COMMUNITY);
 }
 
 /// New: a blank presentation, then every theme and starter template, with a search box.
@@ -278,7 +282,7 @@ pub(super) fn new_page(app: &mut SlideApp, ui: &mut Ui, bs: &mut Backstage) {
         false
     };
     if !themes && !templates {
-        dim(ui, &format!("No themes or templates match “{}”.", q.trim()));
+        dim(ui, &crate::i18n::tr_fmt("No themes or templates match “{query}”.", &[("query", q.trim())]));
     }
 }
 
@@ -289,15 +293,15 @@ pub(super) fn open_page(app: &mut SlideApp, ui: &mut Ui, bs: &mut Backstage) {
         ui.vertical(|ui| {
             ui.set_width(230.0);
             place_row(ui, Icon::Recent, "Recent", true, 220.0);
-            if place_row(ui, Icon::OpenFolder, "Browse", false, 220.0).on_hover_text("Open a presentation from a folder (Ctrl+O)").clicked() {
+            if place_row(ui, Icon::OpenFolder, "Browse", false, 220.0).on_hover_text(tl!("Open a presentation from a folder (Ctrl+O)")).clicked() {
                 let _ = app.run("app.openDialog", json!({}));
             }
             if app.session.recovery_dir.is_some() {
                 ui.add_space(24.0);
-                if ui.button("Recover Unsaved Presentations").clicked() {
+                if ui.button(tl!("Recover Unsaved Presentations")).clicked() {
                     match app.run("file.recovery.open", json!({})) {
                         Ok(v) if v.get("opened").and_then(Value::as_array).is_some_and(|a| a.is_empty()) => {
-                            app.set_status("There are no unsaved presentations to recover");
+                            app.set_status(tl!("There are no unsaved presentations to recover"));
                         }
                         _ => {}
                     }
