@@ -20,17 +20,17 @@ pub fn about(_app: &mut SlideApp, ui: &mut Ui) {
     ui.vertical_centered(|ui| {
         let (r, _) = ui.allocate_exact_size(vec2(64.0, 64.0), Sense::hover());
         paint_logo(ui.painter(), r);
-        ui.label(egui::RichText::new("Local Slides").font(theme::bold(22.0)));
+        ui.label(egui::RichText::new(tl!("Local Slides")).font(theme::bold(22.0)));
         ui.label(egui::RichText::new(version_line()).color(t.text_dim));
         ui.add_space(6.0);
-        ui.label("Presentations and slide shows, rebuilt from scratch in pure Rust.");
-        ui.label("An open-source, clean-room project. Not affiliated with Microsoft.");
+        ui.label(tl!("Presentations and slide shows, rebuilt from scratch in pure Rust."));
+        ui.label(tl!("An open-source, clean-room project. Not affiliated with Microsoft."));
         ui.add_space(6.0);
-        ui.hyperlink_to("Community discussions on GitHub", localslides_engine::links::COMMUNITY);
-        ui.hyperlink_to("github.com/Anon5T4R/local-slides", localslides_engine::links::APP_PAGE);
-        ui.hyperlink_to("Source on GitHub", localslides_engine::links::GITHUB);
+        ui.hyperlink_to(tl!("Community discussions on GitHub"), localslides_engine::links::COMMUNITY);
+        ui.hyperlink_to(tl!("github.com/Anon5T4R/local-slides"), localslides_engine::links::APP_PAGE);
+        ui.hyperlink_to(tl!("Source on GitHub"), localslides_engine::links::GITHUB);
         ui.add_space(6.0);
-        ui.label(egui::RichText::new("MIT OR Apache-2.0 · © 2026 the Local Slides contributors").size(11.0).color(t.text_faint));
+        ui.label(egui::RichText::new(tl!("MIT OR Apache-2.0 · © 2026 the Local Slides contributors")).size(11.0).color(t.text_faint));
     });
 }
 
@@ -38,7 +38,7 @@ pub fn about(_app: &mut SlideApp, ui: &mut Ui) {
 /// from `[workspace.package] version` (the single source of truth, `cargo xtask version`); the
 /// release workflow sets `LOCALSLIDES_BUILD_SHA` / `LOCALSLIDES_BUILD_DATE` at build time.
 pub fn version_line() -> String {
-    let mut s = format!("Version {}", env!("CARGO_PKG_VERSION"));
+    let mut s = crate::i18n::tr_fmt("Version {version}", &[("version", env!("CARGO_PKG_VERSION"))]);
     let sha = option_env!("LOCALSLIDES_BUILD_SHA").map(|s| s.get(..9).unwrap_or(s)).filter(|s| !s.is_empty());
     let date = option_env!("LOCALSLIDES_BUILD_DATE").filter(|s| !s.is_empty());
     match (sha, date) {
