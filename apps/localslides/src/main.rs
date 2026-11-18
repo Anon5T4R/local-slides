@@ -271,6 +271,8 @@ fn main() -> eframe::Result {
         options,
         Box::new(move |cc| {
             localslides_ui_egui::install_ime_pass_hooks(&cc.egui_ctx);
+            // Linux: the desktop's light/dark choice, which winit does not report.
+            craft_desktop_theme::follow(&cc.egui_ctx);
             let mut app = SlideApp::new(Session::new(), services());
             app.set_window_builder(window_builder);
             load_prefs(&mut app);
