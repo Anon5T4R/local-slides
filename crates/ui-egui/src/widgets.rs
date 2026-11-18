@@ -250,7 +250,8 @@ fn split_popup_id(main: &Response) -> egui::Id {
 pub fn check_item(ui: &mut Ui, label: &str, enabled: bool, on: bool) -> Response {
     let t = Tokens::get(ui.ctx());
     let font = theme::font(12.0);
-    let tw = ui.fonts_mut(|f| f.layout_no_wrap(label.to_string(), font.clone(), t.text).size().x) + 5.0;
+    let shown = tl!(label);
+    let tw = ui.fonts_mut(|f| f.layout_no_wrap(shown.to_string(), font.clone(), t.text).size().x) + 5.0;
     let (rect, resp) = ui.allocate_exact_size(vec2(24.0 + tw, 22.0), if enabled { Sense::click() } else { Sense::hover() });
     resp.widget_info(|| egui::WidgetInfo::selected(egui::Role::CheckBox, enabled, on, label));
     let painter = ui.painter_at(rect);
@@ -260,7 +261,7 @@ pub fn check_item(ui: &mut Ui, label: &str, enabled: bool, on: bool) -> Response
     if on {
         icons::paint(&painter, Rect::from_center_size(pos2(rect.min.x + 12.0, rect.center().y), vec2(17.0, 17.0)), Icon::Check, t.text, !enabled);
     }
-    painter.text(pos2(rect.min.x + 24.0, rect.center().y), Align2::LEFT_CENTER, label, font, if enabled { t.text } else { t.text_faint });
+    painter.text(pos2(rect.min.x + 24.0, rect.center().y), Align2::LEFT_CENTER, shown, font, if enabled { t.text } else { t.text_faint });
     resp
 }
 
@@ -275,7 +276,7 @@ pub fn icon_toggle(ui: &mut Ui, icon: Icon, tip: &str, enabled: bool, on: bool) 
     icons::paint(&painter, rect.shrink(3.0), icon, t.text, !enabled);
     // Named for screen readers (and tests) by its tooltip.
     resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, enabled, tip));
-    resp.on_hover_text(tip)
+    resp.on_hover_text(tl!(tip))
 }
 
 /// Icon with a colour bar under it and a dropdown arrow (Font Color, Highlight, Shape Fill…).
@@ -304,7 +305,7 @@ pub fn color_split(ui: &mut Ui, icon: Icon, tip: &str, color: Color32, enabled: 
         if enabled { color } else { t.text_faint },
     );
     chevron(&painter, pos2(rect.max.x - 5.5, rect.center().y), 2.6, t.text_dim);
-    (main.on_hover_text(tip), arrow)
+    (main.on_hover_text(tl!(tip)), arrow)
 }
 
 /// A ribbon group: contents, then a thin vertical separator.
@@ -349,7 +350,7 @@ pub fn dropdown(ui: &mut Ui, id: &str, current: &str, width: f32, enabled: bool,
     painter.with_clip_rect(Rect::from_min_max(clip.min, pos2(clip.max.x - 12.0, clip.max.y))).text(
         pos2(rect.min.x + 6.0, rect.center().y),
         Align2::LEFT_CENTER,
-        current,
+        tl!(current),
         theme::font(12.0),
         if enabled { t.text } else { t.text_faint },
     );
@@ -388,7 +389,7 @@ pub fn color_grid(ui: &mut Ui, scheme: &ColorScheme, none_label: Option<&str>) -
     let t = Tokens::get(ui.ctx());
     let mut out = None;
     ui.set_min_width(220.0);
-    ui.label(egui::RichText::new("Theme Colors").font(theme::bold(12.0)));
+    ui.label(egui::RichText::new(tl!("Theme Colors")).font(theme::bold(12.0)));
     let slots = [
         SchemeSlot::Lt1,
         SchemeSlot::Dk1,
@@ -411,7 +412,7 @@ pub fn color_grid(ui: &mut Ui, scheme: &ColorScheme, none_label: Option<&str>) -
             Stroke::new(if resp.hovered() { 2.0 } else { 1.0 }, if resp.hovered() { t.accent } else { t.border }),
             egui::StrokeKind::Inside,
         );
-        resp.on_hover_text(tip).clicked()
+        resp.on_hover_text(tl!(tip)).clicked()
     };
     egui::Grid::new("theme_colors").spacing(vec2(3.0, 1.0)).show(ui, |ui| {
         for slot in slots {
@@ -450,7 +451,7 @@ pub fn color_grid(ui: &mut Ui, scheme: &ColorScheme, none_label: Option<&str>) -
         }
     });
     ui.add_space(4.0);
-    ui.label(egui::RichText::new("Standard Colors").font(theme::bold(12.0)));
+    ui.label(egui::RichText::new(tl!("Standard Colors")).font(theme::bold(12.0)));
     ui.horizontal(|ui| {
         ui.spacing_mut().item_spacing.x = 3.0;
         for (c, name) in localslides_color::STANDARD_COLORS {
@@ -469,7 +470,7 @@ pub fn color_grid(ui: &mut Ui, scheme: &ColorScheme, none_label: Option<&str>) -
     let id = ui.scope_id().with("hex");
     let mut hex: String = ui.data_mut(|d| d.get_temp::<String>(id).unwrap_or_default());
     ui.horizontal(|ui| {
-        ui.label("More Colors… #");
+        ui.label(tl!("More Colors… #"));
         let r = ui.add(egui::TextEdit::singleline(&mut hex).desired_width(70.0).hint_text("RRGGBB"));
         if r.lost_focus()
             && ui.input(|i| i.key_pressed(egui::Key::Enter))
@@ -479,7 +480,7 @@ pub fn color_grid(ui: &mut Ui, scheme: &ColorScheme, none_label: Option<&str>) -
         }
     });
     ui.data_mut(|d| d.insert_temp(id, hex));
-    if ui.button("Eyedropper").on_hover_text("Click the slide to take the colour under the pointer").clicked() {
+    if ui.button(tl!("Eyedropper")).on_hover_text(tl!("Click the slide to take the colour under the pointer")).clicked() {
         crate::eyedropper::request(ui.ctx());
         ui.close();
     }
@@ -511,7 +512,7 @@ pub fn gallery(
         if sel {
             painter.rect_stroke(rect.expand(1.0), CornerRadius::same(4), Stroke::new(1.5, t.accent), egui::StrokeKind::Inside);
         }
-        if resp.on_hover_text(tip(i)).clicked() {
+        if resp.on_hover_text(tl!(&tip(i))).clicked() {
             clicked = Some(i);
         }
     }
@@ -587,7 +588,7 @@ pub fn section(ui: &mut Ui, title: &str, open: bool) -> bool {
         p.line_segment([pos2(c.x - 2.0, c.y - 4.0), pos2(c.x + 2.0, c.y)], Stroke::new(1.2, t.text));
         p.line_segment([pos2(c.x + 2.0, c.y), pos2(c.x - 2.0, c.y + 4.0)], Stroke::new(1.2, t.text));
     }
-    p.text(pos2(rect.min.x + 18.0, rect.center().y), Align2::LEFT_CENTER, title, theme::bold(13.0), t.text);
+    p.text(pos2(rect.min.x + 18.0, rect.center().y), Align2::LEFT_CENTER, tl!(title), theme::bold(13.0), t.text);
     if resp.clicked() { !open } else { open }
 }
 
@@ -595,8 +596,8 @@ pub fn section(ui: &mut Ui, title: &str, open: bool) -> bool {
 pub fn drop_button(ui: &mut Ui, label: &str, size: egui::Vec2, enabled: bool) -> egui::Response {
     let t = Tokens::get(ui.ctx());
     let r = ui
-        .add_enabled(enabled, egui::Button::new(if label.is_empty() { String::new() } else { format!("{label}   ") }).min_size(size))
-        .on_hover_text(if label.is_empty() { "Options" } else { label });
+        .add_enabled(enabled, egui::Button::new(if label.is_empty() { String::new() } else { format!("{}   ", tl!(label)) }).min_size(size))
+        .on_hover_text(if label.is_empty() { tl!("Options") } else { tl!(label) });
     let col = if enabled { t.text_dim } else { t.text_faint };
     chevron(ui.painter(), egui::pos2(r.rect.max.x - 8.0, r.rect.center().y), 3.0, col);
     r

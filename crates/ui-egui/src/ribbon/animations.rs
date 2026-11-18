@@ -16,7 +16,7 @@ pub(super) fn animations(app: &mut SlideApp, ui: &mut Ui) {
     group(ui, |ui| {
         let playing = app.anim_preview_active();
         let (resp, _) = big_button_ex(ui, Icon::Preview, "Preview", true, false, playing);
-        if resp.on_hover_text("Play this slide's animations on the canvas").clicked() {
+        if resp.on_hover_text(tl!("Play this slide's animations on the canvas")).clicked() {
             run(app, "animation.preview", json!({}));
         }
     });
@@ -63,7 +63,7 @@ pub(super) fn animations(app: &mut SlideApp, ui: &mut Ui) {
             for (cls, label) in
                 [(AnimClass::Entrance, "Entrance"), (AnimClass::Emphasis, "Emphasis"), (AnimClass::Exit, "Exit"), (AnimClass::Path, "Motion Paths")]
             {
-                ui.label(egui::RichText::new(label).font(theme::bold(12.0)));
+                ui.label(egui::RichText::new(tl!(label)).font(theme::bold(12.0)));
                 ui.horizontal_wrapped(|ui| {
                     for a in localslides_model::anim::ANIMATIONS.iter().filter(|a| a.2 == cls) {
                         let (r, resp) = ui.allocate_exact_size(vec2(56.0, 54.0), Sense::click());
@@ -93,8 +93,8 @@ pub(super) fn animations(app: &mut SlideApp, ui: &mut Ui) {
             }
             ui.separator();
             for &(id, on) in &build_rows {
-                let label = if id == "byParagraph" { "By Paragraph" } else { "As One Object" };
-                if ui.selectable_label(on, label).clicked() {
+                let label = if id == "byParagraph" { tl!("By Paragraph") } else { tl!("As One Object") };
+                if ui.selectable_label(on, tl!(label)).clicked() {
                     run(app, "animation.options", json!({"textBuild": id}));
                     ui.close();
                 }
@@ -112,12 +112,12 @@ pub(super) fn animations(app: &mut SlideApp, ui: &mut Ui) {
                     if ui
                         .button(format!(
                             "{} — {}",
-                            a.1,
+                            tl!(a.1),
                             match a.2 {
-                                AnimClass::Entrance => "Entrance",
-                                AnimClass::Emphasis => "Emphasis",
-                                AnimClass::Exit => "Exit",
-                                _ => "Motion",
+                                AnimClass::Entrance => tl!("Entrance"),
+                                AnimClass::Emphasis => tl!("Emphasis"),
+                                AnimClass::Exit => tl!("Exit"),
+                                _ => tl!("Motion"),
                             }
                         ))
                         .clicked()
@@ -130,13 +130,13 @@ pub(super) fn animations(app: &mut SlideApp, ui: &mut Ui) {
         big(app, ui, Icon::AnimationPane, "Animation\nPane", "view.pane", json!({"pane": "animation"}));
         let r = big_button(ui, Icon::Trigger, "Trigger", cur.is_some());
         egui::Popup::menu(&r).show(|ui| {
-            if ui.button("On Click of… (none)").clicked() {
+            if ui.button(tl!("On Click of… (none)")).clicked() {
                 run(app, "animation.timing", json!({"trigger": null}));
             }
             let shapes: Vec<(u32, String)> =
                 app.session.active().map(|d| d.shapes().iter().map(|s| (s.id.0, s.name.clone())).collect()).unwrap_or_default();
             for (id, name) in shapes {
-                if ui.button(format!("On Click of {name}")).clicked() {
+                if ui.button(crate::i18n::tr_fmt("On Click of {name}", &[("name", &name)])).clicked() {
                     run(app, "animation.timing", json!({"trigger": id}));
                 }
             }
@@ -144,7 +144,7 @@ pub(super) fn animations(app: &mut SlideApp, ui: &mut Ui) {
         let on = app.session.anim_painter.is_some();
         let en = enabled(app, "animation.painter");
         let (r, _) = big_button_ex(ui, Icon::AnimationPainter, "Animation\nPainter", en, false, on);
-        let r = r.on_hover_text("Animation Painter (double-click to keep it on)");
+        let r = r.on_hover_text(tl!("Animation Painter (double-click to keep it on)"));
         if r.double_clicked() {
             run(app, "animation.painter", json!({"sticky": true}));
         } else if r.clicked() {
@@ -158,15 +158,15 @@ pub(super) fn animations(app: &mut SlideApp, ui: &mut Ui) {
     group(ui, |ui| {
         rows(ui, |ui| {
             ui.horizontal(|ui| {
-                ui.label("Start:");
+                ui.label(tl!("Start:"));
                 let s = cur.as_ref().map(|c| match c.start {
-                    localslides_model::AnimStart::OnClick => "On Click",
-                    localslides_model::AnimStart::WithPrevious => "With Previous",
-                    localslides_model::AnimStart::AfterPrevious => "After Previous",
+                    localslides_model::AnimStart::OnClick => tl!("On Click"),
+                    localslides_model::AnimStart::WithPrevious => tl!("With Previous"),
+                    localslides_model::AnimStart::AfterPrevious => tl!("After Previous"),
                 });
                 dropdown(ui, "astart", s.unwrap_or(""), 112.0, cur.is_some(), |ui| {
                     for (l, v) in [("On Click", "onClick"), ("With Previous", "withPrevious"), ("After Previous", "afterPrevious")] {
-                        if ui.button(l).clicked() {
+                        if ui.button(tl!(l)).clicked() {
                             run(app, "animation.timing", json!({"start": v}));
                             ui.close();
                         }
@@ -174,7 +174,7 @@ pub(super) fn animations(app: &mut SlideApp, ui: &mut Ui) {
                 });
             });
             ui.horizontal(|ui| {
-                ui.label("Duration:");
+                ui.label(tl!("Duration:"));
                 if let Some(v) =
                     widgets::spinner(ui, "adur", "Duration", cur.as_ref().map(|c| c.duration_ms as f64 / 1000.0).unwrap_or(0.5), 0.25, "", 46.0)
                 {
@@ -182,7 +182,7 @@ pub(super) fn animations(app: &mut SlideApp, ui: &mut Ui) {
                 }
             });
             ui.horizontal(|ui| {
-                ui.label("Delay:");
+                ui.label(tl!("Delay:"));
                 if let Some(v) =
                     widgets::spinner(ui, "adelay", "Delay", cur.as_ref().map(|c| c.delay_ms as f64 / 1000.0).unwrap_or(0.0), 0.25, "", 46.0)
                 {
@@ -202,7 +202,7 @@ pub fn paint_anim_tile(p: &egui::Painter, r: Rect, label: &str, class: AnimClass
         _ => Icon::AnimPath,
     };
     icons::paint(p, Rect::from_center_size(pos2(r.center().x, r.min.y + 18.0), vec2(28.0, 28.0)), icon, t.text, !enabled);
-    p.text(pos2(r.center().x, r.max.y - 8.0), Align2::CENTER_CENTER, label, theme::font(10.0), if enabled { t.text } else { t.text_faint });
+    p.text(pos2(r.center().x, r.max.y - 8.0), Align2::CENTER_CENTER, tl!(label), theme::font(10.0), if enabled { t.text } else { t.text_faint });
 }
 
 /// The stored id is the one marked row. Every other id stays unmarked.
@@ -218,55 +218,59 @@ pub(super) fn animation_effect_rows(effect: &str, class: AnimClass, current: Opt
 
 fn animation_option_label(effect: &str, option: &str) -> String {
     let direction = match option {
-        "b" => Some("From Bottom"),
-        "lb" => Some("From Bottom-Left"),
-        "l" => Some("From Left"),
-        "lt" => Some("From Top-Left"),
-        "t" => Some("From Top"),
-        "rt" => Some("From Top-Right"),
-        "r" => Some("From Right"),
-        "rb" => Some("From Bottom-Right"),
+        "b" => Some((tl!("From Bottom"), tl!("To Bottom"))),
+        "lb" => Some((tl!("From Bottom-Left"), tl!("To Bottom-Left"))),
+        "l" => Some((tl!("From Left"), tl!("To Left"))),
+        "lt" => Some((tl!("From Top-Left"), tl!("To Top-Left"))),
+        "t" => Some((tl!("From Top"), tl!("To Top"))),
+        "rt" => Some((tl!("From Top-Right"), tl!("To Top-Right"))),
+        "r" => Some((tl!("From Right"), tl!("To Right"))),
+        "rb" => Some((tl!("From Bottom-Right"), tl!("To Bottom-Right"))),
         _ => None,
     };
     if matches!(effect, "fly" | "flyOut" | "wipe" | "wipeOut" | "peek" | "peekOut" | "crawl" | "crawlOut")
         && let Some(label) = direction
     {
         if matches!(effect, "flyOut" | "peekOut" | "crawlOut") {
-            return label.replacen("From", "To", 1);
+            return label.1.into();
         }
-        return label.into();
+        return label.0.into();
     }
 
     match (effect, option) {
-        ("float" | "floatOut", "u") => "Up".into(),
-        ("float" | "floatOut", "d") => "Down".into(),
-        ("split" | "splitOut", "horzIn") => "Horizontal In".into(),
-        ("split" | "splitOut", "horzOut") => "Horizontal Out".into(),
-        ("split" | "splitOut", "vertIn") => "Vertical In".into(),
-        ("split" | "splitOut", "vertOut") => "Vertical Out".into(),
-        ("shape" | "shapeOut", o) if o.ends_with("In") => format!("{} In", title_first(shape_option_name(o))),
-        ("shape" | "shapeOut", o) if o.ends_with("Out") => format!("{} Out", title_first(shape_option_name(o))),
-        ("wheel" | "wheelOut", "1") => "1 Spoke".into(),
-        ("wheel" | "wheelOut", n) => format!("{n} Spokes"),
-        ("box" | "boxOut" | "circle" | "diamond" | "diamondOut", "in") => format!("{} In", title_first(effect.trim_end_matches("Out"))),
-        ("box" | "boxOut" | "circle" | "diamond" | "diamondOut", "out") => format!("{} Out", title_first(effect.trim_end_matches("Out"))),
-        ("zoom" | "zoomOut", "in") => "Zoom In".into(),
-        ("zoom" | "zoomOut", "out") => "Zoom Out".into(),
-        ("strips" | "stripsOut", "lu") => "Left Up".into(),
-        ("strips" | "stripsOut", "ru") => "Right Up".into(),
-        ("strips" | "stripsOut", "ld") => "Left Down".into(),
-        ("strips" | "stripsOut", "rd") => "Right Down".into(),
-        (_, "horz") => "Horizontal".into(),
-        (_, "vert") => "Vertical".into(),
-        (_, "across") => "Across".into(),
-        (_, "down") => "Down".into(),
-        (_, "up") => "Up".into(),
-        (_, "right") => "Right".into(),
-        (_, "left") => "Left".into(),
-        (_, "clockwise") => "Clockwise".into(),
-        (_, "counterClockwise") => "Counterclockwise".into(),
-        (_, "in") => "In".into(),
-        (_, "out") => "Out".into(),
+        ("float" | "floatOut", "u") => tl!("Up").into(),
+        ("float" | "floatOut", "d") => tl!("Down").into(),
+        ("split" | "splitOut", "horzIn") => tl!("Horizontal In").into(),
+        ("split" | "splitOut", "horzOut") => tl!("Horizontal Out").into(),
+        ("split" | "splitOut", "vertIn") => tl!("Vertical In").into(),
+        ("split" | "splitOut", "vertOut") => tl!("Vertical Out").into(),
+        ("shape" | "shapeOut", o) if o.ends_with("In") => crate::i18n::tr_fmt("{shape} In", &[("shape", tl!(&title_first(shape_option_name(o))))]),
+        ("shape" | "shapeOut", o) if o.ends_with("Out") => crate::i18n::tr_fmt("{shape} Out", &[("shape", tl!(&title_first(shape_option_name(o))))]),
+        ("wheel" | "wheelOut", "1") => tl!("1 Spoke").into(),
+        ("wheel" | "wheelOut", n) => crate::i18n::tr_fmt("{n} Spokes", &[("n", n)]),
+        ("box" | "boxOut" | "circle" | "diamond" | "diamondOut", "in") => {
+            crate::i18n::tr_fmt("{shape} In", &[("shape", tl!(&title_first(effect.trim_end_matches("Out"))))])
+        }
+        ("box" | "boxOut" | "circle" | "diamond" | "diamondOut", "out") => {
+            crate::i18n::tr_fmt("{shape} Out", &[("shape", tl!(&title_first(effect.trim_end_matches("Out"))))])
+        }
+        ("zoom" | "zoomOut", "in") => tl!("Zoom In").into(),
+        ("zoom" | "zoomOut", "out") => tl!("Zoom Out").into(),
+        ("strips" | "stripsOut", "lu") => tl!("Left Up").into(),
+        ("strips" | "stripsOut", "ru") => tl!("Right Up").into(),
+        ("strips" | "stripsOut", "ld") => tl!("Left Down").into(),
+        ("strips" | "stripsOut", "rd") => tl!("Right Down").into(),
+        (_, "horz") => tl!("Horizontal").into(),
+        (_, "vert") => tl!("Vertical").into(),
+        (_, "across") => tl!("Across").into(),
+        (_, "down") => tl!("Down").into(),
+        (_, "up") => tl!("Up").into(),
+        (_, "right") => tl!("Right").into(),
+        (_, "left") => tl!("Left").into(),
+        (_, "clockwise") => tl!("Clockwise").into(),
+        (_, "counterClockwise") => tl!("Counterclockwise").into(),
+        (_, "in") => tl!("In").into(),
+        (_, "out") => tl!("Out").into(),
         (_, other) => super::transitions::option_label(other),
     }
 }

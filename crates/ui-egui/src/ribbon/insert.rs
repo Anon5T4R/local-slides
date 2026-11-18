@@ -13,7 +13,7 @@ fn photo_album_button(app: &mut SlideApp, ui: &mut Ui) {
     let _ = main.clone().on_hover_text(tip("insert.photoAlbum", "Photo Album…"));
     main.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, en, "Photo Album…"));
     if let Some(a) = &arrow {
-        let _ = a.clone().on_hover_text("Photo Album options");
+        let _ = a.clone().on_hover_text(tl!("Photo Album options"));
         a.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, en, "Photo Album options"));
     }
     if main.clicked() {
@@ -47,11 +47,11 @@ pub(super) fn insert(app: &mut SlideApp, ui: &mut Ui) {
                 ui.close();
             }
             ui.separator();
-            if ui.button("Insert Table…").clicked() {
+            if ui.button(tl!("Insert Table…")).clicked() {
                 app.dialog = Some(crate::dialogs::Dialog::new("table"));
                 ui.close();
             }
-            if ui.button("Draw Table").clicked() {
+            if ui.button(tl!("Draw Table")).clicked() {
                 app.session.set_tool(localslides_engine::ToolKind::Shape { preset: localslides_engine::tools::DRAW_TABLE.into() });
                 ui.close();
             }
@@ -61,7 +61,7 @@ pub(super) fn insert(app: &mut SlideApp, ui: &mut Ui) {
         big(app, ui, Icon::Picture, "Pictures", "app.insertPictureDialog", json!({}));
         photo_album_button(app, ui);
         let r = big_button(ui, Icon::Screenshot, "Screenshot", false);
-        let _ = r.on_hover_text("Screenshot (not available yet)");
+        let _ = r.on_hover_text(tl!("Screenshot (not available yet)"));
     });
     group(ui, |ui| {
         let r = big_button(ui, Icon::Shapes, "Shapes", enabled(app, "shape.insert"));
@@ -94,13 +94,13 @@ pub(super) fn insert(app: &mut SlideApp, ui: &mut Ui) {
         let r = big_button(ui, Icon::Action, "Action", enabled(app, "insert.actionButton"));
         egui::Popup::menu(&r).show(|ui| {
             for k in ["back", "forward", "beginning", "end", "home", "information", "return", "movie", "document", "sound", "help", "custom"] {
-                if ui.button(format!("Action Button: {k}")).clicked() {
+                if ui.button(crate::i18n::tr_fmt("Action Button: {kind}", &[("kind", tl!(k))])).clicked() {
                     run(app, "insert.actionButton", json!({"kind": k}));
                 }
             }
             ui.separator();
             let has_sel = app.session.active().is_some_and(|s| !s.selection.shapes.is_empty());
-            if ui.add_enabled(has_sel, egui::Button::new("Action Settings…")).clicked() {
+            if ui.add_enabled(has_sel, egui::Button::new(tl!("Action Settings…"))).clicked() {
                 app.dialog = Some(crate::dialogs::Dialog::new("action"));
             }
         });
@@ -114,7 +114,7 @@ pub(super) fn insert(app: &mut SlideApp, ui: &mut Ui) {
         let r = big_button(ui, Icon::WordArt, "WordArt", enabled(app, "insert.wordArt"));
         egui::Popup::menu(&r).show(|ui| {
             for i in 0..6 {
-                if ui.button(format!("WordArt style {}", i + 1)).clicked() {
+                if ui.button(crate::i18n::tr_fmt("WordArt style {n}", &[("n", &(i + 1).to_string())])).clicked() {
                     run(app, "insert.wordArt", json!({"style": i}));
                 }
             }
@@ -138,7 +138,11 @@ pub fn table_grid_picker(ui: &mut Ui) -> Option<(usize, usize)> {
     let id = ui.scope_id().with("tgrid");
     let mut hover: (usize, usize) = ui.data_mut(|d| d.get_temp(id).unwrap_or((0, 0)));
     let cell = 16.0;
-    let label = if hover.0 > 0 { format!("{}x{} Table", hover.1, hover.0) } else { "Insert Table".into() };
+    let label = if hover.0 > 0 {
+        crate::i18n::tr_fmt("{cols}x{rows} Table", &[("cols", &hover.1.to_string()), ("rows", &hover.0.to_string())])
+    } else {
+        tl!("Insert Table").to_string()
+    };
     ui.label(label);
     let (rect, resp) = ui.allocate_exact_size(vec2(10.0 * (cell + 2.0), 8.0 * (cell + 2.0)), Sense::click());
     if let Some(p) = resp.hover_pos() {
@@ -191,7 +195,7 @@ fn render_filtered_icons(app: &mut SlideApp, ui: &mut Ui, icons: &[localslides_e
         }
     });
     if n == 0 {
-        ui.label("No icons match.");
+        ui.label(tl!("No icons match."));
     }
 }
 
@@ -201,7 +205,7 @@ fn icon_library(app: &mut SlideApp, ui: &mut Ui) {
     let (color, hover) = (t.text, t.hover);
     let id = ui.scope_id().with("icon-query");
     let mut query = ui.data_mut(|d| d.get_temp::<String>(id).unwrap_or_default());
-    ui.add(egui::TextEdit::singleline(&mut query).hint_text("Search icons").desired_width(ui.available_width()));
+    ui.add(egui::TextEdit::singleline(&mut query).hint_text(tl!("Search icons")).desired_width(ui.available_width()));
     let q = query.trim().to_lowercase();
     ui.data_mut(|d| d.insert_temp(id, query));
     let icons = localslides_engine::icons::icons();

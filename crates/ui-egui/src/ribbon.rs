@@ -297,7 +297,7 @@ pub(super) fn spare_room(ctx: &egui::Context, tab: &str) -> Option<f32> {
 
 /// A chevron over a ribbon edge that scrolls it; `true` on the frame it is clicked.
 fn edge_cue(ui: &mut Ui, rect: Rect, glyph: &str, hint: &str, t: &Tokens) -> bool {
-    let resp = ui.interact(rect, ui.scope_id().with(glyph), Sense::click()).on_hover_text(hint);
+    let resp = ui.interact(rect, ui.scope_id().with(glyph), Sense::click()).on_hover_text(tl!(hint));
     resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, hint));
     let ink = if resp.hovered() { t.text } else { t.text_dim };
     ui.painter().rect_filled(rect, CornerRadius::ZERO, t.card);
@@ -350,7 +350,7 @@ fn tip(id: &str, label: &str) -> String {
 #[cfg(target_arch = "wasm32")]
 fn web_ai_notice(ui: &mut Ui) {
     group(ui, |ui| {
-        ui.label("The AI actions need the desktop app.");
+        ui.label(tl!("The AI actions need the desktop app."));
     });
 }
 
