@@ -209,6 +209,13 @@ pub(super) fn about(app: &mut SlideApp, ui: &mut Ui) {
             if task(ui, Icon::Help, "Credits", "Credits", "The people and models who built Local Slides.", true) {
                 let _ = app.run("app.about", json!({}));
             }
+            #[cfg(not(target_arch = "wasm32"))]
+            {
+                ui.add_space(8.0);
+                if task(ui, Icon::ResetSlide, "Check", "Check for Updates…", "See whether a newer version of Local Slides is available.", true) {
+                    let _ = app.run("app.checkUpdates", json!({}));
+                }
+            }
             ui.hyperlink_to("Community discussions on GitHub", localslides_engine::links::COMMUNITY);
             ui.hyperlink_to("Source on GitHub", localslides_engine::links::GITHUB);
         });
