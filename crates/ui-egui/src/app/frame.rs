@@ -17,6 +17,17 @@ impl SlideApp {
             ctx.request_discard("install interface fonts before layout");
             return false;
         }
+        if self.ui.system_theme {
+            let system = match ctx.system_theme() {
+                Some(egui::Theme::Dark) => theme::Brightness::Dark,
+                Some(egui::Theme::Light) => theme::Brightness::Light,
+                None => self.ui.brightness,
+            };
+            if system != self.ui.brightness {
+                self.ui.brightness = system;
+                self.restyle = true;
+            }
+        }
         if self.restyle {
             theme::apply(ctx, &theme::Tokens::for_brightness(self.ui.brightness));
             self.restyle = false;
