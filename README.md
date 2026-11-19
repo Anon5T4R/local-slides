@@ -72,8 +72,9 @@ cargo run --release -p localslides -- deck.pptx         # open a presentation
 On Linux, the build also needs the ALSA headers for slide-show sound: `alsa-lib-devel` on Fedora,
 `libasound2-dev` on Debian and Ubuntu, `alsa-lib` on Arch. Without them it stops at `alsa-sys`.
 
-Fonts come from [craft-fonts](https://github.com/storytold/craft-fonts): clone it next to this repo
-(`../craft-fonts`) and local builds pick it up automatically; without it Local Slides uses your system
+Fonts come from craft-fonts, vendored in `assets/craft-fonts/` (`.cargo/config.toml` points
+`CRAFT_FONTS_DIR` at it, so every build embeds them; override `CRAFT_FONTS_DIR` to use another
+checkout). Without them Local Slides uses your system
 fonts.
 
 PDF export uses the shared `craft-pdf` writer with import features disabled. See

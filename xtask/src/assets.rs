@@ -52,7 +52,9 @@ const ASSET_DIRS: &[&str] = &["assets/", "docs/images/", "examples/"];
 
 /// Paths whose files this repo does not attribute: the vendored trees under `libs/` keep their own
 /// licences and attribution files (egui, winit, craft-libs), and build output is not shipped.
-const EXCLUDE: &[&str] = &["libs/", "target/", "dist/"];
+/// `assets/craft-fonts/` is the suite's font set replicated unmodified from the local-libs: it carries its own
+/// `ATTRIBUTION.md` and `scripts/check-mirror.sh` keeps it byte-identical to its source.
+const EXCLUDE: &[&str] = &["libs/", "assets/craft-fonts/", "target/", "dist/"];
 
 /// Whether `path` is out of the scan (vendored tree or build output).
 pub fn excluded(path: &str) -> bool {

@@ -45,10 +45,12 @@ fork's own attribution for assets the rebrand keeps as-is.
 
 ## Embedded at build time from craft-fonts (`CRAFT_FONTS_DIR`)
 
-Release builds (and local builds with a craft-fonts checkout) embed the fonts listed in
-[craft-fonts](https://github.com/storytold/craft-fonts) `fonts/latin-manifest.txt` and
+The craft-fonts tree is vendored in this repository (`assets/craft-fonts/`, replicated unmodified from
+the `assets/craft-fonts/` of [Anon5T4R/local-libs](https://github.com/Anon5T4R/local-libs), the suite's
+single source; `scripts/check-mirror.sh` checks it), and `.cargo/config.toml` points `CRAFT_FONTS_DIR`
+at it, so every build, test and release embeds the fonts listed in its `fonts/latin-manifest.txt` and
 `fonts/manifest.txt` (per-file authors, sources, SHA-256 and licences in its
-[ATTRIBUTION.md](https://github.com/storytold/craft-fonts/blob/main/ATTRIBUTION.md)), except the
+[ATTRIBUTION.md](assets/craft-fonts/ATTRIBUTION.md)), except the
 families excluded by `crates/fonts/build.rs`:
 
 | Families | Licence | Notes |
