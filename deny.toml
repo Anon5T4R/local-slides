@@ -53,6 +53,24 @@ yanked = "warn"
 ignore = [
     { id = "RUSTSEC-2023-0071", reason = "rsa sem patch (0.9.10 e 0.10-rc afetados); cliente só verifica assinatura de servidor com chave pública" },
     { id = "RUSTSEC-2026-0387", reason = "crypto-bigint 0.5.5 via rsa 0.9 (fix exige rsa 0.10); cliente não opera chave privada" },
+    # Abandono sem vulnerabilidade: chrono (craft-update), paste (macro de compilação), rustybuzz e ttf-parser
+    # (texto, sem substituto no fork do egui) e a pilha D-Bus do Linux (zvariant/zbus_names, portal e acessibilidade).
+    { id = "RUSTSEC-2026-0543", reason = "chrono unmaintained (craft-update); troca por jiff/std no backlog" },
+    { id = "RUSTSEC-2024-0436", reason = "paste unmaintained; proc macro só em tempo de compilação" },
+    { id = "RUSTSEC-2026-0206", reason = "rustybuzz unmaintained (shaping do texto); sem vulnerabilidade, só abandono" },
+    { id = "RUSTSEC-2026-0192", reason = "ttf-parser unmaintained (texto); sem versão segura e sem vulnerabilidade, só abandono" },
+    { id = "RUSTSEC-2026-0370", reason = "zvariant unmaintained; pilha D-Bus do Linux (portal/acessibilidade)" },
+    { id = "RUSTSEC-2026-0371", reason = "zbus_names unmaintained; pilha D-Bus do Linux (portal/acessibilidade)" },
+    { id = "RUSTSEC-2026-0372", reason = "zvariant_derive unmaintained; pilha D-Bus do Linux (portal/acessibilidade)" },
+    # zip 3.0 lê/escreve .pptx: só a feature `deflate` (sem AES/crypto) e o código nunca chama
+    # `ZipArchive::extract` nem `ZipStreamReader` (lê entradas por nome, em memória). Subir para o zip 9
+    # muda a API e é decisão de dependência separada.
+    { id = "RUSTSEC-2026-0367", reason = "zip 3.0: ZipArchive::extract nunca é chamado" },
+    { id = "RUSTSEC-2026-0368", reason = "zip 3.0: ZipArchive::extract nunca é chamado" },
+    { id = "RUSTSEC-2026-0369", reason = "zip 3.0: ZipArchive::extract/ZipStreamReader nunca são chamados" },
+    { id = "RUSTSEC-2026-0429", reason = "zip 3.0: ZipArchive::extract nunca é chamado" },
+    { id = "RUSTSEC-2026-0545", reason = "zip 3.0: sem a feature de AES (só deflate)" },
+    { id = "RUSTSEC-2026-0548", reason = "zip 3.0: ZipStreamReader nunca é usado" },
 ]
 
 # egui's default UI fonts (Ubuntu-Light, Hack, emoji-icon-font): font licences on the AGENTS.md
@@ -65,3 +83,81 @@ allow = ["OFL-1.1", "Ubuntu-font-1.0"]
 [[licenses.exceptions]]
 crate = "webpki-root-certs"
 allow = ["CDLA-Permissive-2.0"]
+
+# As raízes de CA que o rustls usa no BYOK (webpki-roots) são dado CDLA-Permissive-2.0 (permissiva).
+[[licenses.exceptions]]
+crate = "webpki-roots"
+allow = ["CDLA-Permissive-2.0"]
+
+# MPL-2.0 é copyleft só no nível de arquivo e o option-ext (dep de dirs, via local-ai) entra sem
+# modificação; nada do app é derivado dele. Exceção só para esta crate, não entra no allow geral.
+[[licenses.exceptions]]
+crate = "option-ext"
+allow = ["MPL-2.0"]
+
+# symphonia (decodificação de áudio da mídia dos slides, crates/media) é MPL-2.0: copyleft só no nível de
+# arquivo, usado sem modificação como dependência do crates.io (o código modificado de arquivos MPL é que
+# teria de ser publicado). Uma exceção por crate da família, nunca MPL-2.0 no allow geral.
+[[licenses.exceptions]]
+crate = "symphonia"
+allow = ["MPL-2.0"]
+
+[[licenses.exceptions]]
+crate = "symphonia-bundle-flac"
+allow = ["MPL-2.0"]
+
+[[licenses.exceptions]]
+crate = "symphonia-bundle-mp3"
+allow = ["MPL-2.0"]
+
+[[licenses.exceptions]]
+crate = "symphonia-codec-aac"
+allow = ["MPL-2.0"]
+
+[[licenses.exceptions]]
+crate = "symphonia-codec-adpcm"
+allow = ["MPL-2.0"]
+
+[[licenses.exceptions]]
+crate = "symphonia-codec-alac"
+allow = ["MPL-2.0"]
+
+[[licenses.exceptions]]
+crate = "symphonia-codec-pcm"
+allow = ["MPL-2.0"]
+
+[[licenses.exceptions]]
+crate = "symphonia-codec-vorbis"
+allow = ["MPL-2.0"]
+
+[[licenses.exceptions]]
+crate = "symphonia-core"
+allow = ["MPL-2.0"]
+
+[[licenses.exceptions]]
+crate = "symphonia-format-caf"
+allow = ["MPL-2.0"]
+
+[[licenses.exceptions]]
+crate = "symphonia-format-isomp4"
+allow = ["MPL-2.0"]
+
+[[licenses.exceptions]]
+crate = "symphonia-format-mkv"
+allow = ["MPL-2.0"]
+
+[[licenses.exceptions]]
+crate = "symphonia-format-ogg"
+allow = ["MPL-2.0"]
+
+[[licenses.exceptions]]
+crate = "symphonia-format-riff"
+allow = ["MPL-2.0"]
+
+[[licenses.exceptions]]
+crate = "symphonia-metadata"
+allow = ["MPL-2.0"]
+
+[[licenses.exceptions]]
+crate = "symphonia-utils-xiph"
+allow = ["MPL-2.0"]
