@@ -1,7 +1,8 @@
-# Local development builds embed the craft-fonts checkout next to this repo when it exists
-# (build.rs warns and continues without it). CI and releases set CRAFT_FONTS_DIR explicitly.
-[env]
-CRAFT_FONTS_DIR = { value = "../craft-fonts", relative = true }
-
 [alias]
 xtask = "run --package xtask --"
+
+[env]
+# As fontes vendored (assets/craft-fonts) entram em todo build e teste, local e CI iguais: sem isto,
+# testes de UI com CJK/árabe/símbolos falham por glifo só na máquina local. Uma variável já definida
+# no ambiente vence (cargo não sobrescreve sem `force`).
+CRAFT_FONTS_DIR = { value = "assets/craft-fonts", relative = true }
