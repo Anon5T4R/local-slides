@@ -20,6 +20,9 @@ jobs:
     env:
       CRAFT_FONTS_DIR: ${{ github.workspace }}/assets/craft-fonts
     steps:
+      - name: Defender sem varredura em tempo real (o build grava milhares de .rlib/.o)
+        shell: pwsh
+        run: Set-MpPreference -DisableRealtimeMonitoring $true
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
