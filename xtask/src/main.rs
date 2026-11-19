@@ -19,12 +19,14 @@ const USAGE: &str = "\
 usage: cargo xtask <command>
 
 commands:
+  fmt             fmt --check for the workspace's own packages (never the vendored trees in libs/)
   assets          check that every icon/image/font/asset is attributed in ATTRIBUTION.md
   pdf-deps        verify pinned writer sources and the production feature boundary
   layers          enforce the crate dependency layering (plan/architecture.md §3)
   wasm            cargo check --target wasm32-unknown-unknown for the wasm-safe crates (one call)
   test            workspace tests (cargo nextest when installed, else cargo test), then doctests
-  ci              fmt --check, pdf-deps, clippy -D warnings, test, doctest, assets, layers, wasm
+  ci              fmt --check, pdf-deps, clippy -D warnings, test, doctest, assets, layers, cargo-deny,
+                  local-libs mirrors, wasm
                   (stops at first failure)
   stats [--exact] count tests and lines per crate (--exact: ask the test harness via `-- --list`)
   bench [--save] [DECK...]
@@ -41,6 +43,7 @@ fn main() -> ExitCode {
     let result = match args.first().map(String::as_str) {
         Some("assets") => assets::run(&root()),
         Some("layers") => cmd_layers(),
+        Some("fmt") => cmd_fmt(),
         Some("pdf-deps") => pdf_deps::run(&root()),
         Some("wasm") => cmd_wasm(),
         Some("test") => cmd_test().and_then(|()| cmd_doctest()),
@@ -191,11 +194,9 @@ fn cmd_ci() -> Result<(), String> {
     let steps: Vec<Step> = vec![
         (
             "fmt",
-            Box::new(|| {
-                let mut c = cargo();
-                c.args(["fmt", "--all", "--", "--check"]);
-                run(c, "cargo fmt --all -- --check")
-            }),
+            // `cargo fmt --all` would also reformat the path dependencies under `libs/`, which keep
+            // their origin style: format the workspace's own packages only (`cargo xtask fmt`).
+            Box::new(cmd_fmt),
         ),
         ("pdf-deps", Box::new(|| pdf_deps::run(&root()))),
         (
@@ -210,6 +211,8 @@ fn cmd_ci() -> Result<(), String> {
         ("doctest", Box::new(cmd_doctest)),
         ("assets", Box::new(|| assets::run(&root()))),
         ("layers", Box::new(cmd_layers)),
+        ("deny", Box::new(cmd_deny)),
+        ("mirror", Box::new(cmd_mirror)),
         ("wasm", Box::new(cmd_wasm)),
     ];
     let mut done = Vec::new();
@@ -230,4 +233,65 @@ fn cmd_ci() -> Result<(), String> {
     }
     println!("\nCI summary: all {} steps passed ({})", done.len(), done.join(", "));
     Ok(())
+}
+
+/// The workspace's own package names, for the `fmt` gate: the vendored trees under `libs/` and
+/// `assets/craft-fonts/` keep their origin formatting style, so they are never formatted here.
+fn workspace_packages() -> Result<Vec<String>, String> {
+    let value = metadata()?;
+    let packages = value["packages"].as_array().ok_or("cargo metadata: no packages list")?;
+    let mut names: Vec<String> = Vec::with_capacity(packages.len());
+    for p in packages {
+        let name = p["name"].as_str().ok_or("cargo metadata: a package has no name")?;
+        names.push(name.to_owned());
+    }
+    if names.is_empty() {
+        return Err("cargo metadata: the workspace lists no packages".into());
+    }
+    Ok(names)
+}
+
+/// `cargo xtask fmt`: formats (and only checks) the workspace's own packages. `cargo fmt --all`
+/// would also reformat the vendored trees under `libs/` in this repository's style, which is not
+/// ours to change; the CI runs this same command, so the gate and the local check cover the same
+/// files.
+fn cmd_fmt() -> Result<(), String> {
+    let members = workspace_packages()?;
+    let mut c = cargo();
+    c.arg("fmt");
+    for name in &members {
+        c.args(["-p", name]);
+    }
+    c.args(["--", "--check"]);
+    run(c, "cargo fmt -p <workspace members> -- --check")
+}
+
+/// cargo-deny (licenses, bans, sources, advisories) as the CI runs it; skipped with a note when the
+/// tool is not installed (`cargo install cargo-deny --locked`).
+fn cmd_deny() -> Result<(), String> {
+    let mut c = cargo();
+    c.args(["deny", "--version"]);
+    if c.output().is_ok_and(|o| o.status.success()) {
+        let mut c = cargo();
+        c.args(["deny", "--log-level", "error", "check", "bans", "licenses", "sources", "advisories"]);
+        run(c, "cargo deny check")
+    } else {
+        eprintln!("note: cargo-deny not installed (cargo install cargo-deny --locked): skipped, the CI runs it");
+        Ok(())
+    }
+}
+
+/// The crates and assets mirrored from the local-libs against their source (`scripts/check-mirror.sh`);
+/// skipped with a note when bash is unavailable.
+fn cmd_mirror() -> Result<(), String> {
+    let mut c = Command::new("bash");
+    c.current_dir(root()).arg("scripts/check-mirror.sh");
+    match c.status() {
+        Ok(status) if status.success() => Ok(()),
+        Ok(status) => Err(format!("scripts/check-mirror.sh: exited with {status}")),
+        Err(e) => {
+            eprintln!("note: bash unavailable ({e}): mirror check skipped, the CI runs it");
+            Ok(())
+        }
+    }
 }

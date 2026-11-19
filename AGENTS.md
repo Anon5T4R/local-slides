@@ -24,7 +24,8 @@ Rust puro + egui. Sem conta, sem telemetria, sem dependência de servidores de t
   `winit` (a517b38)
 - `packaging/` — Windows (WiX/MSI per-machine e per-user), Linux (AppImage/deb/rpm/tar FHS com `install.sh`), Arch (PKGBUILD),
   macOS, FreeBSD, web
-- `xtask/` — tarefas de build/CI (`cargo xtask ci`, `layers`, `wasm`, `parity`)
+- `scripts/check-mirror.sh` — confere as crates e os assets (`craft-fonts`) espelhados do `local-libs` contra a fonte (CI e `xtask ci`)
+- `xtask/` — tarefas de build/CI (`cargo xtask ci`, `fmt`, `layers`, `wasm`, `parity`)
 
 ## Agent-native (MCP)
 `crates/mcp` (servidor stdio + backends headless/`Remote` do control channel, porta com token) e
@@ -37,7 +38,8 @@ repetíveis (multi-root, como no deckcraft). Docs: `docs/mcp.md`.
 ## Build
 ```
 cargo build --locked          # debug
-cargo test --locked           # testes (no Windows: -- --test-threads=1, testes de UI)
+cargo test --locked           # testes (no Windows: -- --test-threads=1, testes de UI); as fontes vendored entram sempre (.cargo/config.toml), igual ao CI
+cargo xtask ci                # o gate local: fmt, pdf-deps, clippy, testes, assets, camadas, cargo-deny, espelhos do local-libs, wasm
 packaging/windows/package.ps1 # MSI + portable (Windows)
 packaging/linux/package.sh    # AppImage/deb/rpm/tar (Linux)
 ```
