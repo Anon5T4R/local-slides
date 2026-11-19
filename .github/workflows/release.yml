@@ -18,19 +18,10 @@ jobs:
   windows:
     runs-on: windows-latest
     env:
-      CRAFT_FONTS_DIR: ${{ github.workspace }}/craft-fonts
+      CRAFT_FONTS_DIR: ${{ github.workspace }}/assets/craft-fonts
     steps:
       - uses: actions/checkout@v7
         with:
-          persist-credentials: false
-      - name: Fontes CJK/coreanas (craft-fonts)
-        # Mesmo pin do CI e do upstream (deckcraft@9bac60ff). Sem elas o binário sai
-        # sem as fontes embutidas ("building without craft-fonts").
-        uses: actions/checkout@v7
-        with:
-          repository: storytold/craft-fonts
-          ref: 37827adc41fd165f9a9234ac40f94dbad353aa69
-          path: craft-fonts
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
@@ -58,17 +49,10 @@ jobs:
   linux:
     runs-on: ubuntu-22.04
     env:
-      CRAFT_FONTS_DIR: ${{ github.workspace }}/craft-fonts
+      CRAFT_FONTS_DIR: ${{ github.workspace }}/assets/craft-fonts
     steps:
       - uses: actions/checkout@v7
         with:
-          persist-credentials: false
-      - name: Fontes CJK/coreanas (craft-fonts)
-        uses: actions/checkout@v7
-        with:
-          repository: storytold/craft-fonts
-          ref: 37827adc41fd165f9a9234ac40f94dbad353aa69
-          path: craft-fonts
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
