@@ -3,6 +3,7 @@ name = "localslides-model"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+publish.workspace = true
 description = "Local Slides document model: presentations, masters, layouts, slides, shapes, text, themes, transitions, animations"
 
 [lints]

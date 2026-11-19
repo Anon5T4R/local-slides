@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 description = "Local Slides desktop app"
-publish = false
+publish.workspace = true
 default-run = "localslides"
 
 [lints]

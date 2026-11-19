@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 description = "Local Slides on the command line: render, convert, run commands, inspect, and serve MCP"
-publish = false
+publish.workspace = true
 
 [lints]
 workspace = true

@@ -3,6 +3,7 @@ name = "localslides-fonts"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+publish.workspace = true
 description = "Local Slides fonts: font database (craft-fonts + system), substitutes for Office fonts, metrics, outlines, shaping"
 
 [lints]

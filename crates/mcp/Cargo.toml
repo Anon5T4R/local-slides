@@ -3,6 +3,7 @@ name = "localslides-mcp"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+publish.workspace = true
 description = "Local Slides MCP server: JSON-RPC 2.0 over stdio, driving a running app or a headless session"
 
 [lints]

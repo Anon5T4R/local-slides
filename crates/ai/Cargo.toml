@@ -5,7 +5,7 @@ edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 repository.workspace = true
-publish = false
+publish.workspace = true
 description = "Local Slides - remote AI for presentations: prompts, the tolerant JSON extractor and the deck actions"
 
 [lints]

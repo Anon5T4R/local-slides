@@ -3,6 +3,7 @@ name = "localslides-engine"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+publish.workspace = true
 description = "Local Slides engine: sessions, undo history, selection, the command registry every frontend dispatches through, and pointer tools"
 
 [lints]
