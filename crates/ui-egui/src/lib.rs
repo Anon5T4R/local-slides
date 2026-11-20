@@ -468,6 +468,8 @@ mod animpane_tests;
 #[cfg(test)]
 mod browsetheme_tests;
 #[cfg(test)]
+mod casca_tests;
+#[cfg(test)]
 mod compare_tests;
 #[cfg(test)]
 mod eyedropper_tests;
