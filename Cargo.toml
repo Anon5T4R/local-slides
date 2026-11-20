@@ -84,6 +84,8 @@ craft-i18n = { path = "libs/craft-libs/crates/i18n/" }
 # The suite's AI surface (connections form, status strip, chat panel and the window policy); source
 # of truth in local-libs, vendored here and replicated by its sync.ps1.
 craft-ai-ui = { path = "libs/craft-libs/crates/ai-ui/" }
+# The suite's icons for shared concepts (theme, settings, help, AI...) and the theme button. Source: local-libs.
+craft-icons = { path = "libs/craft-libs/crates/icons/", features = ["egui"] }
 # craft-window drives the native windows: one per open presentation, in the mold of
 # the other Crafting Apps. Same vendored craft-libs tree as the crates above.
 craft-window = { path = "libs/craft-libs/crates/window/", version = "=0.1.0", default-features = false, features = ["egui"] }
@@ -98,7 +100,8 @@ zip = { version = "3", default-features = false, features = ["deflate"] }
 
 # ui
 egui = { version = "0.37", default-features = false }
-egui_extras = { version = "0.37", default-features = false }
+# The SVG loader for the suite's icons (craft-icons): resvg, pure Rust. Vendored fork via [patch].
+egui_extras = { version = "0.37", default-features = false, features = ["svg"] }
 eframe = { version = "0.37", default-features = false }
 egui_kittest = "0.37"
 web-time = "1.1"
