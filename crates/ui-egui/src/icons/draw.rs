@@ -6,6 +6,12 @@ use super::{Icon, PI};
 // ---------------------------------------------------------------------------------------------
 
 pub(super) fn draw(p: &Pen<'_>, icon: Icon) {
+    // The suite's icons draw as SVG; these are their fallback artwork.
+    let icon = match icon {
+        Icon::CheckForUpdates => Icon::ResetSlide,
+        Icon::Ai => Icon::Sparkle,
+        other => other,
+    };
     let _ = draw_clipboard_to_drawing(p, icon)
         || draw_insert_to_design(p, icon)
         || draw_motion_to_view(p, icon)

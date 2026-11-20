@@ -66,6 +66,10 @@ use geometry::Pen;
 use geometry::{star_pts, triangulate};
 
 icons! {
+    /// Help > Check for Updates…: the suite's icon, with the reset arrow as the fallback artwork.
+    CheckForUpdates => "check-for-updates",
+    /// The AI surfaces (ribbon, panels): the suite's icon, with the sparkle as the fallback artwork.
+    Ai => "ai",
     // Clipboard & slides
     Paste => "paste",
     Cut => "cut",
@@ -340,12 +344,65 @@ fn stroke_width(size: f32) -> f32 {
     (size / (16.0 + 4.0 * t)).max(1.0)
 }
 
+/// The suite's icon (`craft-icons`) for a concept every app of the suite shares; the rest of the
+/// icons stay the Slides artwork drawn in code, which also stands in until the suite SVG is ready.
+fn suite_icon(icon: Icon) -> Option<craft_icons::Icon> {
+    use craft_icons::Icon as S;
+    Some(match icon {
+        Icon::NewFile => S::New,
+        Icon::OpenFolder => S::Open,
+        Icon::Save => S::Save,
+        Icon::Print => S::Print,
+        Icon::Export => S::Export,
+        Icon::Share => S::Share,
+        Icon::Undo => S::Undo,
+        Icon::Redo => S::Redo,
+        Icon::Paste => S::Paste,
+        Icon::Cut => S::Cut,
+        Icon::Copy => S::Copy,
+        Icon::ZoomIn => S::ZoomIn,
+        Icon::ZoomOut => S::ZoomOut,
+        Icon::Search => S::Search,
+        Icon::Close => S::Close,
+        Icon::More => S::More,
+        Icon::Plus => S::Add,
+        Icon::Check => S::Check,
+        Icon::Info => S::Info,
+        Icon::Help => S::Help,
+        Icon::Warning => S::Warning,
+        Icon::Settings => S::Settings,
+        Icon::Language => S::Language,
+        Icon::CheckForUpdates => S::CheckForUpdates,
+        Icon::Ai => S::Ai,
+        _ => return None,
+    })
+}
+
+/// Paints a suite icon tinted `c`; false while its SVG is not ready (the caller draws the old artwork).
+fn paint_suite(p: &egui::Painter, rect: egui::Rect, icon: craft_icons::Icon, c: Color32) -> bool {
+    let side = rect.width().min(rect.height());
+    let image = egui::Image::new(craft_icons::ui::source(icon));
+    match image.load_for_size(p.ctx(), vec2(side, side)) {
+        Ok(egui::load::TexturePoll::Ready { texture }) => {
+            let uv = Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0));
+            p.image(texture.id, Rect::from_center_size(rect.center(), vec2(side, side)), uv, c);
+            true
+        }
+        _ => false,
+    }
+}
+
 /// Paint `icon` into `rect` (square or not; draw centred in the largest square). `ink` is the
 /// foreground (text) colour for the current theme; accents are fixed colours (see above), but when
 /// `disabled` is true draw everything in `ink` at ~35% alpha.
 pub fn paint(painter: &egui::Painter, rect: egui::Rect, icon: Icon, ink: egui::Color32, disabled: bool) {
     let size = rect.width().min(rect.height());
     if !size.is_finite() || size <= 0.5 {
+        return;
+    }
+    if let Some(suite) = suite_icon(icon)
+        && paint_suite(painter, rect, suite, if disabled { ink.gamma_multiply(0.35) } else { ink })
+    {
         return;
     }
     let origin = rect.center() - vec2(size * 0.5, size * 0.5);

@@ -130,6 +130,8 @@ impl Tokens {
 
 /// Apply tokens to egui's style.
 pub fn apply(ctx: &egui::Context, t: &Tokens) {
+    // The SVG loader for the suite's icons (`craft-icons`); installing again is a no-op.
+    egui_extras::install_image_loaders(ctx);
     let mut v = if t.dark { Visuals::dark() } else { Visuals::light() };
     v.panel_fill = t.chrome;
     v.window_fill = t.card;

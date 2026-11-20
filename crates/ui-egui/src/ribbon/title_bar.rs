@@ -63,13 +63,13 @@ pub fn title_bar(app: &mut SlideApp, ui: &mut Ui) {
         // Right side.
         let mut right = ui.new_child(
             egui::UiBuilder::new()
-                .max_rect(Rect::from_min_max(pos2(rect.max.x - 320.0, rect.min.y), pos2(rect.max.x - 10.0, rect.max.y)))
+                .max_rect(Rect::from_min_max(pos2(rect.max.x - 360.0, rect.min.y), pos2(rect.max.x, rect.max.y)))
                 .layout(egui::Layout::right_to_left(egui::Align::Center)),
         );
         right.spacing_mut().item_spacing.x = 6.0;
-        if icon_toggle(&mut right, Icon::Search, "Search commands (⇧⌘P)", true, false).clicked() {
-            app.palette = Some((String::new(), 0));
-        }
+        // The suite's controls, right to left: Settings (the gear), the theme, the command search.
+        right.add_space(8.0);
+        shell_buttons(app, &mut right);
         let share = right.add(
             egui::Button::new(egui::RichText::new(tl!("  Present  ")).color(t.accent_text).font(theme::bold(13.0)))
                 .fill(t.accent)
@@ -83,16 +83,24 @@ pub fn title_bar(app: &mut SlideApp, ui: &mut Ui) {
         if icon_toggle(&mut right, Icon::CommentsBubble, "Comments", has_doc, app.ui.pane.as_deref() == Some("comments")).clicked() {
             let _ = app.run("view.pane", json!({"pane": "comments", "toggle": true}));
         }
-        if icon_toggle(
-            &mut right,
-            if app.ui.brightness == theme::Brightness::Dark { Icon::Sparkle } else { Icon::Palette },
-            "Light/Dark appearance",
-            true,
-            false,
-        )
-        .clicked()
-        {
-            let _ = app.run("view.dark", json!({}));
-        }
     });
+}
+
+/// The suite's controls of the title bar, in a right-to-left layout: the gear that opens Settings,
+/// the theme button (Automatic, Light, Dark) and the magnifier that opens the command palette.
+/// Ctrl+K is Insert Link here, so the search keeps its own shortcut (Ctrl+Shift+P).
+fn shell_buttons(app: &mut SlideApp, ui: &mut Ui) {
+    if craft_icons::ui::button(ui, craft_icons::Icon::Settings, tl!("Settings")).clicked() {
+        let _ = app.run("app.preferences", json!({}));
+    }
+    let mut mode = app.ui.suite_mode();
+    let tooltip = format!("{}: {}", tl!("Theme"), tl!(mode.label()));
+    if craft_icons::ui::theme_button(ui, &mut mode, &tooltip) {
+        let _ = app.run("view.theme", json!({"mode": mode.id()}));
+    }
+    let shortcut = ui.ctx().format_shortcut(&egui::KeyboardShortcut::new(egui::Modifiers::COMMAND | egui::Modifiers::SHIFT, egui::Key::P));
+    let tooltip = format!("{} ({shortcut})", tl!("Search commands"));
+    if craft_icons::ui::button(ui, craft_icons::Icon::Search, &tooltip).clicked() {
+        app.palette = Some((String::new(), 0));
+    }
 }

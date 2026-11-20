@@ -100,6 +100,19 @@ pub struct UiState {
     pub qat: Vec<qat::QatItem>,
 }
 
+impl UiState {
+    /// The suite's theme mode (`craft-icons`) for this preference: the title bar's theme button shows and cycles it.
+    pub fn suite_mode(&self) -> craft_icons::ThemeMode {
+        if self.system_theme {
+            craft_icons::ThemeMode::System
+        } else if self.brightness == theme::Brightness::Dark {
+            craft_icons::ThemeMode::Dark
+        } else {
+            craft_icons::ThemeMode::Light
+        }
+    }
+}
+
 impl Default for UiState {
     fn default() -> Self {
         UiState {
