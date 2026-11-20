@@ -786,7 +786,11 @@ fn preferences_cancel_restores_the_settings_done_keeps_them() {
     let change = |harness: &mut egui_kittest::Harness<'static, SlideApp>| {
         harness.state_mut().run("app.preferences", json!({})).unwrap();
         harness.run_steps(2);
-        for label in ["Dark appearance", "Show smart guides", "Snap objects to grid"] {
+        harness.get_by_role_and_label(egui::accesskit::Role::ComboBox, "Theme:").click();
+        harness.run_steps(2);
+        harness.get_by_label("Dark").click();
+        harness.run_steps(2);
+        for label in ["Show smart guides", "Snap objects to grid"] {
             harness
                 .query_all_by_role_and_label(egui::accesskit::Role::CheckBox, label)
                 .next()

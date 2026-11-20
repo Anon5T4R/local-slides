@@ -1364,10 +1364,42 @@ fn dlg_preferences(app: &mut SlideApp, ui: &mut Ui, d: &mut Dialog) -> bool {
         d.params = json!({ "before": preferences_snapshot(app) });
     }
     ui.label(egui::RichText::new(tl!("General")).font(theme::bold(13.0)));
-    let mut dark = app.ui.brightness == theme::Brightness::Dark;
-    if ui.checkbox(&mut dark, tl!("Dark appearance")).changed() {
-        let _ = app.run("view.dark", json!({"on": dark}));
-    }
+    // Theme and language: the suite's two settings (Automatic follows the system).
+    ui.horizontal(|ui| {
+        let label = ui.label(tl!("Theme:"));
+        let mode = app.ui.suite_mode();
+        craft_ui::ComboBox::from_id_salt("preferences_theme")
+            .width(180.0)
+            .selected_text(tl!(mode.label()))
+            .show_ui(ui, |ui| {
+                for choice in craft_icons::ThemeMode::EVERY {
+                    if ui.selectable_label(mode == choice, tl!(choice.label())).clicked() {
+                        let _ = app.run("view.theme", json!({"mode": choice.id()}));
+                    }
+                }
+            })
+            .response
+            .labelled_by(label.id);
+    });
+    ui.horizontal(|ui| {
+        let label = ui.label(tl!("Language:"));
+        let current = app.ui.language.clone();
+        let auto = tl!("Automatic (system)");
+        let shown = if current == crate::i18n::AUTO { auto } else { crate::i18n::name_of(&current) };
+        craft_ui::ComboBox::from_id_salt("preferences_language")
+            .width(180.0)
+            .selected_text(shown)
+            .show_ui(ui, |ui| {
+                let choices = std::iter::once((crate::i18n::AUTO, auto)).chain(crate::i18n::languages());
+                for (code, name) in choices {
+                    if ui.selectable_label(current == code, name).clicked() {
+                        let _ = app.run("view.language", json!({ "language": code }));
+                    }
+                }
+            })
+            .response
+            .labelled_by(label.id);
+    });
     // While the pointer holds the slider its value only waits in the dialog: applying it
     // would rescale the slider under the pointer and run it to an end (#767). It applies
     // on release, and at once from the keyboard.

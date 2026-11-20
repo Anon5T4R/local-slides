@@ -5,7 +5,7 @@ use super::{Icon, SlideApp, Ui, big_button, group};
 pub(super) fn ai(app: &mut SlideApp, ui: &mut Ui) {
     let open = app.session.active().is_some();
     group(ui, |ui| {
-        if big_button(ui, Icon::Sparkle, "Generate\nPresentation", open).clicked() {
+        if big_button(ui, Icon::Ai, "Generate\nPresentation", open).clicked() {
             app.ai.open_generate(&mut app.session);
         }
     });
@@ -20,7 +20,7 @@ pub(super) fn ai(app: &mut SlideApp, ui: &mut Ui) {
         }
     });
     group(ui, |ui| {
-        if big_button(ui, Icon::Sparkle, "AI\nAssistant", true).clicked() {
+        if big_button(ui, Icon::Ai, "AI\nAssistant", true).clicked() {
             app.ai.chat_open = !app.ai.chat_open;
         }
     });

@@ -91,7 +91,7 @@ fn page_ids_round_trip_and_unknown_ids_are_refused() {
     assert_eq!(Page::parse(""), None);
     let (top, bottom) = entries(false);
     assert_eq!(top, vec![Nav::Page(Page::Home), Nav::Page(Page::New), Nav::Page(Page::Open)], "the start screen has no presentation pages");
-    assert_eq!(bottom, vec![Nav::Page(Page::About), Nav::Options]);
+    assert_eq!(bottom, vec![Nav::Page(Page::About), Nav::Settings, Nav::Exit]);
     assert_eq!(entries(true).0.len(), 9);
     assert_eq!(split_path("/home/me/Talk.pptx"), ("Talk.pptx".into(), "/home/me".into()));
     assert_eq!(format_bytes(512), "512 bytes");
@@ -144,7 +144,7 @@ fn alt_f_arrows_enter_and_esc_drive_the_side_menu() {
     h.key_press(Key::Enter);
     h.run_steps(2);
     assert_eq!(page(&h), Some(Page::SaveAs));
-    // Up from the top wraps to Options at the bottom.
+    // Up from the top wraps to Exit at the bottom.
     for _ in 0..20 {
         h.key_press(Key::ArrowUp);
     }
@@ -691,16 +691,16 @@ fn print_slides_follow_the_settings() {
     assert_eq!(print_page_size(&bs, &doc), (doc.slide_size.width as f32, doc.slide_size.height as f32), "slides print slide-shaped");
 }
 
-/// Options in the File tab opens the Preferences dialog, and Cancel closes it (#782, #752).
+/// Settings in the File tab opens the Settings dialog, and Cancel closes it (#782, #752).
 #[test]
-fn options_in_backstage_opens_preferences_and_cancel_closes_it() {
+fn settings_in_backstage_opens_the_dialog_and_cancel_closes_it() {
     let mut h = harness(new_app());
     h.get_by_label("File").click();
     h.run_steps(3);
     assert!(h.state().backstage_open());
-    h.get_by_label("Options").click();
+    click_nav(&h, "Settings");
     h.run_steps(3);
-    assert!(h.state().dialog.is_some(), "Options opens Preferences dialog");
+    assert!(h.state().dialog.is_some(), "Settings opens the dialog");
     assert_eq!(h.state().dialog.as_ref().map(|d| d.id.as_str()), Some("preferences"));
     h.query_all_by_role_and_label(Role::Button, "Cancel").next().expect("Cancel button").click_accesskit();
     h.run_steps(3);
@@ -721,26 +721,10 @@ fn about_has_product_links_and_credits_without_account_controls() {
     assert!(h.query_by_label("User Information").is_none());
     assert!(h.query_by_label("Source on GitHub").is_some());
     assert!(h.query_by_label("Community discussions on GitHub").is_some());
-    assert!(h.query_all_by_label("Appearance").next().is_some());
+    assert!(h.query_all_by_label("Appearance").next().is_none(), "the theme lives in Settings");
     click_on_page(&h, "Credits");
     h.run_steps(3);
     assert!(h.state().dialog.is_some());
     assert!(h.query_by_label("Contributors").is_some());
     assert!(h.query_by_label("Models").is_some());
-}
-
-/// At the 900-point minimum window width the About columns stack and Appearance stays on the page.
-#[test]
-fn about_appearance_stays_on_the_page_at_minimum_width() {
-    let mut h = Harness::builder().with_size(egui::vec2(900.0, 900.0)).build_ui_state(
-        |ui, app: &mut SlideApp| {
-            app.logic(ui.ctx());
-            app.ui(ui);
-        },
-        new_app(),
-    );
-    h.state_mut().run("app.backstage", json!({"page": "about"})).unwrap();
-    h.run_steps(3);
-    let r = h.query_all_by_role_and_label(Role::ComboBox, "Appearance").next().expect("Appearance selector").rect();
-    assert!(r.right() <= 900.0, "Appearance selector ends at {}, inside the window", r.right());
 }

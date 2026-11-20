@@ -49,7 +49,7 @@ fn title(id: &str) -> &'static str {
         "tabs" => "Tabs",
         "font" => "Font",
         "about" => "About Local Slides",
-        "preferences" => "Preferences",
+        "preferences" => "Settings",
         "autocorrect" => "AutoCorrect",
         "gridOptions" => "Grid Options",
         "columns" => "Columns",

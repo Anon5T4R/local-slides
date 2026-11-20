@@ -5,6 +5,7 @@ pub(super) fn preferences_snapshot(app: &SlideApp) -> Value {
     json!({
         "dark": app.ui.brightness == theme::Brightness::Dark,
         "system": app.ui.system_theme,
+        "language": app.ui.language,
         "uiScale": app.ui.ui_scale,
         "prefs": serde_json::to_value(&app.session.prefs).unwrap_or(Value::Null),
     })
@@ -20,6 +21,11 @@ pub(super) fn restore_preferences(app: &mut SlideApp, d: &Dialog) {
     }
     if before.get("system").and_then(Value::as_bool) == Some(true) {
         let _ = app.run("view.theme", json!({ "mode": "system" }));
+    }
+    if let Some(language) = before.get("language").and_then(Value::as_str)
+        && language != app.ui.language
+    {
+        let _ = app.run("view.language", json!({ "language": language }));
     }
     if let Some(scale) = before.get("uiScale").and_then(Value::as_f64) {
         app.ui.ui_scale = scale as f32;

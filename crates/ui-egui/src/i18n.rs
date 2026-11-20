@@ -93,6 +93,12 @@ pub fn tr(source: &str) -> &str {
     I18N.t(current(), source)
 }
 
+/// `source` (English) in the current language under a disambiguating `context` (the catalog's
+/// first column), else the plain row, else English.
+pub fn tr_ctx<'a>(context: &str, source: &'a str) -> &'a str {
+    I18N.tc(current(), context, source)
+}
+
 /// `source` (English) in the current language, with `{name}` placeholders filled.
 pub fn tr_fmt(source: &str, args: &[(&str, &str)]) -> String {
     craft_i18n::fmt(tr(source), args)

@@ -839,6 +839,10 @@ fn form_labels<'a>() -> ai_ui::ConnectionsLabels<'a> {
         cancel: tl!("Cancel"),
         hint_url: tl!("Empty uses the provider's own address."),
         hint_key: tl!("The key lives in the OS keychain; the connection file never holds it."),
+        close: tl!("Close"),
+        needs_key: tl!("Paste the API key first: this provider asks for one."),
+        needs_url: tl!("Choose a provider or type its address first."),
+        needs_model: tl!("Choose a model first (Fetch models lists them)."),
     }
 }
 

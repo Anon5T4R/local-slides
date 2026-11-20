@@ -189,82 +189,32 @@ pub(super) fn save_as(app: &mut SlideApp, ui: &mut Ui, bs: &mut Backstage, out: 
     }
 }
 
-/// Product information, project links, credits and appearance preferences.
+/// Product information, project links, credits and updates. The theme and the language live in
+/// Settings (the gear in the title bar, File > Settings).
 pub(super) fn about(app: &mut SlideApp, ui: &mut Ui) {
     let t = Tokens::get(ui.ctx());
-    // Side by side needs 480 + 40 + 340 points; stack the columns when the page is narrower.
-    let layout = if ui.available_width() >= 860.0 { egui::Layout::left_to_right(egui::Align::Min) } else { egui::Layout::top_down(egui::Align::Min) };
-    ui.with_layout(layout, |ui| {
-        ui.vertical(|ui| {
-            ui.set_width(480.0);
-            heading(ui, "Product Information");
-            ui.horizontal(|ui| {
-                let (r, _) = ui.allocate_exact_size(vec2(40.0, 40.0), Sense::hover());
-                crate::dialogs::paint_logo(ui.painter(), r);
-                ui.label(RichText::new(tl!("Local Slides")).font(theme::bold(24.0)).color(t.text));
-            });
-            dim(ui, &crate::dialogs::version_line());
-            dim(ui, "Open source under MIT OR Apache-2.0. Not affiliated with Microsoft.");
-            ui.add_space(14.0);
-            if task(ui, Icon::Help, "Credits", "Credits", "The people and models who built Local Slides.", true) {
-                let _ = app.run("app.about", json!({}));
-            }
-            #[cfg(not(target_arch = "wasm32"))]
-            {
-                ui.add_space(8.0);
-                if task(ui, Icon::ResetSlide, "Check", "Check for Updates…", "See whether a newer version of Local Slides is available.", true) {
-                    let _ = app.run("app.checkUpdates", json!({}));
-                }
-            }
-            ui.hyperlink_to(tl!("Community discussions on GitHub"), localslides_engine::links::COMMUNITY);
-            ui.hyperlink_to(tl!("Source on GitHub"), localslides_engine::links::GITHUB);
+    ui.vertical(|ui| {
+        ui.set_width(480.0);
+        heading(ui, "Product Information");
+        ui.horizontal(|ui| {
+            let (r, _) = ui.allocate_exact_size(vec2(40.0, 40.0), Sense::hover());
+            crate::dialogs::paint_logo(ui.painter(), r);
+            ui.label(RichText::new(tl!("Local Slides")).font(theme::bold(24.0)).color(t.text));
         });
-        ui.add_space(40.0);
-        ui.vertical(|ui| {
-            ui.set_width(340.0);
-            heading(ui, "Appearance");
-            let dark = app.ui.brightness == theme::Brightness::Dark;
-            let mode = if app.ui.system_theme {
-                "system"
-            } else if dark {
-                "dark"
-            } else {
-                "light"
-            };
-            craft_ui::ComboBox::from_id_salt("backstage_appearance")
-                .width(260.0)
-                .selected_text(match mode {
-                    "system" => tl!("System"),
-                    "dark" => tl!("Dark"),
-                    _ => tl!("Light"),
-                })
-                .show_ui(ui, |ui| {
-                    for (value, label) in [("system", "System"), ("light", "Light"), ("dark", "Dark")] {
-                        if ui.selectable_label(mode == value, tl!(label)).clicked() {
-                            let _ = app.run("view.theme", json!({"mode": value}));
-                        }
-                    }
-                })
-                .response
-                .widget_info(|| egui::WidgetInfo::labeled(egui::Role::ComboBox, true, "Appearance"));
-            ui.add_space(16.0);
-            heading(ui, "Language");
-            let current = app.ui.language.clone();
-            let auto = tl!("Automatic (system)");
-            let shown = if current == crate::i18n::AUTO { auto } else { crate::i18n::name_of(&current) };
-            craft_ui::ComboBox::from_id_salt("backstage_language")
-                .width(260.0)
-                .selected_text(shown)
-                .show_ui(ui, |ui| {
-                    let choices = std::iter::once((crate::i18n::AUTO, auto)).chain(crate::i18n::languages());
-                    for (code, name) in choices {
-                        if ui.selectable_label(current == code, name).clicked() {
-                            let _ = app.run("view.language", json!({ "language": code }));
-                        }
-                    }
-                })
-                .response
-                .widget_info(|| egui::WidgetInfo::labeled(egui::Role::ComboBox, true, "Language"));
-        });
+        dim(ui, &crate::dialogs::version_line());
+        dim(ui, "Open source under MIT OR Apache-2.0. Not affiliated with Microsoft.");
+        ui.add_space(14.0);
+        if task(ui, Icon::Help, "Credits", "Credits", "The people and models who built Local Slides.", true) {
+            let _ = app.run("app.about", json!({}));
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            ui.add_space(8.0);
+            if task(ui, Icon::CheckForUpdates, "Check", "Check for Updates…", "See whether a newer version of Local Slides is available.", true) {
+                let _ = app.run("app.checkUpdates", json!({}));
+            }
+        }
+        ui.hyperlink_to(tl!("Community discussions on GitHub"), localslides_engine::links::COMMUNITY);
+        ui.hyperlink_to(tl!("Source on GitHub"), localslides_engine::links::GITHUB);
     });
 }

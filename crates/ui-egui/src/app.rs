@@ -186,6 +186,18 @@ impl SlideApp {
         }
     }
 
+    /// File > Exit: quits the app, asking first when a presentation has unsaved changes (the
+    /// window's close button asks the same question).
+    pub fn request_quit(&mut self) {
+        if self.session.documents().iter().any(|d| d.is_dirty()) {
+            self.show = None;
+            self.dialog = Some(dialogs::Dialog::new("quit"));
+        } else if let Some(ctx) = &self.ctx {
+            self.quit_confirmed = true;
+            ctx.send_viewport_cmd_to(egui::ViewportId::ROOT, egui::ViewportCommand::Close);
+        }
+    }
+
     /// Back to the presentation (no effect on the start screen, where nothing is open).
     pub fn close_backstage(&mut self) {
         if self.session.active().is_some() {

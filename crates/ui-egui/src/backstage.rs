@@ -3,7 +3,7 @@
 //! screen: PowerPoint's start screen and File › Home are the same page.
 //!
 //! A side menu on the left picks a page (Home, New, Open, Info, Save As, Print, Export, About);
-//! Save, Close and Options act at once. Every action runs an existing command through
+//! Save, Close, Settings and Exit act at once. Every action runs an existing command through
 //! [`SlideApp::run`] or one of the app's file helpers ([`SlideApp::export_as`],
 //! [`SlideApp::print_pdf`], [`SlideApp::save_as_dialog`]); the state here is UI-only and never
 //! saved. Recent presentations are listed by path: nothing on disk is read until one is picked.
@@ -115,7 +115,10 @@ pub enum Nav {
     Page(Page),
     Save,
     Close,
-    Options,
+    /// The Settings dialog (what PowerPoint calls Options); it holds the theme and the language.
+    Settings,
+    /// Quits the app, asking about unsaved presentations first (desktop only).
+    Exit,
 }
 
 impl Nav {
@@ -124,7 +127,8 @@ impl Nav {
             Nav::Page(p) => p.label(),
             Nav::Save => "Save",
             Nav::Close => "Close",
-            Nav::Options => "Options",
+            Nav::Settings => "Settings",
+            Nav::Exit => "Exit",
         }
     }
     fn icon(self) -> Icon {
@@ -132,7 +136,8 @@ impl Nav {
             Nav::Page(p) => p.icon(),
             Nav::Save => Icon::Save,
             Nav::Close => Icon::File,
-            Nav::Options => Icon::Settings,
+            Nav::Settings => Icon::Settings,
+            Nav::Exit => Icon::Close,
         }
     }
 }
@@ -144,7 +149,11 @@ pub fn entries(has_doc: bool) -> (Vec<Nav>, Vec<Nav>) {
     if has_doc {
         top.extend([Nav::Page(Page::Info), Nav::Save, Nav::Page(Page::SaveAs), Nav::Page(Page::Print), Nav::Page(Page::Export), Nav::Close]);
     }
-    (top, vec![Nav::Page(Page::About), Nav::Options])
+    let mut bottom = vec![Nav::Page(Page::About), Nav::Settings];
+    // Nothing to quit in the browser.
+    #[cfg(not(target_arch = "wasm32"))]
+    bottom.push(Nav::Exit);
+    (top, bottom)
 }
 
 /// Print page: which slides.
@@ -263,8 +272,12 @@ fn act(app: &mut SlideApp, nav: Nav, current: Page) -> Option<Page> {
             app.close_presentation();
             Some(current)
         }
-        Nav::Options => {
+        Nav::Settings => {
             let _ = app.run("app.preferences", json!({}));
+            Some(current)
+        }
+        Nav::Exit => {
+            app.request_quit();
             Some(current)
         }
     }
@@ -350,26 +363,31 @@ pub fn show(app: &mut SlideApp, ui: &mut Ui) {
         } else {
             ui.add_space(BACK_H);
         }
-        let mut index = 0;
-        for (k, nav) in top.iter().enumerate() {
-            if k == 3 {
-                separator(ui, &t);
-            }
-            if nav_item(ui, *nav, &bs, index, &t).clicked() {
-                bs.focus = None;
-                commit_props(app, &bs);
-                match act(app, *nav, bs.page) {
-                    None => out.close = true,
-                    Some(p) => out.page = Some(p),
+        // The list scrolls in a short window; the last group sits at the bottom when there is room.
+        let room = ui.available_height();
+        egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+            ui.spacing_mut().item_spacing.y = 0.0;
+            let mut index = 0;
+            for (k, nav) in top.iter().enumerate() {
+                if k == 3 {
+                    separator(ui, &t);
                 }
+                if nav_item(ui, *nav, &bs, index, &t).clicked() {
+                    bs.focus = None;
+                    commit_props(app, &bs);
+                    match act(app, *nav, bs.page) {
+                        None => out.close = true,
+                        Some(p) => out.page = Some(p),
+                    }
+                }
+                index += 1;
             }
-            index += 1;
-        }
-        let first_bottom = index;
-        ui.with_layout(egui::Layout::bottom_up(egui::Align::Min), |ui| {
-            ui.add_space(8.0);
-            // Bottom-up: draw the last entry first.
-            for (k, nav) in bottom.iter().enumerate().rev() {
+            let first_bottom = index;
+            let needed = bottom.len() as f32 * ITEM_H + 8.0 + 13.0;
+            let top_h = top.len() as f32 * ITEM_H + if top.len() > 3 { 13.0 } else { 0.0 };
+            ui.add_space((room - top_h - needed).max(0.0));
+            separator(ui, &t);
+            for (k, nav) in bottom.iter().enumerate() {
                 if nav_item(ui, *nav, &bs, first_bottom + k, &t).clicked() {
                     bs.focus = None;
                     commit_props(app, &bs);
@@ -379,7 +397,7 @@ pub fn show(app: &mut SlideApp, ui: &mut Ui) {
                     }
                 }
             }
-            separator(ui, &t);
+            ui.add_space(8.0);
         });
     });
     egui::CentralPanel::default().frame(egui::Frame::NONE.fill(page_bg)).show(ui, |ui| {
@@ -452,7 +470,9 @@ fn nav_item(ui: &mut Ui, nav: Nav, bs: &Backstage, index: usize, t: &Tokens) -> 
     }
     let ink = if selected { t.accent } else { t.text };
     icons::paint(p, Rect::from_center_size(pos2(rect.left() + 26.0, rect.center().y), vec2(16.0, 16.0)), nav.icon(), ink, false);
-    p.text(pos2(rect.left() + 44.0, rect.center().y), Align2::LEFT_CENTER, tl!(label), theme::font(13.0), ink);
+    // "Exit" is also the animation class (a noun): the app's Exit has its own row, under the `app` context.
+    let shown = if nav == Nav::Exit { crate::i18n::tr_ctx("app", label) } else { tl!(label) };
+    p.text(pos2(rect.left() + 44.0, rect.center().y), Align2::LEFT_CENTER, shown, theme::font(13.0), ink);
     resp
 }
 

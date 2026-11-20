@@ -35,6 +35,14 @@ fn open_options(h: &mut Harness<'_, SlideApp>) {
     h.run_steps(3);
 }
 
+/// Opens the Theme box of the Settings dialog and picks `label`.
+fn pick_theme(h: &mut Harness<'_, SlideApp>, label: &str) {
+    h.get_by_role_and_label(egui::accesskit::Role::ComboBox, "Theme:").click();
+    h.run_steps(2);
+    h.get_by_label(label).click();
+    h.run_steps(2);
+}
+
 fn dark(app: &SlideApp) -> bool {
     app.ui.brightness == Brightness::Dark
 }
@@ -99,9 +107,8 @@ fn options_cancel_puts_the_appearance_and_scale_back() {
     let (dark_before, scale_before) = (dark(h.state()), h.state().ui.ui_scale);
     open_options(&mut h);
 
-    h.query_by_label("Dark appearance").expect("the checkbox is there").click();
-    h.run_steps(2);
-    assert!(dark(h.state()), "the appearance applies as it is toggled");
+    pick_theme(&mut h, "Dark");
+    assert!(dark(h.state()), "the appearance applies as it is chosen");
 
     // Clicking the slider's middle sets it near the middle of its range, away from the default.
     interface_size(&h).click();

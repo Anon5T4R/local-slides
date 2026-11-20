@@ -407,6 +407,8 @@
 	Chevron	Cheurón
 	Chime	Campanilla
 	Choose a font	Elija una fuente
+	Choose a model first (Fetch models lists them).	Elija primero un modelo (Obtener modelos los lista).
+	Choose a provider or type its address first.	Elija primero un proveedor o escriba su dirección.
 	Choose a slide in the audience window, or press G to return.	Elija una diapositiva en la ventana del público o pulse G para volver.
 	Choose a SmartArt Graphic	Elegir un gráfico SmartArt
 	Choose where to save	Elegir dónde guardar
@@ -551,7 +553,6 @@
 	Cylinder	Cilindro
 	Dark	Oscuro
 	Dark\nMode	Modo\noscuro
-	Dark appearance	Apariencia oscura
 	Dark Blue	Azul oscuro
 	Dark downward diagonal	Diagonal descendente oscura
 	Dark horizontal	Horizontal oscura
@@ -719,6 +720,7 @@
 	Exactly	Exactamente
 	Exciting	Llamativo
 	Exit	Salida
+app	Exit	Salir
 	Exit Edit Points	Salir de la edición de puntos
 	Expand	Expandir
 	Explosion: 14 Points	Explosión: 14 puntas
@@ -1073,7 +1075,6 @@
 	Light horizontal	Horizontal clara
 	Light upward diagonal	Diagonal ascendente clara
 	Light vertical	Vertical clara
-	Light/Dark appearance	Apariencia clara/oscura
 	Lighten	Aclarar
 	Lighter 10%	Más claro 10 %
 	Lighter 25%	Más claro 25 %
@@ -1335,6 +1336,7 @@
 	Paste or type an outline. Unindented lines become slide titles; tab-indented lines become bullets.	Pegue o escriba un esquema. Las líneas sin sangría se convierten en títulos de diapositiva; las líneas con sangría de tabulación, en viñetas.
 	Paste Special	Pegado especial
 	Paste Special…	Pegado especial…
+	Paste the API key first: this provider asks for one.	Pegue primero la clave de API: este proveedor la exige.
 	Path	Trayectoria
 	Pattern	Trama
 	Pattern fill	Relleno con trama
@@ -1412,8 +1414,6 @@
 	Poster Frame	Fotograma de póster
 	PowerPoint Presentation (*.pptx)	Presentación de PowerPoint (*.pptx)
 	PowerPoint Presentation (.pptx)	Presentación de PowerPoint (.pptx)
-	Preferences	Preferencias
-	Preferences…	Preferencias…
 	Presentations	Presentaciones
 	Presentations and slide shows, rebuilt from scratch in pure Rust.	Presentaciones y proyecciones de diapositivas, recreadas desde cero en Rust puro.
 	Presentations you open show up here. Use Open to browse for one.	Las presentaciones que abra aparecerán aquí. Use Abrir para buscar una.
@@ -1633,7 +1633,7 @@
 	Scroll ribbon right	Desplazar la cinta de opciones a la derecha
 	Scroll: Horizontal	Pergamino: horizontal
 	Scroll: Vertical	Pergamino: vertical
-	Search commands (⇧⌘P)	Buscar comandos (⇧⌘P)
+	Search commands	Buscar comandos
 	Search commands…	Buscar comandos…
 	Search for a file	Buscar un archivo
 	Search for a word	Buscar una palabra
@@ -1684,6 +1684,7 @@
 	Set Up Slide Show…	Configurar presentación con diapositivas…
 	Set Zoom	Establecer zoom
 	Settings	Configuración
+	Settings…	Configuración…
 	Several slides on each page of a PDF	Varias diapositivas en cada página de un PDF
 	Shading	Sombreado
 	Shadow	Sombra
@@ -1929,6 +1930,7 @@
 	Theme	Tema
 	Theme Colors	Colores del tema
 	Theme Gallery	Galería de temas
+	Theme:	Tema:
 	Themes	Temas
 	Themes (whole presentation)	Temas (toda la presentación)
 	There are no unsaved changes.	No hay cambios sin guardar.
