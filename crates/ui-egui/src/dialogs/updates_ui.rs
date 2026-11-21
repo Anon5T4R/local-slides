@@ -45,6 +45,12 @@ pub(crate) fn tick(app: &mut SlideApp, ctx: &egui::Context) {
     rt.updater.tick(ctx);
 }
 
+#[cfg(test)]
+/// Offers `release` as the background check does, so a test can measure the card.
+pub(crate) fn offer_for_test(app: &mut SlideApp, release: craft_update::Release) {
+    app.updates_rt.updater.offer(release);
+}
+
 pub(crate) fn show(app: &mut SlideApp, ctx: &egui::Context) {
     // The restart helper is scheduled before the app closes, so no update starts over unsaved work.
     let clean = !app.session.documents().iter().any(|d| d.is_dirty());

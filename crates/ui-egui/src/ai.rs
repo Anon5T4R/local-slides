@@ -1325,12 +1325,12 @@ mod tests {
             let mut a = app(brightness);
             a.ai.chat_open = true;
             a.ai.chat.push_answer("The deck has **two** slides.\n\n- Fotossíntese\n- Luz");
-            let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(1400.0, 900.0)).with_accessibility_check(false).build_ui_state(draw, a);
+            let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_ui_state(draw, a);
             save(&mut h, &format!("ai-chat-{name}"));
 
             let mut b = app(brightness);
             b.ai.settings_open = true;
-            let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(1000.0, 800.0)).with_accessibility_check(false).build_ui_state(draw, b);
+            let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(1000.0, 800.0)).build_ui_state(draw, b);
             save(&mut h, &format!("ai-connections-{name}"));
         }
     }

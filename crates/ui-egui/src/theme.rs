@@ -69,7 +69,7 @@ impl Tokens {
             hover: Color32::from_rgb(0xEB, 0xEB, 0xEB),
             pressed: Color32::from_rgb(0xDE, 0xDE, 0xDE),
             selected: Color32::from_rgb(0xE6, 0xE6, 0xE6),
-            accent: Color32::from_rgb(0xD9, 0x5A, 0x1A),
+            accent: Color32::from_rgb(0xB0, 0x4A, 0x00),
             accent_text: Color32::WHITE,
             contextual: Color32::from_rgb(0xC2, 0x4E, 0x14),
             selection: Color32::from_rgb(0x7A, 0x7A, 0x7A),
@@ -101,8 +101,8 @@ impl Tokens {
             hover: Color32::from_rgb(0x40, 0x40, 0x40),
             pressed: Color32::from_rgb(0x4C, 0x4C, 0x4C),
             selected: Color32::from_rgb(0x47, 0x47, 0x47),
-            accent: Color32::from_rgb(0xF2, 0x6B, 0x1D),
-            accent_text: Color32::WHITE,
+            accent: Color32::from_rgb(0xF5, 0x7A, 0x33),
+            accent_text: Color32::from_rgb(0x2A, 0x16, 0x08),
             contextual: Color32::from_rgb(0xF5, 0x8A, 0x4B),
             selection: Color32::from_rgb(0xAA, 0xAA, 0xAA),
             handle_fill: Color32::WHITE,
@@ -270,6 +270,40 @@ pub fn to_color32(c: localslides_color::Rgba) -> Color32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// WCAG 2 contrast ratio between two opaque colours (1 to 21).
+    fn contrast(a: Color32, b: Color32) -> f32 {
+        let lum = |c: Color32| {
+            let lin = |v: u8| {
+                let v = f32::from(v) / 255.0;
+                if v <= 0.04045 { v / 12.92 } else { ((v + 0.055) / 1.055).powf(2.4) }
+            };
+            0.2126 * lin(c.r()) + 0.7152 * lin(c.g()) + 0.0722 * lin(c.b())
+        };
+        (lum(a).max(lum(b)) + 0.05) / (lum(a).min(lum(b)) + 0.05)
+    }
+
+    /// The accent as text (links, the File view's titles, the status message) passes 4,5:1 on every
+    /// surface it is drawn on, and so does its own text on an accent fill (primary buttons).
+    #[test]
+    fn the_accent_text_and_the_text_on_accent_pass_wcag_aa_in_both_themes() {
+        for (name, t) in [("light", Tokens::light()), ("dark", Tokens::dark())] {
+            for (surface, bg) in [("chrome", t.chrome), ("card", t.card), ("text field", t.text_field), ("canvas", t.canvas)] {
+                let ratio = contrast(t.accent, bg);
+                assert!(ratio >= 4.5, "{name}: the accent as text on {surface} is {ratio:.2}:1");
+            }
+            let ratio = contrast(t.accent_text, t.accent);
+            assert!(ratio >= 4.5, "{name}: the text on an accent fill is {ratio:.2}:1");
+        }
+    }
+
+    #[test]
+    fn contrast_matches_wcag_reference_values() {
+        assert!((contrast(Color32::BLACK, Color32::WHITE) - 21.0).abs() < 0.01);
+        assert!((contrast(Color32::WHITE, Color32::WHITE) - 1.0).abs() < 0.001);
+        // #767676 on white is the classic 4.54:1 grey.
+        assert!((contrast(Color32::from_rgb(0x76, 0x76, 0x76), Color32::WHITE) - 4.54).abs() < 0.01);
+    }
 
     /// Each character of `text` laid out in the interface fonts at interface sizes, and whether it
     /// has ink (a glyph image).

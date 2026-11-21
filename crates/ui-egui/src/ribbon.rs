@@ -152,11 +152,31 @@ pub fn show(app: &mut SlideApp, ui: &mut Ui) {
             x += w + 2.0;
         }
         let all: Vec<(&str, bool)> = TABS.iter().map(|s| (*s, false)).chain(ctx_tabs.iter().map(|s| (*s, true))).collect();
-        for (name, contextual) in all {
-            let font = theme::font(13.0);
+        // The row never runs past the window (a narrow window with a contextual tab would push the
+        // last tabs off screen): what does not fit goes to a "»" menu at the right edge.
+        let font = theme::font(13.0);
+        let right = rect.max.x - 8.0;
+        let widths: Vec<f32> =
+            all.iter().map(|(name, _)| ui.fonts_mut(|f| f.layout_no_wrap(tl!(name).to_string(), font.clone(), t.text).size().x) + 18.0).collect();
+        let total: f32 = widths.iter().sum::<f32>() + 2.0 * all.len() as f32;
+        let overflows = x + total > right;
+        let limit = if overflows { right - 28.0 } else { right };
+        let mut fits = all.len();
+        let mut cursor = x;
+        for (i, w) in widths.iter().enumerate() {
+            if cursor + w > limit {
+                fits = i;
+                break;
+            }
+            cursor += w + 2.0;
+        }
+        if fits == 0 && !all.is_empty() {
+            fits = 1;
+        }
+        for ((name, contextual), w) in all.iter().zip(&widths).take(fits) {
+            let (name, contextual, w) = (*name, *contextual, *w);
             // `name` is the tab's id (state); only the painted text is translated.
             let shown = tl!(name);
-            let w = ui.fonts_mut(|f| f.layout_no_wrap(shown.to_string(), font.clone(), t.text).size().x) + 18.0;
             let r = Rect::from_min_size(pos2(x, y), vec2(w, 24.0));
             let resp = ui.interact(r, ui.scope_id().with(("tab", name)), Sense::click());
             resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, name));
@@ -165,7 +185,7 @@ pub fn show(app: &mut SlideApp, ui: &mut Ui) {
                 ui.painter().rect_filled(r.shrink2(vec2(2.0, 2.0)), CornerRadius::same(4), t.hover);
             }
             let col = if contextual { t.contextual } else { t.text };
-            let f = if active { theme::bold(13.0) } else { font };
+            let f = if active { theme::bold(13.0) } else { font.clone() };
             ui.painter().text(r.center(), Align2::CENTER_CENTER, shown, f, col);
             if active {
                 let uw = (w - 20.0).max(16.0);
@@ -183,6 +203,25 @@ pub fn show(app: &mut SlideApp, ui: &mut Ui) {
                 app.ui.ribbon_collapsed = !app.ui.ribbon_collapsed;
             }
             x += w + 2.0;
+        }
+        if overflows && fits < all.len() {
+            let w = 24.0;
+            let r = Rect::from_min_size(pos2(right - w, y), vec2(w, 24.0));
+            let resp = ui.interact(r, ui.scope_id().with("tab_more"), Sense::click());
+            resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, tl!("More tabs")));
+            if resp.hovered() {
+                ui.painter().rect_filled(r.shrink2(vec2(2.0, 2.0)), CornerRadius::same(4), t.hover);
+            }
+            ui.painter().text(r.center(), Align2::CENTER_CENTER, "»", font, t.text);
+            egui::Popup::menu(&resp).show(|ui| {
+                for (name, contextual) in &all[fits..] {
+                    let text = egui::RichText::new(tl!(name)).color(if *contextual { t.contextual } else { t.text });
+                    if ui.add(egui::Button::new(text)).clicked() {
+                        app.ui.tab = (*name).to_string();
+                        app.ui.ribbon_collapsed = false;
+                    }
+                }
+            });
         }
         if app.ui.ribbon_collapsed {
             return;
