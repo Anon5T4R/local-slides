@@ -54,10 +54,7 @@ Today it can:
   MCP server for AI agents.
 
 
-The honest picture, area by area, is in [ROADMAP.md](ROADMAP.md),
-[docs/target-app-parity.md](docs/target-app-parity.md),
-[docs/gaps.md](docs/gaps.md) and the generated
-[docs/parity-checklist.md](docs/parity-checklist.md).
+The honest picture, area by area, is in [ROADMAP.md](ROADMAP.md).
 
 ## Getting started
 
@@ -132,11 +129,10 @@ check and the wasm build. Contributor and agent instructions: [AGENTS.md](AGENTS
 
 ## Roadmap
 
-Local Slides is in **alpha**. It covers **84% of the features tracked in
-[`docs/target-app-parity.md`](docs/target-app-parity.md) by breadth** (92% of the core ones,
-measured) and is about **55% ready for real work across all tracked capabilities** (estimated).
-See [ROADMAP.md](ROADMAP.md) for the stage, numbers by dimension and what's next, and
-[docs/gaps.md](docs/gaps.md) for every known shortfall.
+Local Slides is in **alpha**: it opens, edits, presents and saves decks for real work, and the way
+to "ready for real work" is in [ROADMAP.md](ROADMAP.md) (PPTX fidelity against PowerPoint, close
+prompting before it loses edits, SVG pictures, animation and chart depth, printing, presenter view
+on a second display and the remaining translations).
 
 ## Downloads
 
@@ -176,10 +172,9 @@ DirectX 12 shaders are compiled with FXC, which is part of Windows, so no `dxcom
 
 ### macOS
 
-| Build | File | Notes |
-|---|---|---|
-| App, universal (Apple silicon + Intel) | `localslides-<ver>-macos-universal.dmg` | Signed and notarized |
-| Command-line tool, universal | `localslides-cli-<ver>-macos-universal.zip` | Signed and notarized |
+No macOS artifact is published from this repository: the app builds from source with
+`cargo build --release -p localslides` (the DMG packager in `packaging/macos/` is kept for when one
+is).
 
 ### Linux
 
@@ -230,15 +225,14 @@ Building from source on musl also needs `build-base pkgconf alsa-lib-dev`.
 
 ### FreeBSD
 
-| Build | File |
-|---|---|
-| x86_64 | `localslides-<ver>-freebsd-x86_64.tar.gz` |
+No FreeBSD artifact is published from this repository: it builds from source with
+`cargo build --release -p localslides` (the packager in `packaging/freebsd/` is kept for when one
+is).
 
 ### Web (WebAssembly)
 
-| Build | File | Notes |
-|---|---|---|
-| Static site | `localslides-web-<ver>.zip` | Runs in a modern browser; host it on any static server |
+No hosted build is published: build it with trunk (see *Web* under Getting started) and serve the
+`dist/web` folder from any static server.
 
 ## The Local suite
 

@@ -68,36 +68,13 @@ overlays an invisible real-text layer with embedded font subsets.
   `chart-parts/<index>`. Chart relationships and payload references stay in the manifest; binary
   chart parts use bounded ZIP reads and share the media byte/item budgets. Earlier inline chart
   bytes still load and migrate on save; `.slidecraft` files from before the rename still open.
-- Formats and their gaps: [file-format-parity.md](file-format-parity.md).
 
 ## Quality gates
 
 `cargo xtask ci`: rustfmt check, clippy `-D warnings`, tests, layering, asset attribution
 (`cargo xtask assets`), wasm32 check. CI runs it on Ubuntu for every PR and push to `main`;
-macOS is built and tested by the release workflow only. Releases (pushes to `release`) build signed
-macOS, Windows, Linux, FreeBSD and web artifacts.
-
-## Revision history
-
-| Date | Change | Summary |
-|---|---|---|
-| 2026-10-18 | minor | Native chart payloads use referenced ZIP members and share media byte/item limits; old inline sidecars remain readable. Synthetic tests cover multi-megabyte layout, all shape owners, shared budgets, missing/corrupt members and invalid references. Scores and milestone scope unchanged |
-| 2026-10-14 | minor | Community PR wave folded: one L2/L5/L6 row each; command registry 320 (`cmd!` registrations in `cmd/*`), 41 dialogs (titled in `dialogs.rs`), 202k lines, 24 crates (`metafile` added at L0), 1,641 tests. The per-PR rows below give the counts each PR saw on its own branch |
-| 2026-10-14 | minor | Size and Position dialog (`shape.sizePosition`): position, size, rotation, scale and lock aspect in one undo step. 227 commands, 28 dialogs |
-| 2026-10-14 | trivial | Command registry: 228 (`comment.next`, `comment.prev`) |
-| 2026-10-14 | trivial | Photo Album dialog and `insert.photoAlbum` (227 commands, 28 dialogs) |
-| 2026-10-14 | trivial | Edit Photo Album (`insert.photoAlbumEdit`) reopens the Photo Album dialog and re-flows those slides (228 commands, 28 dialogs) |
-| 2026-10-14 | minor | Create New Theme Colors (`design.colors` with no params); command count stays 226 |
-| 2026-10-14 | minor | Create New Theme Fonts (`design.fonts` with no params); command count stays 226 |
-| 2026-10-14 | minor | Insert › Date and Time dialog (`insert.dateTime` with no keys). 28 dialogs; command count stays 226 |
-| 2026-10-14 | minor | Command registry is 227 (`design.effects`). Dialogs stay 27. The test-count line stays 504 |
-| 2026-10-14 | minor | Command registry counted at 236, including `master.preserve` and `master.placeholders`. Dialogs stay 27. The test-count line stays 504. The menu measurement and the d556ff9 snapshot still count 226 |
-| 2026-10-13 | trivial | Animation preview draws the current slide's timeline on the editor canvas |
-| 2026-10-14 | minor | Paragraph and Tabs dialogs; command registry 229; 29 dialogs |
-| 2026-10-14 | minor | Font dialog; command registry 227; 28 dialogs |
-| 2026-10-13 | minor | Transitions: perspective meshes, background/content parts, CPU compositor |
-| 2026-10-10 | major | Created from the code on main (d556ff9) and AGENTS.md §4 |
-
+macOS is built and tested by the release workflow only. Releases publish signed Windows and Linux
+artifacts; the other packagers in `packaging/` are run by hand.
 The PDF writer dependency enables only `write`. Krilla handles serialization and simple-text
 shaping for notes and footers; slide layout, rasterization, font selection, text mapping,
 links and outlines remain app-owned. PDF embedding and all Hayro production dependencies

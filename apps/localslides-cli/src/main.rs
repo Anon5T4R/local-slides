@@ -195,8 +195,8 @@ fn peak_rss_mib() -> Option<f64> {
     Some(kb / 1024.0)
 }
 
-/// The performance baseline (docs/gaps.md "No baseline"): how long a deck takes to open, to
-/// render each slide, to save and to export, and the peak memory, as JSON or a table.
+/// The performance baseline: how long a deck takes to open, to render each slide, to save and to
+/// export, and the peak memory, as JSON or a table.
 fn bench(args: &[String]) -> Result<(), String> {
     use localslides_engine::cmd::file::{open_presentation, save_bytes};
     let mut input = None;

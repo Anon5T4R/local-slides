@@ -25,7 +25,7 @@ Rust puro + egui. Sem conta, sem telemetria, sem dependência de servidores de t
 - `packaging/` — Windows (WiX/MSI per-machine e per-user), Linux (AppImage/deb/rpm/tar FHS com `install.sh`), Arch (PKGBUILD),
   macOS, FreeBSD, web
 - `scripts/check-mirror.sh` — confere as crates e os assets (`craft-fonts`) espelhados do `local-libs` contra a fonte (CI e `xtask ci`)
-- `xtask/` — tarefas de build/CI (`cargo xtask ci`, `fmt`, `layers`, `wasm`, `parity`)
+- `xtask/` — tarefas de build/CI (`cargo xtask ci`, `fmt`, `layers`, `wasm`, `bench`, `assets`)
 
 ## Agent-native (MCP)
 `crates/mcp` (servidor stdio + backends headless/`Remote` do control channel, porta com token) e
@@ -45,9 +45,8 @@ packaging/linux/package.sh    # AppImage/deb/rpm/tar (Linux)
 ```
 
 Regras técnicas do código (never-crash, camadas, tudo é comando, wasm, política de assets):
-`docs/architecture.md` e `docs/contributing.md` se existirem; o formato nativo e a compatibilidade
-com o upstream estão em `docs/file-format-parity.md`. Os nós cegos do rebrand, se algum, ficam em
-`docs/gaps.md`.
+`docs/architecture.md`; a sincronização com o upstream (o que entra e o que fica de fora):
+`docs/UPSTREAM-SYNC.md`. Estado e fila: `ROADMAP.md`.
 
 
 ## Upstream e a pasta `C:\Dev\storytold`
