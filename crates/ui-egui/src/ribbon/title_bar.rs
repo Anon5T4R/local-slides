@@ -102,5 +102,6 @@ fn shell_buttons(app: &mut SlideApp, ui: &mut Ui) {
     let tooltip = format!("{} ({shortcut})", tl!("Search commands"));
     if craft_icons::ui::button(ui, craft_icons::Icon::Search, &tooltip).clicked() {
         app.palette = Some((String::new(), 0));
+        app.palette_age = 0;
     }
 }

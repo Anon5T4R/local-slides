@@ -85,6 +85,7 @@ impl SlideApp {
             slide_rect: None,
             canvas_region: None,
             palette: None,
+            palette_age: 0,
             integrated_titlebar: false,
             backstage: None,
             pending_urls: vec![],

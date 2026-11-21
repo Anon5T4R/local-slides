@@ -121,7 +121,11 @@ pub fn palette(app: &mut SlideApp, ctx: &egui::Context) {
     let t = Tokens::get(ctx);
     let mut close = false;
     let mut run: Option<String> = None;
-    egui::Window::new("command_palette")
+    // The frame the palette first paints still carries the click that opened it (the magnifier),
+    // so outside-click-to-close only trusts clicks from a later frame.
+    app.palette_age += 1;
+    let opening = app.palette_age <= 1;
+    let shown = egui::Window::new("command_palette")
         .title_bar(false)
         .anchor(egui::Align2::CENTER_TOP, egui::vec2(0.0, 90.0))
         .fixed_size(egui::vec2(520.0, 380.0))
@@ -168,6 +172,14 @@ pub fn palette(app: &mut SlideApp, ctx: &egui::Context) {
                 }
             });
         });
+    // Like the suite's `craft-palette`: a click outside the palette closes it.
+    if !opening
+        && ctx.input(|i| i.pointer.any_pressed())
+        && let Some(pos) = ctx.input(|i| i.pointer.interact_pos())
+        && shown.is_some_and(|r| !r.response.rect.contains(pos))
+    {
+        close = true;
+    }
     if let Some(id) = run {
         let _ = app.run(&id, json!({}));
         close = true;

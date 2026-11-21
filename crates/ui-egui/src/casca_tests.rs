@@ -63,6 +63,41 @@ fn title_bar_magnifier_opens_the_palette_and_runs_a_command() {
     assert!(h.state().palette.is_none(), "running a command closes the palette");
 }
 
+/// Like the suite's `craft-palette`: a click outside the palette closes it, a click inside does
+/// not. The magnifier's own opening click is outside, but it belongs to the opening frame.
+#[test]
+fn palette_closes_on_click_outside_but_not_inside() {
+    fn click(h: &mut Harness<'static, SlideApp>, pos: egui::Pos2) {
+        h.input_mut().events.extend([
+            egui::Event::PointerMoved(pos),
+            egui::Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed: true, modifiers: egui::Modifiers::NONE },
+        ]);
+        h.run_steps(1);
+        h.input_mut().events.push(egui::Event::PointerButton {
+            pos,
+            button: egui::PointerButton::Primary,
+            pressed: false,
+            modifiers: egui::Modifiers::NONE,
+        });
+        h.run_steps(2);
+    }
+
+    let mut h = harness(1100.0, new_app());
+    // The palette window is fixed 520×380, anchored CENTER_TOP with a 90 px offset: in a
+    // 1100×560 harness it spans (290, 90)–(810, 470).
+    h.state_mut().palette = Some((String::new(), 0));
+    h.run_steps(3);
+    assert!(h.state().palette.is_some(), "the palette is shown");
+
+    // Inside, on the window's left edge (no widget there): stays open.
+    click(&mut h, egui::pos2(293.0, 300.0));
+    assert!(h.state().palette.is_some(), "a click inside does not close the palette");
+
+    // Outside, at the top-left corner of the window: closes.
+    click(&mut h, egui::pos2(4.0, 4.0));
+    assert!(h.state().palette.is_none(), "a click outside closes the palette");
+}
+
 /// Visual QA: PNGs of the title bar at the minimum window width and at 1100 px, in
 /// `target/qa-casca/`. `cargo test -p localslides-ui-egui --lib qa_casca -- --ignored --nocapture`.
 #[test]

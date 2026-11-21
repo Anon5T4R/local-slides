@@ -271,7 +271,10 @@ impl SlideApp {
                 #[cfg(target_arch = "wasm32")]
                 return Err("updates are handled by the browser: reload the page".into());
             }
-            "app.palette" => self.palette = Some((String::new(), 0)),
+            "app.palette" => {
+                self.palette = Some((String::new(), 0));
+                self.palette_age = 0;
+            }
             "app.preferences" => self.dialog = Some(dialogs::Dialog::new("preferences")),
             "app.openDialog" => self.pick_and_open(),
             "app.insertPictureDialog" => self.pick_and_insert("picture", "insert.picture"),
@@ -305,7 +308,10 @@ impl SlideApp {
                 d.fields.insert("replace".into(), if id == "app.replace" { "1" } else { "0" }.into());
                 self.dialog = Some(d);
             }
-            "app.find" | "app.replace" => self.palette = Some((String::new(), 0)),
+            "app.find" | "app.replace" => {
+                self.palette = Some((String::new(), 0));
+                self.palette_age = 0;
+            }
             "app.compareDialog" => {
                 if self.session.active().is_none() {
                     return Err("open the presentation to compare first".into());

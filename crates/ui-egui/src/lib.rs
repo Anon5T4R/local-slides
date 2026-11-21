@@ -302,6 +302,9 @@ pub struct SlideApp {
     /// Where the canvas texture (the slide and the pasteboard drawn around it) is on screen.
     pub canvas_region: Option<egui::Rect>,
     pub palette: Option<(String, usize)>,
+    /// Painted frames of the current palette (0 = just opened). The opening frame still carries
+    /// the click that opened it, so outside-click-to-close waits for the second.
+    pub palette_age: u32,
     /// Integrated title bar (macOS traffic lights over our chrome).
     pub integrated_titlebar: bool,
     /// The File tab's full-window view (Backstage). Over a presentation it replaces the ribbon,
