@@ -6,7 +6,7 @@ the AI models named in `Co-Authored-By` trailers.
 ## Decision
 
 - Two files, both **compiled into the binary** by the UI crate's `build.rs` (nothing is read from
-  disk or the network at run time; the web build has them too):
+  disk or the network at run time):
   - [`contributors/contributors.json`](../contributors/contributors.json): commit stats per GitHub
     username. Never hand-edit.
   - [`contributors/people.toml`](../contributors/people.toml): the names people chose for

@@ -24,8 +24,7 @@ list (author, source, license) is in ATTRIBUTION.md.
   packages (the exact font files and OFL texts are retained in craft-fonts releases). Native
   builds may additionally read craft-fonts' separate Simplified Chinese manifest and embed LXGW
   WenKai Lite 1.530 under OFL-1.1; its OFL text ships with release packages, and the exact font
-  and licence files are retained in craft-fonts with the LXGW Reserved Font Names. That face is
-  not in the web payload.
+  and licence files are retained in craft-fonts with the LXGW Reserved Font Names.
 - Lucide icon paths embedded in crates/engine/src/icon_data.rs (Insert › Icons), release 1.56.0,
   commit 440a1e1dfb1e712505308da46bead3c28b1f1398, https://github.com/lucide-icons/lucide.
   ISC License, Copyright (c) 2026 Lucide Icons and Contributors. Icons Lucide derives from Feather

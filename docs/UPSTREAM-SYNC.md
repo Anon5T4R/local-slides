@@ -43,7 +43,7 @@ que o script pode aplicar fica em `docs/UPSTREAM-MAP.toml`.
   (`crates/engine/src/links.rs`).
 - **Janelas:** uma janela nativa por apresentação desde a branch `port-multiwindow`
   (`crates/ui-egui/src/windows.rs`, driver `craft_window::Viewports`; o visor `doc_window.rs` do
-  upstream foi removido; no wasm continua uma janela só). O upstream usa janela única com
+  upstream foi removido). O upstream usa janela única com
   `session.set_active` + `window.next`. **Regra de sync:** commits que toquem
   `crates/ui-egui/src/app.rs`, `windows.rs`, `backstage/`, `menus.rs`, `app/files.rs`, `control.rs`
   ou `doc_window.rs` conflitam por construção — reconciliar mantendo a camada de janelas do app (a

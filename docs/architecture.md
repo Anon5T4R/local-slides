@@ -3,7 +3,7 @@
 > **Last reviewed:** 2026-10-14 · **Last updated:** 2026-10-18 · **Change:** minor (native chart payloads stored in bounded ZIP members; previous: minor, community PR wave 2026-10-14: 320 engine commands, 41 dialogs, the `metafile` crate, 1,641 tests; duplicated L2/L5/L6 rows and headers folded; previous: minor, transition frames) · **Target:** Microsoft PowerPoint for Mac 16.113 (Microsoft 365)
 
 How Local Slides is built today. The binding rules (layering, everything is a command, thin UI, never
-break wasm, never crash) are in [AGENTS.md](../AGENTS.md) §3–§5; this document describes what
+crash) are in [AGENTS.md](../AGENTS.md) §3–§5; this document describes what
 exists. 202k lines of Rust in 24 crates, 3 apps and `xtask`; 1,641 `#[test]` functions
 (`cargo xtask stats` counts them per crate).
 
@@ -22,7 +22,7 @@ nothing below L6 uses egui, eframe, winit or rfd.
 | L4 | `pdf` | App-owned export layout and rendering through the shared `craft-pdf` writer |
 | L5 | `engine` | Sessions, documents, selection, undo history on shared slide snapshots, the command registry (320 commands in `cmd/*`), pointer tools, keys, AutoRecover, the panic guard (`guard.rs`) |
 | L6 | `ui-egui`, `mcp` | The PowerPoint-style interface (ribbon with 10 tabs + contextual tabs, canvas, thumbnails, panes, 41 dialogs, show and presenter windows, the JSON control channel); the MCP server (JSON-RPC 2.0 over stdio), headless or connected to a running app |
-| apps | `localslides` (desktop: eframe/wgpu, cpal audio, logging), `localslides-cli` (run, render, convert, mcp, app), `localslides-web` (trunk; WebGPU with WebGL2 fallback), `xtask` | Exempt from layering |
+| apps | `localslides` (desktop: eframe/wgpu, cpal audio, logging), `localslides-cli` (run, render, convert, mcp, app), `xtask` | Exempt from layering |
 
 The media codecs and containers are clean-room pure Rust, 59k lines, shared in spirit with
 FilmCraft.
@@ -72,11 +72,11 @@ overlays an invisible real-text layer with embedded font subsets.
 ## Quality gates
 
 `cargo xtask ci`: rustfmt check, clippy `-D warnings`, tests, layering, asset attribution
-(`cargo xtask assets`), wasm32 check. CI runs it on Ubuntu for every PR and push to `main`;
+(`cargo xtask assets`), the pdf-deps gate. CI runs it on Ubuntu for every PR and push to `main`;
 macOS is built and tested by the release workflow only. Releases publish signed Windows and Linux
 artifacts; the other packagers in `packaging/` are run by hand.
 The PDF writer dependency enables only `write`. Krilla handles serialization and simple-text
 shaping for notes and footers; slide layout, rasterization, font selection, text mapping,
 links and outlines remain app-owned. PDF embedding and all Hayro production dependencies
-are disabled. Native builds enable parallel compression on the same pinned Krilla backend;
-WASM keeps it disabled. Generated-PDF assertions use a std-only parser as a development dependency.
+are disabled. Parallel compression runs on the same pinned Krilla backend.
+Generated-PDF assertions use a std-only parser as a development dependency.
