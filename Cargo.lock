@@ -3416,23 +3416,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "localslides-web"
-version = "0.3.11"
-dependencies = [
- "eframe",
- "egui",
- "js-sys",
- "localslides-engine",
- "localslides-ui-egui",
- "log",
- "rfd",
- "serde_json",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
-]
-
-[[package]]
 name = "lock_api"
 version = "0.4.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
