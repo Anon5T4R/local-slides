@@ -1,4 +1,3 @@
-#[cfg(not(target_arch = "wasm32"))]
 use super::updates_ui;
 use super::{SlideApp, UI_COMMANDS, Value, ViewMode, backstage, dialogs, json, media, qat, theme};
 
@@ -210,8 +209,7 @@ impl SlideApp {
             }
             "show.presenter" => {
                 self.ui.presenter_view = self.flag(p, self.ui.presenter_view);
-                // The browser build has one viewport: presenter view is drawn inside the page.
-                return Ok(json!({"on": self.ui.presenter_view, "window": !cfg!(target_arch = "wasm32")}));
+                return Ok(json!({"on": self.ui.presenter_view, "window": true}));
             }
             "show.keepCursor" => {
                 self.ui.show_keep_cursor = self.flag(p, self.ui.show_keep_cursor);
@@ -266,10 +264,7 @@ impl SlideApp {
             }
             "app.about" => self.dialog = Some(dialogs::Dialog::new("about")),
             "app.checkUpdates" => {
-                #[cfg(not(target_arch = "wasm32"))]
                 updates_ui::request_check(self);
-                #[cfg(target_arch = "wasm32")]
-                return Err("updates are handled by the browser: reload the page".into());
             }
             "app.palette" => {
                 self.palette = Some((String::new(), 0));

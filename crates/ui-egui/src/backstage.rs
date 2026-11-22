@@ -151,7 +151,6 @@ pub fn entries(has_doc: bool) -> (Vec<Nav>, Vec<Nav>) {
     }
     let mut bottom = vec![Nav::Page(Page::About), Nav::Settings];
     // Nothing to quit in the browser.
-    #[cfg(not(target_arch = "wasm32"))]
     bottom.push(Nav::Exit);
     (top, bottom)
 }

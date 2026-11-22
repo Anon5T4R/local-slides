@@ -196,9 +196,9 @@ pub fn font_definitions(extra: &[std::sync::Arc<localslides_fonts::FontFace>]) -
             // would leave Hangul and the ◉ laser toggle without a glyph. Hebrew backs the
             // Language dialog's native "עברית" label where no system font supplies it.
             || matches!(f.family, "Noto Sans Arabic" | "Noto Sans Hebrew" | "NanumGothic" | "Noto Sans Symbols" | "Noto Sans Symbols 2")
-            // This opt-in native face follows the existing families. Keep per-character
-            // fallback and Latin metrics; no Chinese payload enters the wasm allowlist.
-            || (cfg!(not(target_arch = "wasm32")) && f.family == "LXGW WenKai Lite" && f.style == "Regular");
+            // This opt-in face follows the existing families. Keep per-character
+            // fallback and Latin metrics.
+            || (f.family == "LXGW WenKai Lite" && f.style == "Regular");
         if !wanted {
             continue;
         }
@@ -357,7 +357,6 @@ mod tests {
     /// Lite Regular is embedded, and Chinese labels have glyph coverage and ink; builds without the
     /// optional face skip this test.
     #[test]
-    #[cfg(not(target_arch = "wasm32"))]
     fn native_chinese_fallback_draws_initial_document_labels() {
         let faces: Vec<_> = localslides_fonts::CRAFT_FONTS.iter().filter(|f| f.family == "LXGW WenKai Lite").collect();
         if faces.is_empty() {
@@ -403,7 +402,6 @@ mod tests {
     /// When the face is present (required builds guarantee it), the native Hebrew fallback is exactly
     /// one static Regular Noto Sans Hebrew face with glyph coverage and ink for language labels.
     #[test]
-    #[cfg(not(target_arch = "wasm32"))]
     fn native_hebrew_fallback_is_one_regular_face_and_draws_language_labels() {
         let faces: Vec<_> = localslides_fonts::CRAFT_FONTS.iter().filter(|f| f.family == "Noto Sans Hebrew").collect();
         if faces.is_empty() {
@@ -444,7 +442,6 @@ mod tests {
 
     /// Hebrew fallback preserves logical-order editing in mixed-direction text.
     #[test]
-    #[cfg(not(target_arch = "wasm32"))]
     fn native_hebrew_fallback_keeps_mixed_text_editing_in_logical_order() {
         if !localslides_fonts::CRAFT_FONTS.iter().any(|f| f.family == "Noto Sans Hebrew") {
             assert!(option_env!("CRAFT_FONTS_REQUIRED").is_none(), "required native Hebrew face is absent");

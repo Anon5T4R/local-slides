@@ -6,7 +6,7 @@
 //! allocates for a new picture size, so a hostile header is an error, not an out-of-memory abort.
 
 /// Bytes the decoded pictures of one decoder may take: 4 GiB on 64-bit targets, 1 GiB on 32-bit
-/// ones (wasm32 has a 4 GiB address space in all).
+/// ones (a 32-bit target has a 4 GiB address space in all).
 pub const DECODE_MEMORY_BUDGET: u64 = if cfg!(target_pointer_width = "64") { 4 << 30 } else { 1 << 30 };
 
 /// The shape of one decoded picture as a decoder allocates it.

@@ -19,12 +19,6 @@ egui = { workspace = true }
 serde_json = { workspace = true }
 log = { workspace = true }
 chrono = { workspace = true }
-
-[build-dependencies]
-# Icon + VERSIONINFO for localslides.exe; build.rs only uses it when the target is Windows.
-winresource = "0.1"
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 craft-update = { workspace = true }
 craft-desktop-theme = { workspace = true }
 rfd = { workspace = true }
@@ -32,8 +26,12 @@ arboard = { workspace = true, features = ["image-data"] }
 image = { workspace = true }
 cpal = "0.16"
 
-# Native Wayland clipboard via the data-control protocol (same as Local Sheets);
-# X11 keeps the default backend. Not a wasm dependency.
+[build-dependencies]
+# Icon + VERSIONINFO for localslides.exe; build.rs only uses it when the target is Windows.
+winresource = "0.1"
+
+# Wayland clipboard via the data-control protocol (same as Local Sheets);
+# X11 keeps the default backend.
 [target.'cfg(any(target_os = "linux", target_os = "freebsd"))'.dependencies]
 arboard = { workspace = true, features = ["image-data", "wayland-data-control"] }
 

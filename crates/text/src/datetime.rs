@@ -26,18 +26,11 @@ impl DateTime {
         DateTime { year, month, day, hour, minute, second }
     }
 
-    /// The local date and time now (the user's time zone); `None` where there is no clock (wasm).
+    /// The local date and time now (the user's time zone).
     pub fn now_local() -> Option<DateTime> {
-        #[cfg(not(target_arch = "wasm32"))]
-        {
-            use chrono::{Datelike, Timelike};
-            let n = chrono::Local::now();
-            Some(DateTime::new(n.year(), n.month(), n.day(), n.hour(), n.minute(), n.second()))
-        }
-        #[cfg(target_arch = "wasm32")]
-        {
-            None
-        }
+        use chrono::{Datelike, Timelike};
+        let n = chrono::Local::now();
+        Some(DateTime::new(n.year(), n.month(), n.day(), n.hour(), n.minute(), n.second()))
     }
 
     /// A real calendar date and time of day.

@@ -272,7 +272,7 @@ impl Squiggles {
         if self.tx.is_some() || self.inline.is_some() {
             return true;
         }
-        if !cfg!(target_arch = "wasm32") && !self.force_inline {
+        if !self.force_inline {
             let (jtx, jrx) = channel();
             let (dtx, drx) = channel();
             if std::thread::Builder::new().name("spelling".into()).spawn(move || worker(jrx, dtx)).is_ok() {

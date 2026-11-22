@@ -12,7 +12,7 @@
 //! TOC-derived durations, the pre-skip, and end trimming of the final page, so a player can seek
 //! to any 48 kHz sample.
 //!
-//! Layer L0: no dependencies beyond `std`, no `unsafe`, builds for `wasm32-unknown-unknown`.
+//! Layer L0: no dependencies beyond `std`, no `unsafe`.
 
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable))]
 

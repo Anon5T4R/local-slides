@@ -12,7 +12,6 @@ use crate::widgets::{
     self, RIBBON_H, big_button, big_button_ex, color_split, dropdown, group, icon_toggle, rows, small_button, small_button_ex, small_button_named,
 };
 
-#[cfg(not(target_arch = "wasm32"))]
 mod ai;
 mod animations;
 mod arrange;
@@ -34,7 +33,6 @@ mod title_bar;
 mod transitions;
 mod view;
 
-#[cfg(not(target_arch = "wasm32"))]
 use ai::ai;
 use animations::animations;
 pub use animations::paint_anim_tile;
@@ -258,10 +256,7 @@ pub fn show(app: &mut SlideApp, ui: &mut Ui) {
                     ui.spacing_mut().item_spacing.x = 1.0;
                     match tab.as_str() {
                         "Home" => home(app, ui),
-                        #[cfg(not(target_arch = "wasm32"))]
                         "AI" => ai(app, ui),
-                        #[cfg(target_arch = "wasm32")]
-                        "AI" => web_ai_notice(ui),
                         "Insert" => insert(app, ui),
                         "Draw" => draw(app, ui),
                         "Design" => design(app, ui),
@@ -383,14 +378,6 @@ fn tip(id: &str, label: &str) -> String {
         Some(s) => format!("{} ({})", tl!(label), pretty_shortcut(s)),
         None => tl!(label).to_string(),
     }
-}
-
-/// The AI tab on the web build: the actions and the keychain need the desktop app.
-#[cfg(target_arch = "wasm32")]
-fn web_ai_notice(ui: &mut Ui) {
-    group(ui, |ui| {
-        ui.label(tl!("The AI actions need the desktop app."));
-    });
 }
 
 pub fn pretty_shortcut(s: &str) -> String {

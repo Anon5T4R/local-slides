@@ -5,7 +5,7 @@
 //! Text stays font-agnostic: a [`Text`] item names the font the file asks for and carries the
 //! string, its advances and alignment; the renderer resolves the font and draws the glyphs.
 //!
-//! The reader is pure Rust over byte slices (no file system), so it builds for wasm. Every read is
+//! The reader is pure Rust over byte slices (no file system). Every read is
 //! bounds-checked and every count is capped; hostile input yields a shorter picture or an [`Error`],
 //! never a panic.
 //!

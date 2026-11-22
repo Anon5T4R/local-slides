@@ -5107,7 +5107,6 @@ fn three_d_reset_and_flat_shapes_drop_the_xml() {
 
 /// A presentation read off the UI thread enters the session through `file.adopt`: journaled like
 /// `file.open`, and replayable from the journal without the staged copy.
-#[cfg(not(target_arch = "wasm32"))]
 #[test]
 fn background_loads_are_adopted_through_a_command() {
     let mut src = Session::with_new();

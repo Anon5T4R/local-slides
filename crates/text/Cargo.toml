@@ -17,10 +17,6 @@ localslides-fonts = { workspace = true }
 unicode-linebreak = { workspace = true }
 unicode-segmentation = { workspace = true }
 unicode-bidi = { workspace = true }
-# Unconditional: `is_valid`/`weekday` use chrono on every target, including wasm32.
-# Only the wasm-safe `std` baseline here (inherited from the workspace entry).
-chrono = { workspace = true }
-
-# The local clock for date fields (no clock on wasm: fields keep their saved text).
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# `is_valid`/`weekday` use chrono every target; `clock` gives the local date and time for date
+# fields.
 chrono = { workspace = true, features = ["clock"] }

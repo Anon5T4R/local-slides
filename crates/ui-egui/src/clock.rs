@@ -1,8 +1,7 @@
 /// Seconds since this process's monotonic origin.
 ///
-/// `web_time::Instant` is `std::time::Instant` natively and `performance.now()` on wasm; it never
-/// jumps backwards and is not `Date.now()` (which is wall time and may be zero/frozen in a
-/// browser). Use this for deadlines, show/media clocks and duration displays.
+/// `web_time::Instant` never jumps backwards and is not `Date.now()` (which is wall time).
+/// Use this for deadlines, show/media clocks and duration displays.
 static CLOCK_ORIGIN: std::sync::OnceLock<web_time::Instant> = std::sync::OnceLock::new();
 
 /// Monotonic seconds since the first call.

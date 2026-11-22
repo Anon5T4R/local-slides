@@ -250,7 +250,6 @@ pub struct LoadedFile {
 }
 
 /// Read and parse the presentation at `path`.
-#[cfg(not(target_arch = "wasm32"))]
 pub fn read_presentation_file(path: &str) -> Result<LoadedFile> {
     let bytes = crate::io::read_file(path).map_err(EngineError::Other)?;
     let (doc, damaged) = open_checked(path, &bytes)?;
@@ -273,7 +272,6 @@ fn adopt_loaded(s: &mut Session, f: LoadedFile) -> Result<Value> {
     }))
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 fn open(s: &mut Session, p: &Value) -> Result<Value> {
     let path = str_param(p, "path").ok_or_else(|| bad("file.open", "missing `path`"))?;
     adopt_loaded(s, read_presentation_file(path)?)
@@ -287,15 +285,8 @@ fn adopt(s: &mut Session, p: &Value) -> Result<Value> {
     let staged = p.get("token").and_then(Value::as_u64).and_then(|t| s.take_loaded(t)).filter(|f| f.path == path);
     match staged {
         Some(f) => adopt_loaded(s, f),
-        #[cfg(not(target_arch = "wasm32"))]
         None => adopt_loaded(s, read_presentation_file(path)?),
-        #[cfg(target_arch = "wasm32")]
-        None => Err(bad("file.adopt", format!("{path} was not loaded"))),
     }
-}
-#[cfg(target_arch = "wasm32")]
-fn open(_s: &mut Session, _p: &Value) -> Result<Value> {
-    Err(EngineError::Other("use file.openBytes in the browser".into()))
 }
 
 fn open_bytes(s: &mut Session, p: &Value) -> Result<Value> {
@@ -658,10 +649,7 @@ fn export(s: &mut Session, p: &Value) -> Result<Value> {
 fn info(s: &mut Session, _p: &Value) -> Result<Value> {
     let st = s.doc()?;
     let doc = &st.doc;
-    #[cfg(not(target_arch = "wasm32"))]
     let bytes = st.path.as_deref().and_then(crate::io::file_len);
-    #[cfg(target_arch = "wasm32")]
-    let bytes: Option<u64> = None;
     Ok(json!({
         "title": st.title(),
         "path": st.path,
@@ -771,7 +759,7 @@ fn recovery_discard(s: &mut Session, p: &Value) -> Result<Value> {
 #[path = "color_at_tests.rs"]
 mod color_at_tests;
 
-#[cfg(all(test, not(target_arch = "wasm32")))]
+#[cfg(test)]
 mod tests {
     #![allow(clippy::unwrap_used, clippy::expect_used)]
 

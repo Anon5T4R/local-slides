@@ -46,7 +46,6 @@ pub(super) fn info(app: &mut SlideApp, ui: &mut Ui, bs: &mut Backstage) {
                 ui.ctx().copy_text(p.clone());
                 app.set_status(tl!("Copied the path"));
             }
-            #[cfg(not(target_arch = "wasm32"))]
             if let Some(dir) = std::path::Path::new(p).parent().and_then(std::path::Path::to_str)
                 && ui.button(tl!("Open file location")).clicked()
             {
@@ -144,7 +143,7 @@ pub fn format_bytes(b: u64) -> String {
     }
 }
 
-/// Save As: the file type, then the system Save dialog (desktop) or a download (web). A
+/// Save As: the file type, then the system Save dialog (or the download sink a host sets). A
 /// presentation saved as .pptx or .deckcraft takes the new file; the other types are copies.
 pub(super) fn save_as(app: &mut SlideApp, ui: &mut Ui, bs: &mut Backstage, out: &mut Outcome) {
     let t = Tokens::get(ui.ctx());
@@ -207,7 +206,6 @@ pub(super) fn about(app: &mut SlideApp, ui: &mut Ui) {
         if task(ui, Icon::Help, "Credits", "Credits", "The people and models who built Local Slides.", true) {
             let _ = app.run("app.about", json!({}));
         }
-        #[cfg(not(target_arch = "wasm32"))]
         {
             ui.add_space(8.0);
             if task(ui, Icon::CheckForUpdates, "Check", "Check for Updates…", "See whether a newer version of Local Slides is available.", true) {

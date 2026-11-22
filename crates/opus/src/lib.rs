@@ -1,6 +1,6 @@
 //! Clean-room pure-Rust Opus decoder (RFC 6716, updated by RFC 8251).
 //!
-//! Layer L0: no dependencies beyond `std`; no `unsafe`; builds for `wasm32-unknown-unknown`.
+//! Layer L0: no dependencies beyond `std`; no `unsafe`.
 
 // Spec-style indexed loops (FilmCraft allows this lint workspace-wide).
 #![allow(clippy::needless_range_loop)]

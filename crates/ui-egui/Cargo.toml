@@ -29,8 +29,6 @@ log = { workspace = true }
 web-time = { workspace = true }
 craft-icons = { workspace = true }
 egui_extras = { workspace = true }
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 craft-update = { workspace = true }
 # The AI surface is desktop-only: `local-ai` reads the OS keychain and speaks HTTP.
 localslides-ai = { workspace = true }

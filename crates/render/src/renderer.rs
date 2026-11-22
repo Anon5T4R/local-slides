@@ -114,11 +114,8 @@ struct FxSource<'a> {
 impl Renderer {
     fn canvas(pres: &Presentation, opts: &RenderOpts, filters: bool) -> (RenderContext, u16, u16, Affine) {
         let (w, h) = output_size(pres, opts);
-        let mut ctx = RenderContext::new_with(
-            w,
-            h,
-            vello_cpu::RenderSettings { num_threads: if cfg!(target_arch = "wasm32") || filters { 0 } else { opts.threads }, ..Default::default() },
-        );
+        let mut ctx =
+            RenderContext::new_with(w, h, vello_cpu::RenderSettings { num_threads: if filters { 0 } else { opts.threads }, ..Default::default() });
         if let Some(c) = opts.clear {
             ctx.set_paint(color(c, 1.0));
             ctx.fill_rect(&Rect::new(0.0, 0.0, w as f64, h as f64));

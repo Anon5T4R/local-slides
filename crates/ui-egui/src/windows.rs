@@ -210,7 +210,7 @@ impl Windows {
         let mut viewports = Viewports::new(Frame::Desktop);
         viewports.set_root(Some(id));
         Windows {
-            native: cfg!(not(target_arch = "wasm32")),
+            native: true,
             list,
             viewports: Some(viewports),
             open: vec![Window { key: 1, id: Some(id), doc: None, ui: None }],

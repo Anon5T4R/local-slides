@@ -243,7 +243,7 @@ fn anim_key(anim: Option<(&localslides_anim::Timeline, f64)>) -> u64 {
 }
 
 fn threads() -> u16 {
-    if cfg!(target_arch = "wasm32") { 0 } else { std::thread::available_parallelism().map(|n| n.get().min(8) as u16).unwrap_or(0) }
+    std::thread::available_parallelism().map(|n| n.get().min(8) as u16).unwrap_or(0)
 }
 
 impl Textures {
