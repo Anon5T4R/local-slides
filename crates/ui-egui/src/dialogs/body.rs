@@ -870,22 +870,31 @@ fn dlg_symbol(app: &mut SlideApp, ui: &mut Ui, _d: &mut Dialog) -> bool {
         ("Arrows", "←↑→↓↔↕⇐⇑⇒⇓↖↗↘↙⟵⟶"),
         ("Shapes", "■□▪▫▲△▶▷▼▽◀◁◆◇○●◎★☆✓✔✗✘♠♣♥♦"),
     ];
-    for (g, chars) in groups {
-        ui.label(egui::RichText::new(tl!(g)).font(theme::bold(12.0)));
-        ui.horizontal_wrapped(|ui| {
-            for c in chars.chars() {
-                if ui.add(egui::Button::new(egui::RichText::new(c.to_string()).size(16.0)).min_size(vec2(26.0, 26.0))).clicked() {
-                    if app.session.active().is_some_and(|s| s.selection.text.is_none()) {
-                        let _ = app.run("text.edit", json!({}));
+    // The groups outgrow the window at its shortest: they scroll, and the sentence above and
+    // Close below stay in view (`padrao-craft.md`, "Guardas").
+    let room = (ui.ctx().content_rect().height() - SYMBOL_OUTSIDE).max(120.0);
+    egui::ScrollArea::vertical().id_salt("symbol-groups").max_height(room).min_scrolled_height(room).auto_shrink([false, true]).show(ui, |ui| {
+        for (g, chars) in groups {
+            ui.label(egui::RichText::new(tl!(g)).font(theme::bold(12.0)));
+            ui.horizontal_wrapped(|ui| {
+                for c in chars.chars() {
+                    if ui.add(egui::Button::new(egui::RichText::new(c.to_string()).size(16.0)).min_size(vec2(26.0, 26.0))).clicked() {
+                        if app.session.active().is_some_and(|s| s.selection.text.is_none()) {
+                            let _ = app.run("text.edit", json!({}));
+                        }
+                        let _ = app.run("insert.symbol", json!({"text": c.to_string()}));
                     }
-                    let _ = app.run("insert.symbol", json!({"text": c.to_string()}));
                 }
-            }
-        });
-    }
+            });
+        }
+    });
     let (ok, cancel) = buttons(ui, "Close");
     ok || cancel
 }
+
+/// What the symbol dialog draws outside its scrolling groups: the title bar, the sentence above
+/// them and the row of buttons below.
+const SYMBOL_OUTSIDE: f32 = 120.0;
 
 fn dlg_equation(app: &mut SlideApp, ui: &mut Ui, d: &mut Dialog) -> bool {
     ui.label(tl!("Type an equation in linear form (e.g. a^2+b^2=c^2, x=(-b±√(b^2-4ac))/2a)."));
