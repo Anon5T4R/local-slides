@@ -5,7 +5,7 @@ use super::{
 };
 
 pub(super) fn render_threads() -> u16 {
-    if cfg!(target_arch = "wasm32") { 0 } else { std::thread::available_parallelism().map(|n| n.get().min(8) as u16).unwrap_or(0) }
+    std::thread::available_parallelism().map(|n| n.get().min(8) as u16).unwrap_or(0)
 }
 
 pub(super) fn render_backdrop(doc: &Presentation, key: BackKey, threads: u16) -> localslides_render::Image {
@@ -125,11 +125,8 @@ fn hidden_on_entry(doc: &Presentation, idx: usize) -> Vec<ShapeId> {
     crate::media::slide_media(doc, idx).into_iter().filter(|(_, _, clip)| clip.hide_while_not_playing).map(|m| m.0).collect()
 }
 
-/// Start rendering slide `next`'s first frame on another thread. `None` on the web (no threads).
+/// Start rendering slide `next`'s first frame on another thread.
 pub(super) fn start_prefetch(doc: &std::sync::Arc<Presentation>, next: usize, size: (u32, u32)) -> Option<Prefetch> {
-    if cfg!(target_arch = "wasm32") {
-        return None;
-    }
     let hidden = hidden_on_entry(doc, next);
     let key = Key { slide: next, step: 0, size, doc: std::sync::Arc::as_ptr(doc) as usize, hidden: hidden.clone(), gif: 0, plays: vec![] };
     let (tx, rx) = std::sync::mpsc::channel();
@@ -182,7 +179,7 @@ pub(super) fn quad_mesh(tex: Option<egui::TextureId>, rect: Rect, l: &Layer, col
 /// Render the backgrounds and contents of a transition's two slides into textures, once.
 pub(super) fn part_textures(ctx: &egui::Context, doc: &Presentation, from: Option<usize>, to: usize, size: (u32, u32)) -> [Option<TextureHandle>; 4] {
     use localslides_render::SlidePart;
-    let threads = if cfg!(target_arch = "wasm32") { 0 } else { std::thread::available_parallelism().map(|n| n.get().min(8) as u16).unwrap_or(0) };
+    let threads = std::thread::available_parallelism().map(|n| n.get().min(8) as u16).unwrap_or(0);
     let opts = RenderOpts { scale: size.0 as f64 / doc.slide_size.width.max(1.0), size: Some(size), threads, ..Default::default() };
     let tex = |i: usize, part: SlidePart, name: &str| {
         let img = localslides_render::render_slide_part(doc, i, part, &opts);

@@ -8,11 +8,10 @@
 //!   [`video::Frame`]s (our own decoders, ported from FilmCraft); [`video::poster_png`].
 //! - [`clip::ClipParams`]: trim, fade in/out and volume.
 //! - [`player::Player`]: the playback mixer and clock the UI host drives, over an
-//!   [`player::AudioOut`] it injects (cpal on desktop; none on the web or in tests, where the clock
+//!   [`player::AudioOut`] it injects (cpal on desktop; none in tests, where the clock
 //!   runs on wall time); [`feed::VideoFeed`] decodes video ahead of that clock.
 //!
-//! Layer L2: depends only on the codec crates, never on the model or the UI. Builds for
-//! `wasm32-unknown-unknown` (no threads there: decoding runs inline).
+//! Layer L2: depends only on the codec crates, never on the model or the UI.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 #![forbid(unsafe_code)]
 
@@ -130,8 +129,8 @@ impl Container {
     }
 }
 
-/// Worker threads are available (not on wasm32).
-pub(crate) const THREADS: bool = !cfg!(target_arch = "wasm32");
+/// Worker threads are available.
+pub(crate) const THREADS: bool = true;
 
 #[cfg(test)]
 mod tests {

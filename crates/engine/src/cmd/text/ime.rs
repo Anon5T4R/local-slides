@@ -589,7 +589,7 @@ mod ime_surrounding_tests {
         assert_eq!(text(&s, id), "a\u{b}b");
     }
 
-    /// A count that does not fit a `usize` (32-bit wasm) is clamped, never truncated to a
+    /// A count that does not fit a `usize` (a 32-bit target) is clamped, never truncated to a
     /// different number that would delete other text than the platform asked for.
     #[test]
     fn out_of_range_counts_clamp_instead_of_truncating() {

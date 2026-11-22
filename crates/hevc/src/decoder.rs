@@ -100,11 +100,11 @@ impl Default for Decoder {
 }
 
 fn default_threads() -> usize {
-    #[cfg(all(feature = "threads", not(target_arch = "wasm32")))]
+    #[cfg(feature = "threads")]
     {
         std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1).min(16)
     }
-    #[cfg(not(all(feature = "threads", not(target_arch = "wasm32"))))]
+    #[cfg(not(feature = "threads"))]
     {
         1
     }
@@ -119,11 +119,8 @@ impl Decoder {
     /// A decoder using up to `threads` worker threads (1 = decode on the calling thread).
     pub fn with_threads(threads: usize) -> Self {
         #[cfg(feature = "threads")]
-        let pool = if threads > 1 && cfg!(not(target_arch = "wasm32")) {
-            rayon::ThreadPoolBuilder::new().num_threads(threads).thread_name(|i| format!("hevc-{i}")).build().ok()
-        } else {
-            None
-        };
+        let pool =
+            if threads > 1 { rayon::ThreadPoolBuilder::new().num_threads(threads).thread_name(|i| format!("hevc-{i}")).build().ok() } else { None };
         Decoder {
             vpss: vec![None; 16],
             spss: vec![None; 16],

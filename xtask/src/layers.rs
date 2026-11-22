@@ -65,7 +65,6 @@ pub const TABLE: &[(&str, Class)] = &[
     // L7 apps and tooling
     ("localslides", Class::Exempt),
     ("cli", Class::Exempt),
-    ("web", Class::Exempt),
     ("xtask", Class::Exempt),
 ];
 
@@ -357,7 +356,7 @@ mod tests {
 
     #[test]
     fn apps_and_xtask_exempt() {
-        for app in ["localslides", "localslides-cli", "localslides-web", "xtask"] {
+        for app in ["localslides", "localslides-cli", "xtask"] {
             assert!(check(&[c(app, &[("egui", Normal, false), ("localslides-ui-egui", Normal, true)])]).is_empty());
         }
     }

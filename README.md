@@ -92,8 +92,7 @@ crashed survives the next start. The file stops growing at 16 MiB. `--version` w
 |---|---|
 | `RUST_LOG` | Log levels for standard error and the log file. Default: `info` for Local Slides' own crates, `warn` for everything else. env_logger-style directives replace that, e.g. `RUST_LOG=debug`, `RUST_LOG=warn,localslides_pptx=trace` or `RUST_LOG=info,wgpu_core=warn`; a directive ending in `*` covers every target starting with it (`localslides*=debug`). |
 
-The logger is `apps/localslides/src/logging.rs`; the realtime audio callback does not log. The web
-app logs to the browser console instead.
+The logger is `apps/localslides/src/logging.rs`; the realtime audio callback does not log.
 
 ## Agents, CLI and MCP
 
@@ -122,10 +121,10 @@ See [docs/mcp.md](docs/mcp.md) and the [control protocol](docs/control-protocol.
 | L5 | `localslides-engine` | session, undo, 200+ commands, tools, keys, sample |
 | L6 | `localslides-mcp` | MCP server |
 | L7 | `localslides-ui-egui` | the editor front end (swappable) |
-| apps | `localslides`, `localslides-cli`, `localslides-web` | desktop, command line, browser |
+| apps | `localslides`, `localslides-cli` | desktop, command line |
 
 `cargo xtask ci` runs formatting, clippy, the tests, the asset-attribution check, the layering
-check and the wasm build. Contributor and agent instructions: [AGENTS.md](AGENTS.md).
+check and the pdf-deps gate. Contributor and agent instructions: [AGENTS.md](AGENTS.md).
 
 ## Roadmap
 
@@ -163,8 +162,8 @@ $env:WGPU_BACKEND = "vulkan"
 Remove-Item Env:WGPU_BACKEND                     # restore the default for later launches
 ```
 
-An explicit `gl` override can bring the driver crash back on affected systems. The macOS, Linux
-and web backend defaults are unchanged.
+An explicit `gl` override can bring the driver crash back on affected systems. The macOS and Linux
+backend defaults are unchanged.
 
 DirectX 12 shaders are compiled with FXC, which is part of Windows, so no `dxcompiler.dll` or
 `dxil.dll` is needed ("Parent device is lost" at start, #153). `$env:WGPU_DX12_COMPILER = "dxc"`
@@ -228,11 +227,6 @@ Building from source on musl also needs `build-base pkgconf alsa-lib-dev`.
 No FreeBSD artifact is published from this repository: it builds from source with
 `cargo build --release -p localslides` (the packager in `packaging/freebsd/` is kept for when one
 is).
-
-### Web (WebAssembly)
-
-No hosted build is published: build it with trunk (see *Web* under Getting started) and serve the
-`dist/web` folder from any static server.
 
 ## The Local suite
 

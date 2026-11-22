@@ -8,14 +8,12 @@
 
 /// Local Slides as craft-update knows it, with its 128 px icon and accent colour: the update
 /// prompt shows both, and an AppImage's menu entry gets the icon.
-#[cfg(not(target_arch = "wasm32"))]
 pub const UPDATE_APP: craft_update::app::App = craft_update::app::App {
     icon_png: Some(include_bytes!("../../../assets/app-icon/hicolor/128x128/apps/com.local.localslides.png")),
     accent: Some([0xf0, 0x7a, 0x1e]),
     ..craft_update::suite::LOCALSLIDES
 };
 
-#[cfg(not(target_arch = "wasm32"))]
 // First: `tl!` (interface strings in the current language) is used by every module below.
 #[macro_use]
 pub mod i18n;
@@ -67,7 +65,6 @@ use canvas::preview;
 pub use canvas::squiggles;
 pub use clock::{monotonic_secs, now_ms};
 pub use dialogs::credits;
-#[cfg(not(target_arch = "wasm32"))]
 use dialogs::updates_ui;
 pub use ime_hooks::install_ime_pass_hooks;
 pub use panels as panes;
@@ -235,7 +232,6 @@ pub struct SlideApp {
     pub services: Services,
     pub ui: UiState,
     /// The AI surface: connections, the three deck actions, the strip and the dialogs.
-    #[cfg(not(target_arch = "wasm32"))]
     pub ai: ai::Ai,
     pub textures: textures::Textures,
     pub control_rx: Option<Receiver<ControlRequest>>,
@@ -313,7 +309,6 @@ pub struct SlideApp {
     pub backstage: Option<backstage::Backstage>,
     pending_urls: Vec<String>,
     print_previews: app::files::PrintPreviews,
-    #[cfg(not(target_arch = "wasm32"))]
     updates_rt: updates_ui::Runtime,
     /// Text for the system clipboard from a Copy or Cut command, handed over on the next frame.
     pending_copy: Option<String>,

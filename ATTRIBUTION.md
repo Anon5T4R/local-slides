@@ -65,9 +65,6 @@ families excluded by `crates/fonts/build.rs`:
 | NanumGothic | OFL-1.1 | Korean text and interface fallback |
 | Noto Sans Symbols, Noto Sans Symbols 2 | OFL-1.1 | Interface symbol fallback |
 
-Web (wasm32) builds embed only Inter Regular/Bold (and a Variable face where the Latin manifest
-provides one) and BIZ UDPGothic Regular.
-
 ## PDF writer colour profiles
 
 `craft-pdf` is used with only its `write` feature and default features disabled. Krilla
@@ -82,10 +79,10 @@ is copied into this repository. The licence text is in `licenses/pdf-writer/LICE
 | `krilla 0.8.2 / icc/sRGB-v2-magic.icc` | Clinton Ingram (Compact ICC Profiles) | https://github.com/LaurenzV/krilla/blob/3ffdf0588cf98050aad6edba51ca70162e1fb5b5/crates/krilla/icc/sRGB-v2-magic.icc | CC0-1.0 | `af4efe28f6d311799865f325ba39184a2e978b113ca74124d60af7de22b105f4` | PDF export colour profiles |
 | `krilla 0.8.2 / icc/sRGB-v4.icc` | Clinton Ingram (Compact ICC Profiles) | https://github.com/LaurenzV/krilla/blob/3ffdf0588cf98050aad6edba51ca70162e1fb5b5/crates/krilla/icc/sRGB-v4.icc | CC0-1.0 | `c56e1685d888f5edb92fe07f2750f387f8fe8e91b32ff8fb0b56bfbbb9458353` | PDF export colour profiles |
 
-### Optional native Chinese fallback
+### Optional Chinese fallback
 
-Native builds also read craft-fonts' `fonts/simplified-chinese-manifest.txt` when present.
-This opt-in does not enter the wasm font allowlist. Font bytes and the full licence remain
+The build also reads craft-fonts' `fonts/simplified-chinese-manifest.txt` when present.
+Font bytes and the full licence remain
 in craft-fonts, including the LXGW Reserved Font Names and original Klee notice.
 
 | Family | Author | Source | Licence | Use |

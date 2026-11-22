@@ -129,28 +129,16 @@ fn command_for(purpose: FilePurpose, name: &str, bytes: &[u8]) -> Result<&'stati
 /// The form two spellings of the same file share: the absolute, resolved path when the file is
 /// there, and the path as given otherwise (a file that was moved or deleted since it was opened).
 /// A presentation is only ever matched by path: one opened from bytes has none.
-#[cfg(not(target_arch = "wasm32"))]
 fn same_file_key(path: &str) -> std::path::PathBuf {
     std::fs::canonicalize(path).unwrap_or_else(|_| std::path::PathBuf::from(path))
 }
 
-#[cfg(target_arch = "wasm32")]
-fn same_file_key(path: &str) -> String {
-    path.to_string()
-}
-
 impl SlideApp {
-    /// Does this recent path exist on disk? Probed once per path per session and only on
-    /// desktop (the web build has no file system to ask): a stat on a dead network share can
+    /// Does this recent path exist on disk? Probed once per path per session: a stat on a dead
+    /// network share can
     /// block for seconds, so it must not repeat on every frame. A stale answer is harmless —
     /// opening still tries and reports, and a successful open re-probes.
     pub fn recent_exists(&mut self, path: &str) -> bool {
-        #[cfg(target_arch = "wasm32")]
-        {
-            let _ = path;
-            true
-        }
-        #[cfg(not(target_arch = "wasm32"))]
         {
             if let Some(ok) = self.recent_checked.get(path) {
                 return *ok;
@@ -184,8 +172,8 @@ impl SlideApp {
     }
 
     /// Exports the active presentation as `fmt` (`pdf`, `png`, `pngAll`, `jpeg`, `pptx`,
-    /// `localslides`, `outline`) through `file.export`: the save picker on the desktop, a download
-    /// on the web. `extra` adds `file.export` params (the PDF's layout, slides…). The
+    /// `localslides`, `outline`) through `file.export`: the save picker, or the download sink a
+    /// host sets. `extra` adds `file.export` params (the PDF's layout, slides…). The
     /// presentation keeps its own file. Returns whether a file was written or handed over.
     pub fn export_as(&mut self, fmt: &str, extra: Value) -> bool {
         let Some(slide) = self.session.active().map(|d| d.selection.slide) else { return false };
@@ -238,7 +226,7 @@ impl SlideApp {
         self.download(&suggested, bytes)
     }
 
-    /// Hands `bytes` to the browser as a download (web); false (with the reason in the status
+    /// Hands `bytes` to the download sink a host sets; false (with the reason in the status
     /// bar) when there are no bytes or no way to download.
     fn download(&mut self, name: &str, bytes: localslides_engine::Result<Vec<u8>>) -> bool {
         match (bytes, self.services.download.as_mut()) {
@@ -259,12 +247,12 @@ impl SlideApp {
 
     /// File › Print: Local Slides prints through a PDF. On the desktop the PDF (with the Print page's
     /// layout, slides and options) is written to the temporary folder and opened in the system's
-    /// PDF viewer, which has the printers; on the web it downloads.
+    /// PDF viewer, which has the printers; a host with a download sink gets the bytes instead.
     pub fn print_pdf(&mut self, params: Value) -> bool {
         let Some((title, doc)) = self.session.active().map(|d| (d.title(), d.doc.clone())) else { return false };
         let mut params = if params.is_object() { params } else { json!({}) };
         if self.services.pick_save.is_none() {
-            // Web: the browser hands the PDF to the user.
+            // A host with a download sink gets the PDF instead of a save path.
             let bytes = localslides_engine::cmd::file::pdf_bytes(&doc, &params);
             return self.download(&format!("{title}.pdf"), bytes);
         }

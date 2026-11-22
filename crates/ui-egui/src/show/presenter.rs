@@ -67,7 +67,7 @@ pub(super) fn format_elapsed(secs: f64) -> String {
     format!("{:02}:{:02}:{:02}", s / 3600, (s / 60) % 60, s % 60)
 }
 
-/// Local wall clock for presenter view. `--:--` where there is no clock (wasm).
+/// Local wall clock for presenter view. `--:--` when the clock is not readable.
 pub(super) fn wall_clock() -> String {
     match localslides_text::datetime::DateTime::now_local() {
         Some(t) if t.hour < 24 && t.minute < 60 => format!("{:02}:{:02}", t.hour, t.minute),
@@ -113,14 +113,12 @@ pub(super) fn presenter_window(ctx: &egui::Context, show: &mut Show, doc: &std::
         if show.next_job.is_none() && show.next_tex.as_ref().is_none_or(|(d, k, _)| !is(d, *k, n)) {
             let (tx, rx) = std::sync::mpsc::channel();
             let worker_doc = doc.clone();
-            // The web has no threads: render it here.
-            let spawned = !cfg!(target_arch = "wasm32")
-                && std::thread::Builder::new()
-                    .name("show-next-preview".into())
-                    .spawn(move || {
-                        let _ = tx.send(render_preview(&worker_doc, n, next_size, 1));
-                    })
-                    .is_ok();
+            let spawned = std::thread::Builder::new()
+                .name("show-next-preview".into())
+                .spawn(move || {
+                    let _ = tx.send(render_preview(&worker_doc, n, next_size, 1));
+                })
+                .is_ok();
             if spawned {
                 #[cfg(test)]
                 {

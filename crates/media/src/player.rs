@@ -493,17 +493,10 @@ impl Player {
     }
 }
 
-/// Seconds on a monotonic clock where there is one (std's Instant panics on wasm32).
+/// Seconds on a monotonic clock.
 fn web_now() -> f64 {
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        static T0: OnceLock<std::time::Instant> = OnceLock::new();
-        T0.get_or_init(std::time::Instant::now).elapsed().as_secs_f64()
-    }
-    #[cfg(target_arch = "wasm32")]
-    {
-        0.0
-    }
+    static T0: OnceLock<std::time::Instant> = OnceLock::new();
+    T0.get_or_init(std::time::Instant::now).elapsed().as_secs_f64()
 }
 
 impl Drop for Player {

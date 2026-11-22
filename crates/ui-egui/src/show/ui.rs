@@ -427,7 +427,7 @@ fn draw_transition(show: &mut Show, f: &Fr, sl: &Sl, painter: &egui::Painter, te
     };
     if let (Some((from, m)), Some(tr)) = (morph, show.trans.as_mut()) {
         let f = |id: ShapeId| ShapeState { opacity: m.opacity_of(id), ..Default::default() };
-        let threads = if cfg!(target_arch = "wasm32") { 0 } else { std::thread::available_parallelism().map(|n| n.get().min(8) as u16).unwrap_or(0) };
+        let threads = std::thread::available_parallelism().map(|n| n.get().min(8) as u16).unwrap_or(0);
         let opts =
             RenderOpts { scale: size.0 as f64 / doc.slide_size.width.max(1.0), size: Some(size), state: Some(&f), threads, ..Default::default() };
         let text: Vec<localslides_render::TextMorph> = m
@@ -465,8 +465,7 @@ fn draw_transition(show: &mut Show, f: &Fr, sl: &Sl, painter: &egui::Painter, te
                 && let Some(prev) = tr.from
                 && !localslides_anim::uses_slide_parts(&tr.kind, &tr.option)
             {
-                let threads =
-                    if cfg!(target_arch = "wasm32") { 0 } else { std::thread::available_parallelism().map(|n| n.get().min(8) as u16).unwrap_or(0) };
+                let threads = std::thread::available_parallelism().map(|n| n.get().min(8) as u16).unwrap_or(0);
                 let timeline = ShowState::timeline(doc, prev);
                 let step = timeline.steps();
                 let ci = render_frame(doc, prev, timeline, step, 0.0, size, vec![], &[], threads, &[], &[], None);

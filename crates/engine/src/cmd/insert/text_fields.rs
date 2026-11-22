@@ -110,7 +110,7 @@ fn date_opts(p: &Value) -> Result<DateOpts> {
 }
 
 /// The text `format` shows now in `lang`. Errors when that language has no names for the format
-/// (month names and AM/PM are English only). An empty string where there is no clock (wasm).
+/// (month names and AM/PM are English only). An empty string when the clock is not readable.
 fn date_sample(format: &str, lang: Option<&str>) -> Result<String> {
     use localslides_text::datetime::{DateTime, field_text};
     let probe = DateTime::new(2026, 10, 9, 20, 5, 7);

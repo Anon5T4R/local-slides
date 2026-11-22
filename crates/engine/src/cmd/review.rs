@@ -105,16 +105,9 @@ pub fn specs() -> Vec<CommandSpec> {
     ]
 }
 
-/// Seconds since the Unix epoch: the system clock, or the browser's on wasm (which has no `SystemTime`).
+/// Seconds since the Unix epoch, from the system clock.
 fn now_secs() -> u64 {
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
-    }
-    #[cfg(target_arch = "wasm32")]
-    {
-        (js_sys::Date::now() / 1000.0).max(0.0) as u64
-    }
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
 }
 
 /// A UTC timestamp as saved on comments: `2026-10-10T13:10:35Z`.
@@ -682,7 +675,6 @@ fn revised_bytes(p: &Value) -> Result<(String, Vec<u8>)> {
         let bytes = base64_decode(data).ok_or_else(|| bad("review.compare", "invalid base64 `data`"))?;
         return Ok((str_param(p, "name").unwrap_or("Revised").to_string(), bytes));
     }
-    #[cfg(not(target_arch = "wasm32"))]
     if let Some(path) = str_param(p, "path") {
         let bytes = crate::io::read_file(path).map_err(crate::EngineError::Other)?;
         return Ok((path.to_string(), bytes));
@@ -904,7 +896,7 @@ mod tests {
 
     #[test]
     fn the_clock_is_not_empty() {
-        // On wasm this used to return an empty string, so browser comments were saved undated.
+        // A comment used to be saved undated when the clock could not be read.
         assert!(now().starts_with("20"), "{}", now());
     }
 

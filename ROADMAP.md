@@ -1,7 +1,7 @@
 # ROADMAP — Local Slides
 
-Fork do deckcraft (deckcraft v0.15.1), rebrandado para a suíte Local. Rust puro + egui, desktop e
-web. O formato nativo é o `.deckcraft` do upstream (zip + JSON, mantido byte a byte, com o MIME
+Fork do deckcraft (deckcraft v0.15.1), rebrandado para a suíte Local. Rust puro + egui, desktop.
+O formato nativo é o `.deckcraft` do upstream (zip + JSON, mantido byte a byte, com o MIME
 `application/vnd.storyteller.deckcraft+zip`); PPTX entra e sai. Como é construído:
 `docs/architecture.md`; o que vem do upstream: `docs/UPSTREAM-SYNC.md`.
 

@@ -13,10 +13,7 @@
 //! prompt, the deck's outline as the chat's context, the three deck actions and how an answer is
 //! applied.
 //!
-//! The AI is desktop-only: `local-ai` reads the OS keychain and speaks HTTP, which the web build
-//! does not have.
-
-#![cfg(not(target_arch = "wasm32"))]
+//! The AI is desktop-only: `local-ai` reads the OS keychain and speaks HTTP.
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};

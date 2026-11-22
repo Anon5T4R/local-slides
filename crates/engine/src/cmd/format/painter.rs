@@ -140,9 +140,6 @@ pub(super) fn font_add(_s: &mut Session, p: &Value) -> Result<Value> {
 /// Catalog the installed fonts again, so fonts installed while Local Slides runs appear.
 pub(super) fn font_rescan(_s: &mut Session, _p: &Value) -> Result<Value> {
     let db = localslides_fonts::FontDb::global();
-    #[cfg(not(target_arch = "wasm32"))]
     let faces = db.load_system_fonts();
-    #[cfg(target_arch = "wasm32")]
-    let faces = 0usize;
     Ok(json!({"faces": faces, "families": db.families().len()}))
 }

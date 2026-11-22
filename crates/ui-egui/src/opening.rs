@@ -47,13 +47,6 @@ impl SlideApp {
             self.set_status(crate::i18n::tr_fmt("Still opening {name}", &[("name", &name)]));
             return;
         }
-        #[cfg(target_arch = "wasm32")]
-        {
-            if let Err(e) = self.open_path(path) {
-                self.notify(e);
-            }
-        }
-        #[cfg(not(target_arch = "wasm32"))]
         {
             let (tx, rx) = std::sync::mpsc::channel();
             let p = path.to_string();

@@ -2,7 +2,6 @@ use super::clock::{monotonic_secs, now_ms};
 use super::ime_hooks::ime_in_ui_pass_key;
 use super::services::{InboxEvent, Services};
 use super::state::{FilePlace, FilePurpose, ImeDescriptorKey, ImeDestination, ImeTerminalStamp, LocatedPlace, RECENT_MAX, UiState, ViewMode};
-#[cfg(not(target_arch = "wasm32"))]
 use super::updates_ui;
 use super::{
     AnimPreview, ControlRequest, FileTarget, HashMap, ImeCancelled, ImeComposition, ImeResetPhase, ImeTerminalPending, InputTarget, Mods,
@@ -49,7 +48,6 @@ impl SlideApp {
             session,
             services,
             ui: UiState::default(),
-            #[cfg(not(target_arch = "wasm32"))]
             ai: crate::ai::Ai::default(),
             textures: textures::Textures::default(),
             control_rx: None,
@@ -90,7 +88,6 @@ impl SlideApp {
             backstage: None,
             pending_urls: vec![],
             print_previews: files::PrintPreviews::default(),
-            #[cfg(not(target_arch = "wasm32"))]
             updates_rt: updates_ui::Runtime::default(),
             pending_copy: None,
             capture: capture::Capture::default(),
@@ -138,9 +135,8 @@ impl SlideApp {
         self.status = Some((msg.into(), now_ms()));
     }
 
-    /// Turn on the automatic check for a newer release at start-up (desktop shell only; tests and
-    /// the web build never touch the network on their own).
-    #[cfg(not(target_arch = "wasm32"))]
+    /// Turn on the automatic check for a newer release at start-up (desktop shell only; tests
+    /// never touch the network on their own).
     pub fn enable_update_checks(&mut self) {
         updates_ui::enable(self);
     }
@@ -244,14 +240,12 @@ impl SlideApp {
         if !self.synthetic_batch_is_live(ctx) {
             self.drain_control(ctx);
             self.poll_opening();
-            #[cfg(not(target_arch = "wasm32"))]
             updates_ui::tick(self, ctx);
             // Inbox results are host file bytes and do not need fonts or a painted frame. A
             // window that starts hidden must still apply a file picked before its first UI pass.
             self.drain_inbox();
             // An AI answer that arrived since the last pass is applied here, through the engine's
             // commands, so `sync_document` right below shows the slide it changed.
-            #[cfg(not(target_arch = "wasm32"))]
             if self.ai.tick(&mut self.session) {
                 ctx.request_repaint();
             }
@@ -300,8 +294,8 @@ impl SlideApp {
         }
     }
 
-    /// Lay out the windows: on the desktop each open presentation's in its own native window
-    /// ([`windows`]), on the web the one window.
+    /// Lay out the windows: each open presentation's in its own native window
+    /// ([`windows`]).
     pub fn ui(&mut self, ui: &mut egui::Ui) {
         self.ctx = Some(ui.ctx().clone());
         if self.windows.native() {
@@ -393,7 +387,6 @@ impl SlideApp {
         }
         // The AI strip sits between the ribbon and the deck: the canvas takes the rest of the
         // window, so anything drawn after it would be clipped.
-        #[cfg(not(target_arch = "wasm32"))]
         if self.backstage.is_none() {
             crate::ai::status_strip(self, ui);
         }
@@ -420,7 +413,6 @@ impl SlideApp {
                     if self.ui.pane.is_some() {
                         panes::show(self, ui);
                     }
-                    #[cfg(not(target_arch = "wasm32"))]
                     crate::ai::chat_panel(self, ui);
                     if self.ui.view == ViewMode::Outline {
                         sorter::outline_pane(self, ui);
@@ -442,10 +434,8 @@ impl SlideApp {
         toast::note_missing_fonts(self);
         toast::show(self, &ctx);
         dialogs::show(self, &ctx);
-        #[cfg(not(target_arch = "wasm32"))]
         updates_ui::show(self, &ctx);
         // The AI windows are modals of the active window (one window per presentation).
-        #[cfg(not(target_arch = "wasm32"))]
         if ctx.viewport_id() == self.active_viewport() {
             crate::ai::windows(self, &ctx);
         }

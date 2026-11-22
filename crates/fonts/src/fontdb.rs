@@ -357,7 +357,6 @@ impl FontFace {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug)]
 struct CatalogEntry {
     family: String,
@@ -369,31 +368,24 @@ struct CatalogEntry {
 pub struct FontDb {
     faces: RwLock<Vec<Arc<FontFace>>>,
     outlines: Mutex<OutlineCache>,
-    #[cfg(not(target_arch = "wasm32"))]
     catalog: RwLock<Vec<CatalogEntry>>,
     /// The folders the system font scan reads (the platform's font folders for [`FontDb::global`]).
-    #[cfg_attr(target_arch = "wasm32", allow(dead_code))]
     font_dirs: Vec<std::path::PathBuf>,
     /// Set once the font folders have been scanned. Lookups by family name wait for the first
     /// scan, so what they find doesn't depend on what ran before them.
-    #[cfg(not(target_arch = "wasm32"))]
     cataloged: std::sync::OnceLock<()>,
     /// Families (lower case) whose cataloged files have all been loaded: a family's files load
     /// together, so a lookup never settles for the one face another name loaded ("Segoe UI
     /// Semibold" loads a face of the family "Segoe UI").
-    #[cfg(not(target_arch = "wasm32"))]
     loaded_families: Mutex<std::collections::HashSet<String>>,
     /// System fallback state: enabled, and characters no system font covers.
-    #[cfg(not(target_arch = "wasm32"))]
     sys: Mutex<SysFallback>,
     /// Held while installed fonts are loaded, so threads that need the same family wait for one
     /// load instead of racing it: what a lookup finds doesn't depend on which thread got there
     /// first.
-    #[cfg(not(target_arch = "wasm32"))]
     loading: Mutex<()>,
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 #[derive(Default)]
 struct SysFallback {
     enabled: bool,
@@ -408,7 +400,6 @@ fn has_color_tables(data: &[u8], index: u32) -> bool {
 }
 
 /// Families tried (when installed) for characters the loaded fonts lack: CJK, symbols, emoji.
-#[cfg(not(target_arch = "wasm32"))]
 const SYSTEM_FALLBACKS: &[&str] = &[
     "Helvetica Neue",
     "Arial",
@@ -512,14 +503,12 @@ fn instance_legacy_names(family: &str, style: &str) -> Option<(String, String)> 
 /// The tables skrifa reads glyph outlines from: `glyf` (TrueType), `CFF `, `CFF2` and `VARC`. For a
 /// face with none of them (bitmaps only, or outlines in Apple's `hvgl` table), [`FontDb::outline`]
 /// returns an empty path for every glyph.
-#[cfg(not(target_arch = "wasm32"))]
 const OUTLINE_TABLES: [&[u8; 4]; 4] = [b"glyf", b"CFF ", b"CFF2", b"VARC"];
 
 /// (family, style) of every face in the font file at `path`, reading only its table directories
 /// and `name` tables: a scan opens hundreds of font files, many of them megabytes long. A
 /// variable font is cataloged under its default style; its named instances appear once it loads.
 /// Faces with none of the [`OUTLINE_TABLES`] are left out.
-#[cfg(not(target_arch = "wasm32"))]
 fn file_face_names(path: &std::path::Path) -> Vec<(String, String)> {
     use std::io::{Read, Seek, SeekFrom};
     /// Caps on what a (possibly damaged) file can make the scan read.
@@ -576,28 +565,20 @@ fn file_face_names(path: &std::path::Path) -> Vec<(String, String)> {
 }
 
 /// Folder depth below a font folder that the system scan descends.
-#[cfg(not(target_arch = "wasm32"))]
 const MAX_SCAN_DEPTH: usize = 12;
 /// Directory entries the system scan looks at in all.
-#[cfg(not(target_arch = "wasm32"))]
 const MAX_SCAN_ENTRIES: usize = 200_000;
 /// The largest font file read (the biggest CJK collections are a few hundred MB).
-#[cfg(not(target_arch = "wasm32"))]
 pub const MAX_FONT_FILE: u64 = 512 << 20;
 
 /// A regular file of a size a font can have.
-#[cfg(not(target_arch = "wasm32"))]
 fn font_file_ok(meta: &std::fs::Metadata) -> bool {
     meta.is_file() && meta.len() > 12 && meta.len() <= MAX_FONT_FILE
 }
 
 /// The platform's font folders (the system's and the user's), scanned by [`FontDb::global`].
-/// Empty on wasm.
 pub fn system_font_dirs() -> Vec<std::path::PathBuf> {
     let mut dirs: Vec<std::path::PathBuf> = Vec::new();
-    if cfg!(target_arch = "wasm32") {
-        return dirs;
-    }
     let home = std::env::var_os("HOME").map(std::path::PathBuf::from);
     if cfg!(target_os = "macos") {
         dirs.extend(["/System/Library/Fonts", "/Library/Fonts"].map(Into::into));
@@ -951,29 +932,19 @@ impl FontDb {
         Self {
             faces: RwLock::new(faces),
             outlines: Mutex::new(OutlineCache::default()),
-            #[cfg(not(target_arch = "wasm32"))]
             catalog: RwLock::new(Vec::new()),
             font_dirs,
-            #[cfg(not(target_arch = "wasm32"))]
             cataloged: std::sync::OnceLock::new(),
-            #[cfg(not(target_arch = "wasm32"))]
             loaded_families: Mutex::new(std::collections::HashSet::new()),
-            #[cfg(not(target_arch = "wasm32"))]
             sys: Mutex::new(SysFallback { enabled: true, ..Default::default() }),
-            #[cfg(not(target_arch = "wasm32"))]
             loading: Mutex::new(()),
         }
     }
 
     /// Enable or disable the lazy system-font fallback for characters the loaded fonts lack
-    /// (native only; on by default).
+    /// (on by default).
     pub fn set_system_fallback(&self, on: bool) {
-        #[cfg(not(target_arch = "wasm32"))]
-        {
-            self.sys.lock().unwrap_or_else(std::sync::PoisonError::into_inner).enabled = on;
-        }
-        #[cfg(target_arch = "wasm32")]
-        let _ = on;
+        self.sys.lock().unwrap_or_else(std::sync::PoisonError::into_inner).enabled = on;
     }
 
     /// Process-wide database: the bundled fonts, then the installed system fonts, cataloged the
@@ -989,7 +960,6 @@ impl FontDb {
     }
 
     /// The system font catalog, scanned first if it hasn't been yet.
-    #[cfg(not(target_arch = "wasm32"))]
     fn read_catalog(&self) -> std::sync::RwLockReadGuard<'_, Vec<CatalogEntry>> {
         self.ensure_catalog();
         self.catalog.read().unwrap_or_else(std::sync::PoisonError::into_inner)
@@ -998,7 +968,6 @@ impl FontDb {
     /// Family names available (loaded plus cataloged system fonts), sorted and deduplicated.
     pub fn families(&self) -> Vec<String> {
         let mut v: Vec<String> = self.read_faces().iter().map(|f| f.family.clone()).collect();
-        #[cfg(not(target_arch = "wasm32"))]
         v.extend(self.read_catalog().iter().map(|c| c.family.clone()));
         v.sort_by_key(|a| a.to_lowercase());
         v.dedup_by(|a, b| a.eq_ignore_ascii_case(b));
@@ -1013,7 +982,6 @@ impl FontDb {
             .filter(|f| f.family.eq_ignore_ascii_case(family) && !f.style.contains('{'))
             .map(|f| (f.italic, f.weight, f.style.clone()))
             .collect();
-        #[cfg(not(target_arch = "wasm32"))]
         for c in self.read_catalog().iter() {
             if c.family.eq_ignore_ascii_case(family) && !v.iter().any(|(_, _, s)| s.eq_ignore_ascii_case(&c.style)) {
                 v.push((style_italic(&c.style), style_weight(&c.style), c.style.clone()));
@@ -1062,7 +1030,6 @@ impl FontDb {
 
     /// Catalog the installed fonts unless that has been done: the first caller scans the font
     /// folders, any other waits for that scan to finish.
-    #[cfg(not(target_arch = "wasm32"))]
     fn ensure_catalog(&self) {
         self.cataloged.get_or_init(|| {
             self.scan_font_dirs();
@@ -1071,9 +1038,8 @@ impl FontDb {
 
     /// Catalog the installed fonts on a background thread, so the first lookup by family name
     /// (opening a file, the font menus) doesn't wait for the scan. A no-op once they are
-    /// cataloged, and on wasm.
+    /// cataloged.
     pub fn scan_in_background(&'static self) {
-        #[cfg(not(target_arch = "wasm32"))]
         if self.cataloged.get().is_none() {
             // A failed spawn leaves the scan to the first lookup that needs it.
             let _ = std::thread::Builder::new().name("font-scan".into()).spawn(move || self.ensure_catalog());
@@ -1083,7 +1049,6 @@ impl FontDb {
     /// Scan the font folders again (fonts installed or removed since), cataloging the faces
     /// found (native only). Font data is loaded when a cataloged family is first resolved.
     /// Returns the number of faces cataloged.
-    #[cfg(not(target_arch = "wasm32"))]
     pub fn load_system_fonts(&self) -> usize {
         // Families load again from the new catalog when next looked up.
         self.loaded_families.lock().unwrap_or_else(std::sync::PoisonError::into_inner).clear();
@@ -1093,7 +1058,6 @@ impl FontDb {
         first.unwrap_or_else(|| self.scan_font_dirs())
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     fn scan_font_dirs(&self) -> usize {
         let mut found = Vec::new();
         let mut stack: Vec<(std::path::PathBuf, usize)> = self.font_dirs.iter().map(|d| (d.clone(), 0)).collect();
@@ -1144,14 +1108,12 @@ impl FontDb {
 
     /// Load the files of the installed `family` (faces already loaded are kept). Returns whether
     /// it is loaded.
-    #[cfg(not(target_arch = "wasm32"))]
     fn load_cataloged(&self, family: &str) -> bool {
         let loading = self.loading.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
         self.load_family(family, &loading)
     }
 
     /// [`FontDb::load_cataloged`] for a caller already holding `loading`.
-    #[cfg(not(target_arch = "wasm32"))]
     fn load_family(&self, family: &str, _loading: &std::sync::MutexGuard<'_, ()>) -> bool {
         // Not skipped when some face of the family is loaded: a lookup by a Windows family name
         // loads only that style's file, and the family's other files must still load later.
@@ -1212,7 +1174,6 @@ impl FontDb {
         // Every installed file of the family first, so the best style is among the candidates. The
         // lock is held while the files load, so another thread looking up the family waits for
         // them rather than finding none and falling back to another family.
-        #[cfg(not(target_arch = "wasm32"))]
         {
             let mut loaded = self.loaded_families.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
             let key = family.to_lowercase();
@@ -1229,7 +1190,6 @@ impl FontDb {
         if self.is_loaded(family) {
             return true;
         }
-        #[cfg(not(target_arch = "wasm32"))]
         if self.read_catalog().iter().any(|c| c.family.eq_ignore_ascii_case(family)) {
             return true;
         }
@@ -1339,7 +1299,6 @@ impl FontDb {
         if let Some(f) = self.loaded_fallback(c, exclude) {
             return Some(f);
         }
-        #[cfg(not(target_arch = "wasm32"))]
         if self.system_fallback(c) {
             return self.loaded_fallback(c, exclude);
         }
@@ -1353,7 +1312,6 @@ impl FontDb {
         if let Some(f) = self.loaded_fallback_filtered(c, exclude, &accept) {
             return Some(f);
         }
-        #[cfg(not(target_arch = "wasm32"))]
         if self.system_fallback_filtered(c, &|f| f.id != exclude && accept(f), false) {
             return self.loaded_fallback_filtered(c, exclude, &accept);
         }
@@ -1373,12 +1331,10 @@ impl FontDb {
 
     /// Load a system font covering `c` (preferred fallback families first, then any cataloged
     /// file under 40 MB). Returns true if one was loaded. Misses are remembered.
-    #[cfg(not(target_arch = "wasm32"))]
     pub(crate) fn system_fallback(&self, c: char) -> bool {
         self.system_fallback_filtered(c, &|_| true, true)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     fn system_fallback_filtered(&self, c: char, accept: &impl Fn(&FontFace) -> bool, remember_miss: bool) -> bool {
         if c.is_control() || c.is_whitespace() {
             return false;
@@ -1442,7 +1398,6 @@ impl FontDb {
         if let Some(f) = pick(self) {
             return Some(f);
         }
-        #[cfg(not(target_arch = "wasm32"))]
         if self.system_color_fallback(key) {
             return pick(self);
         }
@@ -1459,7 +1414,6 @@ impl FontDb {
             if f.family.contains("Symbol") {
                 return 0;
             }
-            #[cfg(not(target_arch = "wasm32"))]
             if let Some(i) = SYSTEM_FALLBACKS.iter().position(|s| s.eq_ignore_ascii_case(&f.family)) {
                 return i + 1;
             }
@@ -1471,7 +1425,6 @@ impl FontDb {
             v.sort_by_key(|f| (rank(f), f.italic, (f.weight - 400.0).abs() as i32));
             v.first().map(|f| (*f).clone())
         };
-        #[cfg(not(target_arch = "wasm32"))]
         {
             let cataloged: Vec<String> = self.read_catalog().iter().map(|e| e.family.clone()).collect();
             for fam in SYSTEM_FALLBACKS.iter().filter(|f| f.contains("Symbol")) {
@@ -1483,7 +1436,6 @@ impl FontDb {
         if let Some(f) = pick(self) {
             return Some(f);
         }
-        #[cfg(not(target_arch = "wasm32"))]
         if self.system_plain_fallback(key) {
             return pick(self);
         }
@@ -1492,7 +1444,6 @@ impl FontDb {
     }
 
     /// Load an installed font without colour tables covering `c`. True if one was loaded.
-    #[cfg(not(target_arch = "wasm32"))]
     fn system_plain_fallback(&self, c: char) -> bool {
         static MISSES: Mutex<Option<std::collections::HashSet<char>>> = Mutex::new(None);
         if c.is_control() || c.is_whitespace() {
@@ -1524,7 +1475,6 @@ impl FontDb {
     }
 
     /// Load an installed colour font covering `c`. True if one was loaded.
-    #[cfg(not(target_arch = "wasm32"))]
     fn system_color_fallback(&self, c: char) -> bool {
         static MISSES: Mutex<Option<std::collections::HashSet<char>>> = Mutex::new(None);
         if c.is_control() || c.is_whitespace() {

@@ -81,7 +81,7 @@ pub(crate) fn delete_dir(s: &mut Session, dir: &str) -> Result<Value> {
 
 /// A `before`/`after` count from a control or input-method request.
 ///
-/// Input-derived numbers are hostile: a value that does not fit `usize` (on 32-bit wasm, say) is
+/// Input-derived numbers are hostile: a value that does not fit `usize` (on a 32-bit target, say) is
 /// clamped to `usize::MAX` and then bounded by the walk, never truncated to a smaller count that
 /// would delete different text than asked.
 pub(super) fn count_param(p: &Value, name: &str) -> usize {

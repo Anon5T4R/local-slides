@@ -452,9 +452,9 @@ impl Show {
     }
 
     /// Start rendering the backdrop for `key` on another thread, unless it is already there or
-    /// on its way. Nothing on the web (no threads): the first animation frame renders it.
+    /// on its way.
     fn prefetch_backdrop(&mut self, doc: &std::sync::Arc<Presentation>, key: BackKey) {
-        if cfg!(target_arch = "wasm32") || self.backdrop.as_ref().is_some_and(|b| b.key == key && std::sync::Arc::ptr_eq(&b.doc, doc)) {
+        if self.backdrop.as_ref().is_some_and(|b| b.key == key && std::sync::Arc::ptr_eq(&b.doc, doc)) {
             return;
         }
         let (tx, rx) = std::sync::mpsc::channel();

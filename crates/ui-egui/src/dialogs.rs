@@ -298,7 +298,6 @@ fn inches_text(v: Option<&Value>) -> String {
 pub mod credits;
 #[cfg(test)]
 mod font_dialog_tests;
-#[cfg(not(target_arch = "wasm32"))]
 pub(super) mod updates_ui;
 
 #[cfg(test)]

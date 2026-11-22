@@ -1,4 +1,4 @@
-//! Video frames for a playback clock: decoding runs ahead on a worker thread (inline on wasm), and
+//! Video frames for a playback clock: decoding runs ahead on a worker thread, and
 //! [`VideoFeed::frame_at`] hands out the frame due at the clock's time, seeking when the clock
 //! jumps (seek, loop).
 
@@ -8,13 +8,11 @@ use crate::video::{Frame, VideoDecoder};
 use crate::{Bytes, Result};
 
 /// Frames decoded ahead of the clock.
-#[cfg(not(target_arch = "wasm32"))]
 const AHEAD: usize = 6;
 
 /// A jump forward larger than this (seconds) seeks instead of decoding through.
 const MAX_CATCH_UP: f64 = 1.5;
 
-#[cfg(not(target_arch = "wasm32"))]
 enum Cmd {
     Seek(f64, u64),
 }
@@ -25,19 +23,14 @@ pub struct VideoFeed {
     next: Option<Arc<Frame>>,
     generation: u64,
     ended: bool,
-    #[cfg(not(target_arch = "wasm32"))]
     tx: std::sync::mpsc::Sender<Cmd>,
-    #[cfg(not(target_arch = "wasm32"))]
     rx: std::sync::mpsc::Receiver<(u64, Option<Frame>)>,
-    #[cfg(target_arch = "wasm32")]
-    dec: VideoDecoder,
 }
 
 impl VideoFeed {
     pub fn new(bytes: Bytes) -> Result<VideoFeed> {
         let dec = VideoDecoder::open(bytes)?;
         let size = dec.size();
-        #[cfg(not(target_arch = "wasm32"))]
         {
             let (tx, cmd_rx) = std::sync::mpsc::channel::<Cmd>();
             let (frame_tx, rx) = std::sync::mpsc::sync_channel::<(u64, Option<Frame>)>(AHEAD);
@@ -46,10 +39,6 @@ impl VideoFeed {
                 return Err(crate::MediaError::Corrupt(format!("couldn't start the decoder: {e}")));
             }
             Ok(VideoFeed { size, current: None, next: None, generation: 0, ended: false, tx, rx })
-        }
-        #[cfg(target_arch = "wasm32")]
-        {
-            Ok(VideoFeed { size, current: None, next: None, generation: 0, ended: false, dec })
         }
     }
 
@@ -63,19 +52,15 @@ impl VideoFeed {
         self.current = None;
         self.next = None;
         self.ended = false;
-        #[cfg(not(target_arch = "wasm32"))]
         {
             let _ = self.tx.send(Cmd::Seek(t, self.generation));
             // pull() discards stale generations and unblocks the worker. Draining here could
             // also discard the new generation's frames or EOF if the worker handles seek fast.
         }
-        #[cfg(target_arch = "wasm32")]
-        self.dec.seek(t);
     }
 
     /// The next decoded frame, if one is ready (`Err(())` at the end of the stream).
     fn pull(&mut self) -> std::result::Result<Option<Arc<Frame>>, ()> {
-        #[cfg(not(target_arch = "wasm32"))]
         loop {
             match self.rx.try_recv() {
                 Ok((g, _)) if g != self.generation => continue,
@@ -84,11 +69,6 @@ impl VideoFeed {
                 Err(std::sync::mpsc::TryRecvError::Empty) => return Ok(None),
                 Err(std::sync::mpsc::TryRecvError::Disconnected) => return Err(()),
             }
-        }
-        #[cfg(target_arch = "wasm32")]
-        match self.dec.next_frame() {
-            Ok(Some(f)) => Ok(Some(Arc::new(f))),
-            _ => Err(()),
         }
     }
 
@@ -138,7 +118,6 @@ impl VideoFeed {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 fn worker(mut dec: VideoDecoder, cmds: std::sync::mpsc::Receiver<Cmd>, frames: std::sync::mpsc::SyncSender<(u64, Option<Frame>)>) {
     let mut generation = 0u64;
     let mut at_end = false;
@@ -179,7 +158,7 @@ fn worker(mut dec: VideoDecoder, cmds: std::sync::mpsc::Receiver<Cmd>, frames: s
     }
 }
 
-#[cfg(all(test, not(target_arch = "wasm32")))]
+#[cfg(test)]
 mod tests {
     use super::*;
 

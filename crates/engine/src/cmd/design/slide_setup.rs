@@ -223,7 +223,7 @@ fn set_date(sh: &mut Shape, fixed: &str, format: &str) {
 }
 
 /// Today's local date as a `datetime1` field shows it (M/D/YYYY): the saved text of a new date
-/// field. Empty where there is no clock (wasm).
+/// field. Empty when the clock is not readable.
 pub fn today() -> String {
     date_field_text("datetime1")
 }

@@ -18,14 +18,13 @@ Rust puro + egui. Sem conta, sem telemetria, sem dependência de servidores de t
 
 ## Estrutura
 - `crates/` — engine e módulos (`localslides-*`), em camadas L0–L7 (`cargo xtask layers`)
-- `apps/localslides` — app desktop + control channel; `apps/localslides-cli` — CLI/MCP;
-  `apps/localslides-web` — wasm
+- `apps/localslides` — app desktop + control channel; `apps/localslides-cli` — CLI/MCP
 - `libs/` — forks vendored: `craft-libs` (c5a1cbf, com `vendor/krilla`), `egui` (6d518fc),
   `winit` (a517b38)
 - `packaging/` — Windows (WiX/MSI per-machine e per-user), Linux (AppImage/deb/rpm/tar FHS com `install.sh`), Arch (PKGBUILD),
-  macOS, FreeBSD, web
+  macOS, FreeBSD
 - `scripts/check-mirror.sh` — confere as crates e os assets (`craft-fonts`) espelhados do `local-libs` contra a fonte (CI e `xtask ci`)
-- `xtask/` — tarefas de build/CI (`cargo xtask ci`, `fmt`, `layers`, `wasm`, `bench`, `assets`)
+- `xtask/` — tarefas de build/CI (`cargo xtask ci`, `fmt`, `layers`, `bench`, `assets`)
 
 ## Agent-native (MCP)
 `crates/mcp` (servidor stdio + backends headless/`Remote` do control channel, porta com token) e
@@ -39,12 +38,12 @@ repetíveis (multi-root, como no deckcraft). Docs: `docs/mcp.md`.
 ```
 cargo build --locked          # debug
 cargo test --locked           # testes (no Windows: -- --test-threads=1, testes de UI); as fontes vendored entram sempre (.cargo/config.toml), igual ao CI
-cargo xtask ci                # o gate local: fmt, pdf-deps, clippy, testes, assets, camadas, cargo-deny, espelhos do local-libs, wasm
+cargo xtask ci                # o gate local: fmt, pdf-deps, clippy, testes, assets, camadas, cargo-deny, espelhos do local-libs
 packaging/windows/package.ps1 # MSI + portable (Windows)
 packaging/linux/package.sh    # AppImage/deb/rpm/tar (Linux)
 ```
 
-Regras técnicas do código (never-crash, camadas, tudo é comando, wasm, política de assets):
+Regras técnicas do código (never-crash, camadas, tudo é comando, política de assets):
 `docs/architecture.md`; a sincronização com o upstream (o que entra e o que fica de fora):
 `docs/UPSTREAM-SYNC.md`. Estado e fila: `ROADMAP.md`.
 
