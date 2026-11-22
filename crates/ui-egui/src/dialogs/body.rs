@@ -1308,8 +1308,14 @@ fn dlg_about(app: &mut SlideApp, ui: &mut Ui, d: &mut Dialog) -> bool {
         }
         _ => about(app, ui),
     }
-    let (ok, cancel) = buttons(ui, "Close");
-    ok || cancel
+    // The About window only closes: one button, no Cancel (Enter and Escape close it too).
+    let t = Tokens::get(ui.ctx());
+    ui.add_space(8.0);
+    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+        ui.add(egui::Button::new(egui::RichText::new(tl!("Close")).color(t.accent_text)).fill(t.accent).min_size(vec2(72.0, 24.0))).clicked()
+            || ui.input(|i| i.key_pressed(egui::Key::Enter))
+    })
+    .inner
 }
 
 fn dlg_autocorrect(app: &mut SlideApp, ui: &mut Ui, d: &mut Dialog) -> bool {

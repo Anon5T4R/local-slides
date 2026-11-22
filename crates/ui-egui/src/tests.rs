@@ -833,9 +833,46 @@ fn preferences_cancel_restores_the_settings_done_keeps_them() {
     assert_ne!(s.session.prefs.snap_to_grid, before.snap_to_grid, "Done keeps snap to grid");
 }
 
-/// About dialog: Close and Cancel each close the dialog.
+/// About dialog: it only closes — a single Close button, no Cancel. The window chrome's Close
+/// (`Close window`) is there too; both close it.
 #[test]
-fn about_dialog_close_and_cancel_close_it() {
+fn about_has_a_single_close_button_and_no_cancel() {
+    use egui_kittest::kittest::{By, NodeT, Queryable};
+    let buttons = |h: &egui_kittest::Harness<'_, SlideApp>| -> Vec<String> {
+        h.query_all(By::new().role(egui::accesskit::Role::Button)).filter_map(|n| n.accesskit_node().label()).map(|l| l.trim().to_string()).collect()
+    };
+    let mut harness = egui_kittest::Harness::builder().with_size(egui::vec2(1200.0, 800.0)).build_ui_state(
+        |ui, app: &mut SlideApp| {
+            app.logic(ui.ctx());
+            app.ui(ui);
+        },
+        SlideApp::new(Session::with_new(), Services::default()),
+    );
+    harness.run_steps(2);
+    let before = buttons(&harness);
+    harness.state_mut().run("app.about", json!({})).unwrap();
+    harness.run_steps(2);
+    assert!(harness.state().dialog.is_some());
+    let mut added: Vec<String> = buttons(&harness).into_iter().filter(|l| !before.contains(l)).collect();
+    added.sort();
+    assert_eq!(
+        added,
+        ["About", "Close", "Close window", "Contributors", "Models"].map(String::from).to_vec(),
+        "tabs, one body Close and the window's Close window — no Cancel"
+    );
+
+    harness
+        .query_all(By::new().role(egui::accesskit::Role::Button))
+        .find(|n| n.accesskit_node().label().as_deref().map(str::trim) == Some("Close"))
+        .expect("a Close button")
+        .click_accesskit();
+    harness.run_steps(2);
+    assert!(harness.state().dialog.is_none(), "Close closes the About dialog");
+}
+
+/// Enter and Escape close the About dialog as well.
+#[test]
+fn about_closes_on_enter_and_escape() {
     use egui_kittest::kittest::Queryable;
     let mut harness = egui_kittest::Harness::builder().with_size(egui::vec2(1200.0, 800.0)).build_ui_state(
         |ui, app: &mut SlideApp| {
@@ -845,27 +882,15 @@ fn about_dialog_close_and_cancel_close_it() {
         SlideApp::new(Session::with_new(), Services::default()),
     );
     harness.run_steps(2);
-    harness.state_mut().run("app.about", json!({})).unwrap();
-    harness.run_steps(2);
-    assert!(harness.state().dialog.is_some());
-    harness
-        .query_all_by_role_and_label(egui::accesskit::Role::Button, "Cancel")
-        .next()
-        .unwrap_or_else(|| panic!("no Cancel button in About dialog"))
-        .click_accesskit();
-    harness.run_steps(2);
-    assert!(harness.state().dialog.is_none(), "Cancel closes About dialog");
-
-    harness.state_mut().run("app.about", json!({})).unwrap();
-    harness.run_steps(2);
-    assert!(harness.state().dialog.is_some());
-    harness
-        .query_all_by_role_and_label(egui::accesskit::Role::Button, "Close")
-        .next()
-        .unwrap_or_else(|| panic!("no Close button in About dialog"))
-        .click_accesskit();
-    harness.run_steps(2);
-    assert!(harness.state().dialog.is_none(), "Close closes About dialog");
+    for key in [egui::Key::Enter, egui::Key::Escape] {
+        harness.state_mut().run("app.about", json!({})).unwrap();
+        harness.run_steps(2);
+        assert!(harness.state().dialog.is_some());
+        assert!(harness.query_by_label("Cancel").is_none(), "{key:?}: still no Cancel");
+        harness.key_press(key);
+        harness.run_steps(2);
+        assert!(harness.state().dialog.is_none(), "{key:?} closes the About dialog");
+    }
 }
 
 fn canvas_harness() -> egui_kittest::Harness<'static, SlideApp> {
