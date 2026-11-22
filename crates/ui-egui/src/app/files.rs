@@ -252,7 +252,7 @@ impl SlideApp {
         let Some((title, doc)) = self.session.active().map(|d| (d.title(), d.doc.clone())) else { return false };
         let mut params = if params.is_object() { params } else { json!({}) };
         if self.services.pick_save.is_none() {
-            // Web: the browser hands the PDF to the user.
+            // A host with a download sink gets the PDF instead of a save path.
             let bytes = localslides_engine::cmd::file::pdf_bytes(&doc, &params);
             return self.download(&format!("{title}.pdf"), bytes);
         }

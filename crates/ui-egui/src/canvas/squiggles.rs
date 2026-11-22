@@ -1,6 +1,6 @@
 //! Spelling squiggles: misspelt words on the current slide (shapes and table cells) and in the
 //! speaker notes get a red wavy underline. Checks run on a worker thread so typing never waits for
-//! a dictionary; the web build has no threads, so there the same checker runs on the UI thread a
+//! a dictionary; without a worker thread the same checker runs on the UI thread a
 //! few milliseconds per frame until it is done. Results are for one version of the text; while a
 //! newer check runs nothing stale is drawn. The word the caret is in isn't marked, as in
 //! PowerPoint.
@@ -14,7 +14,7 @@ use localslides_engine::DocState;
 use localslides_geom::Point;
 use localslides_model::{Paragraph, ShapeId};
 
-/// Milliseconds of checking per frame on the UI thread (the web build).
+/// Milliseconds of checking per frame on the UI thread.
 pub const FRAME_BUDGET_MS: f64 = 4.0;
 
 /// Where a checked paragraph is.
@@ -174,9 +174,9 @@ type Mark = (Tag, usize, usize);
 pub struct Squiggles {
     tx: Option<Sender<Job>>,
     rx: Option<Receiver<Done>>,
-    /// No worker thread (the web build, or forced for tests): check on the UI thread.
+    /// No worker thread (forced for tests): check on the UI thread.
     inline: Option<Checker>,
-    /// Check on the UI thread even where threads exist (tests of the web path).
+    /// Check on the UI thread even where threads exist (tests).
     pub force_inline: bool,
     pending: [Option<Key>; 2],
     done: [Option<Done>; 2],
