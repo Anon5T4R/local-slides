@@ -1,4 +1,4 @@
-//! Every dialog and window of the app fits the window's minimum width (`with_min_inner_size` in
+//! Every dialog and window of the app fits the window's minimum size (`with_min_inner_size` in
 //! `apps/localslides/src/main.rs`), with a deck open and filled; the title bar, the command palette
 //! and the update card are measured too. The bounding boxes come from the accesskit tree, as
 //! `every_dialog_fits_the_narrow_window` does in the Local Keys suite.
@@ -13,6 +13,8 @@ use crate::{Services, SlideApp};
 
 /// The app's minimum inner width (`apps/localslides/src/main.rs`).
 const MIN_WIDTH: f32 = 900.0;
+/// The app's minimum inner height (`apps/localslides/src/main.rs`).
+const MIN_HEIGHT: f32 = 560.0;
 
 /// A deck with slides, a text box, a table, a picture, a comment and a section: the dialogs draw
 /// their lists and previews instead of their empty states.
@@ -29,7 +31,7 @@ fn filled_session() -> Session {
 }
 
 fn harness_at(session: Session, width: f32) -> egui_kittest::Harness<'static, SlideApp> {
-    let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(width, 640.0)).build_ui_state(
+    let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(width, MIN_HEIGHT)).build_ui_state(
         |ui, app: &mut SlideApp| {
             app.logic(ui.ctx());
             app.ui(ui);
@@ -40,20 +42,44 @@ fn harness_at(session: Session, width: f32) -> egui_kittest::Harness<'static, Sl
     h
 }
 
-/// Every accesskit node of `root`'s subtree with a box stays inside the window's width.
+/// Where a window's content may go past the bottom edge: the body of a dialog whose controls do not
+/// fit scrolls, with its title and its buttons outside the `ScrollArea`. The accesskit tree reports
+/// the scrolled content unclipped, so what hangs below is accepted only when it comes before a
+/// vertical scroll bar inside the window and in its column; the bar is drawn after the content and
+/// the buttons after it.
+fn below_is_scrolled(root: &egui_kittest::Node<'_>) -> impl Fn(usize, egui::accesskit::Rect) -> bool {
+    const TOL: f64 = 0.5;
+    let nodes: Vec<_> = root.children_recursive().collect();
+    let bars: Vec<(usize, egui::accesskit::Rect)> = nodes
+        .iter()
+        .enumerate()
+        .filter_map(|(i, node)| {
+            let rect = node.accesskit_node().bounding_box()?;
+            let vertical = rect.y1 - rect.y0 > rect.x1 - rect.x0;
+            let inside = rect.x0 >= -TOL && rect.x1 <= f64::from(MIN_WIDTH) + TOL && rect.y0 >= -TOL && rect.y1 <= f64::from(MIN_HEIGHT) + TOL;
+            (node.accesskit_node().role() == Role::ScrollBar && vertical && inside).then_some((i, rect))
+        })
+        .collect();
+    move |i, rect| bars.iter().any(|&(bar_at, bar)| bar_at > i && rect.x1 <= bar.x1 + TOL && bar.y0 <= rect.y0 + TOL)
+}
+
+/// Every accesskit node of `root`'s subtree with a box stays inside the window, in both axes.
 fn assert_subtree_inside(root: &egui_kittest::Node<'_>, what: &str, width: f32) {
-    for node in root.children_recursive() {
+    let scrolled = below_is_scrolled(root);
+    for (i, node) in root.children_recursive().enumerate() {
         // A field's text runs past its own box (egui clips the drawing): the field is the node.
         if node.accesskit_node().role() == Role::TextRun {
             continue;
         }
         let Some(rect) = node.accesskit_node().bounding_box() else { continue };
-        if rect.width() > 0.0 {
-            assert!(
-                rect.x0 >= -0.5 && rect.x1 <= f64::from(width) + 0.5,
-                "{what}: {:?} outside the {width} pt window: {rect:?}",
-                node.accesskit_node().role()
-            );
+        if rect.width() <= 0.0 {
+            continue;
+        }
+        let role = node.accesskit_node().role();
+        assert!(rect.x0 >= -0.5 && rect.x1 <= f64::from(width) + 0.5, "{what}: {role:?} outside the {width} pt window: {rect:?}");
+        assert!(rect.y0 >= -0.5, "{what}: {role:?} above the window: {rect:?}");
+        if rect.y1 > f64::from(MIN_HEIGHT) + 0.5 && !scrolled(i, rect) {
+            panic!("{what}: {role:?} below the {MIN_HEIGHT} pt window and outside a scrolling body: {rect:?}");
         }
     }
 }
@@ -117,16 +143,25 @@ const DIALOGS: &[&str] = &[
     "themeFonts",
 ];
 
-/// Every dialog fits the window's minimum width, with the deck filled.
+/// Every dialog fits the window's minimum size, with the deck filled. One dialog's failure is
+/// reported with the rest instead of hiding them: the whole list comes out of one run.
 #[test]
 fn every_dialog_fits_the_narrow_window() {
+    let mut problems = Vec::new();
     for id in DIALOGS {
-        let mut h = harness_at(filled_session(), MIN_WIDTH);
-        h.state_mut().dialog = Some(Dialog::new(id));
-        h.run_steps(4);
-        assert_eq!(h.state().dialog.as_ref().map(|d| d.id.as_str()), Some(*id), "{id} did not stay open");
-        assert!(assert_windows_inside(&h, id, MIN_WIDTH) >= 1, "{id} draws no window");
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let mut h = harness_at(filled_session(), MIN_WIDTH);
+            h.state_mut().dialog = Some(Dialog::new(id));
+            h.run_steps(4);
+            assert_eq!(h.state().dialog.as_ref().map(|d| d.id.as_str()), Some(*id), "{id} did not stay open");
+            assert!(assert_windows_inside(&h, id, MIN_WIDTH) >= 1, "{id} draws no window");
+        }));
+        if let Err(panic) = outcome {
+            let message = panic.downcast_ref::<String>().map(String::as_str).or(panic.downcast_ref::<&str>().copied()).unwrap_or("?");
+            problems.push(format!("{id}: {message}"));
+        }
     }
+    assert!(problems.is_empty(), "{} diálogo(s) fora do padrão:\n{}", problems.len(), problems.join("\n"));
 }
 
 /// The title bar (document name and the suite's three buttons) fits the minimum width.
