@@ -22,10 +22,9 @@ commands:
   assets          check that every icon/image/font/asset is attributed in ATTRIBUTION.md
   pdf-deps        verify pinned writer sources and the production feature boundary
   layers          enforce the crate dependency layering (plan/architecture.md §3)
-  wasm            cargo check --target wasm32-unknown-unknown for the wasm-safe crates (one call)
   test            workspace tests (cargo nextest when installed, else cargo test), then doctests
   ci              fmt --check, pdf-deps, clippy -D warnings, test, doctest, assets, layers, cargo-deny,
-                  local-libs mirrors, wasm
+                  local-libs mirrors
                   (stops at first failure)
   stats [--exact] count tests and lines per crate (--exact: ask the test harness via `-- --list`)
   bench [--save] [DECK...]
@@ -43,7 +42,6 @@ fn main() -> ExitCode {
         Some("layers") => cmd_layers(),
         Some("fmt") => cmd_fmt(),
         Some("pdf-deps") => pdf_deps::run(&root()),
-        Some("wasm") => cmd_wasm(),
         Some("test") => cmd_test().and_then(|()| cmd_doctest()),
         Some("ci") => cmd_ci(),
         Some("stats") => stats::run(&root(), rest.contains(&"--exact")),
@@ -124,39 +122,6 @@ fn cmd_layers() -> Result<(), String> {
     }
 }
 
-/// Workspace packages that must build for wasm32: all L0–L5 crates plus
-/// the egui shell.
-fn wasm_set() -> Result<Vec<String>, String> {
-    let crates = layers::from_metadata(&metadata()?)?;
-    Ok(crates
-        .into_iter()
-        .filter(|c| match layers::classify(&c.name) {
-            Some(layers::Class::Layer(l)) => l <= 5 || layers::short_name(&c.name) == "ui-egui",
-            Some(layers::Class::Standalone) => true,
-            _ => false,
-        })
-        .map(|c| c.name)
-        .collect())
-}
-
-/// One `cargo check` for the whole set: each crate is checked once, and
-/// `--keep-going` still reports every failing crate. Features unify across the
-/// set, so each crate is checked with the union of the features the set enables.
-fn cmd_wasm() -> Result<(), String> {
-    let set = wasm_set()?;
-    if set.is_empty() {
-        return Err("no wasm-safe crates found in the workspace metadata".into());
-    }
-    let mut c = cargo();
-    c.args(["check", "--target", "wasm32-unknown-unknown", "--keep-going"]);
-    for pkg in &set {
-        c.args(["-p", pkg]);
-    }
-    run(c, &format!("cargo check --target wasm32-unknown-unknown --keep-going -p {}", set.join(" -p ")))?;
-    println!("\nwasm32-unknown-unknown check: ok ({} crates: {})", set.len(), set.join(", "));
-    Ok(())
-}
-
 /// Test targets for the test build. Examples are left out so they aren't
 /// linked; clippy `--all-targets` still compiles them.
 const TEST_TARGETS: [&str; 4] = ["--workspace", "--lib", "--bins", "--tests"];
@@ -210,7 +175,6 @@ fn cmd_ci() -> Result<(), String> {
         ("layers", Box::new(cmd_layers)),
         ("deny", Box::new(cmd_deny)),
         ("mirror", Box::new(cmd_mirror)),
-        ("wasm", Box::new(cmd_wasm)),
     ];
     let mut done = Vec::new();
     for (name, f) in &steps {

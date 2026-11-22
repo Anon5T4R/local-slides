@@ -21,7 +21,7 @@ pub fn run(root: &Path) -> Result<(), String> {
     let metadata: Value = serde_json::from_slice(&output.stdout).map_err(|e| format!("cargo metadata: {e}"))?;
     validate(&metadata)?;
     // Metadata merges target features even with --filter-platform. Check Cargo's
-    // selected feature graph separately so native compression never enables threads on WASM.
+    // selected feature graph separately: the exporter's Krilla must carry parallel compression.
     let output =
         Command::new(std::env::var_os("RUSTC").unwrap_or_else(|| "rustc".into())).arg("-vV").output().map_err(|e| format!("rustc host: {e}"))?;
     if !output.status.success() {
@@ -29,7 +29,8 @@ pub fn run(root: &Path) -> Result<(), String> {
     }
     let version = String::from_utf8(output.stdout).map_err(|e| format!("rustc host: {e}"))?;
     let host = version.lines().find_map(|line| line.strip_prefix("host: ")).ok_or("rustc did not report its host target")?;
-    for (target, parallel) in [(host, true), ("wasm32-unknown-unknown", false)] {
+    {
+        let target = host;
         let output = Command::new(std::env::var_os("CARGO").unwrap_or_else(|| "cargo".into()))
             .current_dir(root)
             .args([
@@ -54,9 +55,9 @@ pub fn run(root: &Path) -> Result<(), String> {
         if !output.status.success() {
             return Err(format!("cargo tree ({target}): {}", String::from_utf8_lossy(&output.stderr)));
         }
-        validate_target_features(&String::from_utf8_lossy(&output.stdout), parallel).map_err(|e| format!("{target}: {e}"))?;
+        validate_target_features(&String::from_utf8_lossy(&output.stdout), true).map_err(|e| format!("{target}: {e}"))?;
     }
-    println!("PDF writer: pinned craft-pdf/Krilla; native-only parallel compression; parser assertions are development-only");
+    println!("PDF writer: pinned craft-pdf/Krilla; parallel compression; parser assertions are development-only");
     Ok(())
 }
 
