@@ -55,7 +55,7 @@ ignore = [
     { id = "RUSTSEC-2026-0387", reason = "crypto-bigint 0.5.5 via rsa 0.9 (fix exige rsa 0.10); cliente não opera chave privada" },
     # Abandono sem vulnerabilidade: chrono (craft-update), paste (macro de compilação), rustybuzz e ttf-parser
     # (texto, sem substituto no fork do egui) e a pilha D-Bus do Linux (zvariant/zbus_names, portal e acessibilidade).
-    { id = "RUSTSEC-2026-0543", reason = "chrono unmaintained (craft-update); troca por jiff/std no backlog" },
+    { id = "RUSTSEC-2026-0543", reason = "chrono unmaintained; sem vulnerabilidade, vem do código do app, não do craft-update (jiff)" },
     { id = "RUSTSEC-2024-0436", reason = "paste unmaintained; proc macro só em tempo de compilação" },
     { id = "RUSTSEC-2026-0206", reason = "rustybuzz unmaintained (shaping do texto); sem vulnerabilidade, só abandono" },
     { id = "RUSTSEC-2026-0192", reason = "ttf-parser unmaintained (texto); sem versão segura e sem vulnerabilidade, só abandono" },
