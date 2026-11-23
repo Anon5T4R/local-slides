@@ -150,13 +150,13 @@ fn a_closed_or_cancelled_request_does_not_insert_into_the_active_document() {
     let status = app.status.as_ref().map(|(t, _)| t.as_str()).unwrap_or("");
     assert!(status.contains("deleted"), "{status}");
 
-    app.session.execute("file.close", &json!({})).unwrap();
+    app.session.execute("file.close", &json!({"discard": true})).unwrap();
     app.session.execute("file.new", &json!({})).unwrap();
     // The deleted-slide request was already consumed. Start another and close before it arrives.
     let closed = app.session.active().unwrap().uid;
     app.pick_and_insert("audio", "insert.audio");
     let audio_id = started.lock().expect("request log").last().unwrap().1;
-    app.session.execute("file.close", &json!({})).unwrap();
+    app.session.execute("file.close", &json!({"discard": true})).unwrap();
     app.session.execute("file.new", &json!({})).unwrap();
     let other = app.session.active().unwrap().uid;
     assert_ne!(closed, other);
