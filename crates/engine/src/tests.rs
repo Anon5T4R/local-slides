@@ -6541,3 +6541,24 @@ fn a_group_that_fails_changes_nothing() {
     assert_eq!(s.doc().unwrap().doc.slides.len(), slides, "the made slide is gone");
     assert_eq!(s.doc().unwrap().history.undo.len(), undo_before, "no undo step is kept");
 }
+
+/// `file.close` never drops unsaved work silently: the palette, the CLI and MCP reach it without
+/// the app's "save changes?" dialog. Clean presentations close; `discard: true` is the explicit way.
+#[test]
+fn closing_a_presentation_with_unsaved_changes_needs_discard() {
+    let mut s = session();
+    s.execute("slide.new", &json!({})).unwrap();
+    assert!(s.active().unwrap().is_dirty());
+
+    let err = s.execute("file.close", &json!({})).unwrap_err().to_string();
+    assert!(err.contains("unsaved changes"), "{err}");
+    assert_eq!(s.documents().len(), 1, "the refused close keeps the presentation");
+
+    s.execute("file.close", &json!({"discard": true})).unwrap();
+    assert_eq!(s.documents().len(), 0);
+
+    s.execute("file.new", &json!({})).unwrap();
+    assert!(!s.active().unwrap().is_dirty());
+    s.execute("file.close", &json!({})).unwrap();
+    assert_eq!(s.documents().len(), 0, "a presentation without changes closes without asking");
+}

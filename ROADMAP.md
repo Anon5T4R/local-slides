@@ -13,8 +13,7 @@ até "pronto para trabalho de verdade".
 - **Fidelidade do PPTX.** O corpus de round-trip é só de decks que nós autoramos: falta conferir
   contra renderizações do PowerPoint e decks de terceiros; opções de mídia ainda se perdem num
   round-trip.
-- **Estabilidade.** O fechamento de um deck editado precisa perguntar antes (hoje só o encerramento
-  pergunta), e o app não abre em algumas GPUs Windows (enumeração de Vulkan).
+- **Estabilidade.** O app não abre em algumas GPUs Windows (enumeração de Vulkan).
 - **Imagens.** SVG não renderiza (EMF/WMF sim); colar imagem no Windows falha em alguns casos.
 - **Animações.** O painel cobre parte dos efeitos do PowerPoint (timeline e Play From já existem).
 - **Gráficos.** Falta editar os dados na grade e os elementos do gráfico.

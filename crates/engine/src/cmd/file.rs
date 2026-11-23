@@ -57,7 +57,7 @@ pub fn specs() -> Vec<CommandSpec> {
             has_doc,
             color_at
         ),
-        cmd!(noundo "file.close", "Close", ["File"], Some("Cmd+W"), "{}", has_doc, close),
+        cmd!(noundo "file.close", "Close", ["File"], Some("Cmd+W"), "{discard?: bool (false): close even with unsaved changes}", has_doc, close),
         cmd!(
             "file.properties",
             "Properties",
@@ -663,10 +663,15 @@ fn info(s: &mut Session, _p: &Value) -> Result<Value> {
     }))
 }
 
-fn close(s: &mut Session, _p: &Value) -> Result<Value> {
-    if let Some(i) = s.active_index() {
-        s.close_document(i);
+/// Closes the active presentation. One with unsaved changes is refused unless `discard: true`:
+/// the palette, the CLI and an agent over MCP reach this command directly, without the app's
+/// "save changes?" dialog, and a silent close loses the work. The dialog's "Don't Save" passes it.
+fn close(s: &mut Session, p: &Value) -> Result<Value> {
+    let Some(i) = s.active_index() else { return ok() };
+    if s.active().is_some_and(DocState::is_dirty) && !bool_or(p, "discard", false) {
+        return Err(bad("file.close", "the presentation has unsaved changes: save it first (file.save) or pass {\"discard\": true} to lose them"));
     }
+    s.close_document(i);
     ok()
 }
 

@@ -333,7 +333,7 @@ fn dlg_close(app: &mut SlideApp, ui: &mut Ui, _d: &mut Dialog) -> bool {
     ui.horizontal(|ui| {
         let t = Tokens::get(ui.ctx());
         if ui.add(egui::Button::new(tl!("Don't Save")).min_size(vec2(84.0, 24.0))).clicked() {
-            run(app, "file.close", json!({}));
+            run(app, "file.close", json!({"discard": true}));
             done = true;
         }
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -343,7 +343,8 @@ fn dlg_close(app: &mut SlideApp, ui: &mut Ui, _d: &mut Dialog) -> bool {
                 // In the browser a save is a download: the presentation stays "unsaved".
                 let web = app.services.pick_save.is_none() && app.services.download.is_some();
                 if web || app.session.active().is_some_and(|d| !d.is_dirty()) {
-                    run(app, "file.close", json!({}));
+                    // In the browser the download is the save: closing after it loses nothing.
+                    run(app, "file.close", json!({"discard": web}));
                 }
                 done = true;
             }
