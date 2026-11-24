@@ -1,47 +1,48 @@
 # ROADMAP — Local Slides
 
-Fork do deckcraft (deckcraft v0.15.1), rebrandado para a suíte Local. Rust puro + egui, desktop.
-O formato nativo é o `.deckcraft` do upstream (zip + JSON, mantido byte a byte, com o MIME
-`application/vnd.storyteller.deckcraft+zip`); PPTX entra e sai. Como é construído:
-`docs/architecture.md`; o que vem do upstream: `docs/UPSTREAM-SYNC.md`.
+Fork of deckcraft (deckcraft v0.15.1), rebranded for the Local suite. Pure Rust + egui, desktop.
+The native format is the upstream's `.deckcraft` (zip + JSON, kept byte for byte, with the MIME
+`application/vnd.storyteller.deckcraft+zip`); PPTX comes in and goes out. How it is built:
+`docs/architecture.md`; what comes from the upstream: `docs/UPSTREAM-SYNC.md`.
 
-**Estágio: alpha.** Abre, edita, apresenta e salva decks de uso real; o que abaixo falta é o caminho
-até "pronto para trabalho de verdade".
+**Stage: alpha.** It opens, edits, presents and saves real-world decks; what is missing below is
+the path to "ready for real work".
 
-## O que falta (por área, sem ordem de dificuldade)
+## What is missing (by area, in no order of difficulty)
 
-- **Fidelidade do PPTX.** O corpus de round-trip é só de decks que nós autoramos: falta conferir
-  contra renderizações do PowerPoint e decks de terceiros; opções de mídia ainda se perdem num
+- **PPTX fidelity.** The round-trip corpus is only decks we authored ourselves: checking against
+  PowerPoint renderings and third-party decks is missing; media options still get lost in a
   round-trip.
-- **Estabilidade.** O app não abre em algumas GPUs Windows (enumeração de Vulkan).
-- **Imagens.** SVG não renderiza (EMF/WMF sim); colar imagem no Windows falha em alguns casos.
-- **Animações.** O painel cobre parte dos efeitos do PowerPoint (timeline e Play From já existem).
-- **Gráficos.** Falta editar os dados na grade e os elementos do gráfico.
-- **Formatação.** O painel de Formatar Forma é mais enxuto que o do PowerPoint; fontes só nas faces
-  Regular, Negrito e Itálico.
-- **Impressão.** Não imprime.
-- **Vídeo do deck.** Exporta GIF animado, não MP4/MOV.
-- **Apresentação.** A visão do apresentador não se posiciona na segunda tela.
-- **Desempenho.** Os slides rasterizam na CPU, sem baseline de performance.
-- **Localização.** Inglês, português (Brasil) e espanhol; os catálogos ainda têm strings sem
-  tradução (`cargo xtask i18n-report`).
+- **Stability.** The app does not open on some Windows GPUs (Vulkan enumeration).
+- **Images.** SVG does not render (EMF/WMF do); pasting an image on Windows fails in some cases.
+- **Animations.** The panel covers part of PowerPoint's effects (timeline and Play From already
+  exist).
+- **Charts.** Editing the data on the grid and the chart elements is missing.
+- **Formatting.** The Format Shape pane is leaner than PowerPoint's; fonts only in the Regular,
+  Bold and Italic faces.
+- **Printing.** It does not print.
+- **Deck video.** It exports animated GIF, not MP4/MOV.
+- **Presenting.** The presenter view does not position itself on the second screen.
+- **Performance.** The slides rasterize on the CPU, with no performance baseline.
+- **Localization.** English, Portuguese (Brazil) and Spanish; the catalogs still have untranslated
+  strings (`cargo xtask i18n-report`).
 
-## Formatos
+## Formats
 
-| Formato | Ler | Gravar |
+| Format | Read | Write |
 | --- | --- | --- |
-| `.pptx` | sim | sim |
-| `.potx` / `.ppsx` | sim (como apresentação) | sim, com o content type próprio |
-| `.deckcraft` (nativo; também `.slidecraft`) | sim | sim, sem perdas |
-| `.thmx` (tema do Office) | só cores, fontes e efeitos (Design › Procurar Temas…) | não |
-| PPTX com macro (`.pptm`/`.potm`/`.ppsm`), `.ppt` 97–2003, `.odp` | não | não |
-| Outline `.txt`/`.rtf`/`.md` | sim (títulos viram slides, itens viram marcadores) | `.txt`/`.rtf` |
-| PDF | — | sim (slides, anotações, folhetos); a arte do slide entra rasterizada |
-| PNG/JPEG por slide | — | sim (com fundo transparente opcional) |
-| GIF animado do deck | — | sim (transições e animações não entram) |
-| TIFF/BMP/GIF por slide, MP4/MOV | — | não |
+| `.pptx` | yes | yes |
+| `.potx` / `.ppsx` | yes (as a presentation) | yes, with the proper content type |
+| `.deckcraft` (native; also `.slidecraft`) | yes | yes, losslessly |
+| `.thmx` (Office theme) | colors, fonts and effects only (Design › Browse for Themes…) | no |
+| Macro PPTX (`.pptm`/`.potm`/`.ppsm`), `.ppt` 97–2003, `.odp` | no | no |
+| Outline `.txt`/`.rtf`/`.md` | yes (titles become slides, items become bullets) | `.txt`/`.rtf` |
+| PDF | — | yes (slides, notes, handouts); the slide art goes in rasterized |
+| PNG/JPEG per slide | — | yes (with optional transparent background) |
+| Animated GIF of the deck | — | yes (transitions and animations do not enter) |
+| TIFF/BMP/GIF per slide, MP4/MOV | — | no |
 
-## Referências
+## References
 
 `docs/architecture.md` · `docs/control-protocol.md` · `docs/mcp.md` · `i18n/README.md` ·
 `docs/UPSTREAM-SYNC.md`
