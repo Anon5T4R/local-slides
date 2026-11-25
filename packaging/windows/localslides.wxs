@@ -47,9 +47,9 @@
 
     <Icon Id="LocalSlidesIcon.exe" SourceFile="$(var.IconPath)" />
     <Property Id="ARPPRODUCTICON" Value="LocalSlidesIcon.exe" />
-    <Property Id="ARPURLINFOABOUT" Value="https://github.com/Anon5T4R/local-slides" />
-    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/Anon5T4R/local-slides/releases" />
-    <Property Id="ARPHELPLINK" Value="https://github.com/Anon5T4R/local-slides/issues" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/Styx-Studios/Local-Slides" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/Styx-Studios/Local-Slides/releases" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/Styx-Studios/Local-Slides/issues" />
 
     <!-- Installer UI: WixUI_Minimal is welcome + license, progress, then a finish page so people
          can see the install worked. package.ps1 builds the license RTF from LICENSE-MIT and

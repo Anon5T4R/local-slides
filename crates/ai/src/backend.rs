@@ -112,6 +112,6 @@ mod tests {
     fn the_live_backend_carries_the_app_identity() {
         let backend = LiveBackend::new(crate::AI_APP_ID, crate::AI_APP_URL);
         assert_eq!(backend.app().id, "LocalSlides");
-        assert_eq!(backend.app().url, "https://github.com/Anon5T4R/local-slides");
+        assert_eq!(backend.app().url, "https://github.com/Styx-Studios/Local-Slides");
     }
 }

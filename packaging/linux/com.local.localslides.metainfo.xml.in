@@ -23,10 +23,10 @@
   <launchable type="desktop-id">com.local.localslides.desktop</launchable>
   <icon type="stock">com.local.localslides</icon>
   <!-- Only url types known to appstream 0.15 (Ubuntu 22.04, where CI validates): no vcs-browser. -->
-  <url type="homepage">https://github.com/Anon5T4R/local-slides</url>
-  <url type="bugtracker">https://github.com/Anon5T4R/local-slides/issues</url>
-  <url type="help">https://github.com/Anon5T4R/local-slides</url>
-  <url type="contact">https://github.com/Anon5T4R/local-slides/issues</url>
+  <url type="homepage">https://github.com/Styx-Studios/Local-Slides</url>
+  <url type="bugtracker">https://github.com/Styx-Studios/Local-Slides/issues</url>
+  <url type="help">https://github.com/Styx-Studios/Local-Slides</url>
+  <url type="contact">https://github.com/Styx-Studios/Local-Slides/issues</url>
   <categories>
     <category>Office</category>
     <category>Presentation</category>
@@ -40,7 +40,7 @@
   <screenshots>
     <screenshot type="default">
       <caption>Slide editor with thumbnails, a process diagram and notes</caption>
-      <image type="source" width="1600" height="1000">https://raw.githubusercontent.com/Anon5T4R/local-slides/main/docs/images/editor.png</image>
+      <image type="source" width="1600" height="1000">https://raw.githubusercontent.com/Styx-Studios/Local-Slides/main/docs/images/editor.png</image>
     </screenshot>
   </screenshots>
   <branding>

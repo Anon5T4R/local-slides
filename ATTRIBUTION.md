@@ -46,7 +46,7 @@ fork's own attribution for assets the rebrand keeps as-is.
 ## Embedded at build time from craft-fonts (`CRAFT_FONTS_DIR`)
 
 The craft-fonts tree is vendored in this repository (`assets/craft-fonts/`, replicated unmodified from
-the `assets/craft-fonts/` of [Anon5T4R/local-libs](https://github.com/Anon5T4R/local-libs), the suite's
+the `assets/craft-fonts/` of [Styx-Studios/local-libs](https://github.com/Styx-Studios/local-libs), the suite's
 single source; `scripts/check-mirror.sh` checks it), and `.cargo/config.toml` points `CRAFT_FONTS_DIR`
 at it, so every build, test and release embeds the fonts listed in its `fonts/latin-manifest.txt` and
 `fonts/manifest.txt` (per-file authors, sources, SHA-256 and licences in its

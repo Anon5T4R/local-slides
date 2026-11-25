@@ -14,7 +14,7 @@ section: editors
 priority: optional
 maintainer: ${LOCALSLIDES_MAINTAINER}
 vendor: Local Slides contributors
-homepage: https://github.com/Anon5T4R/local-slides
+homepage: https://github.com/Styx-Studios/Local-Slides
 license: MIT OR Apache-2.0
 description: |-
   Open-source, native presentation app that works the way PowerPoint users

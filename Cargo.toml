@@ -14,7 +14,7 @@ rust-version = "1.95"
 # Nada da suíte vai ao crates.io: dependência `path` sem versão numa crate publicável reprova o
 # `cargo-deny` (wildcards). Cada membro herda com `publish.workspace = true`.
 publish = false
-repository = "https://github.com/Anon5T4R/local-slides"
+repository = "https://github.com/Styx-Studios/Local-Slides"
 
 [workspace.dependencies]
 # internal
@@ -89,7 +89,7 @@ craft-icons = { path = "libs/craft-libs/crates/icons/", features = ["egui"] }
 # craft-window drives the native windows: one per open presentation, in the mold of
 # the other Crafting Apps. Same vendored craft-libs tree as the crates above.
 craft-window = { path = "libs/craft-libs/crates/window/", version = "=0.1.0", default-features = false, features = ["egui"] }
-# BYOK da suíte (repo Anon5T4R/local-ai), espelho byte-idêntico ao dos apps irmãos: conexões do
+# BYOK da suíte (repo Styx-Studios/local-ai), espelho byte-idêntico ao dos apps irmãos: conexões do
 # usuário, chave no keychain do SO e um client OpenAI-compatible (TLS 100% Rust pelo fork acima).
 local-ai = { path = "libs/local-ai" }
 i_overlay = "9"

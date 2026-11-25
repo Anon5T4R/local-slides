@@ -27,7 +27,7 @@ pub fn about(_app: &mut SlideApp, ui: &mut Ui) {
         ui.label(tl!("An open-source, clean-room project. Not affiliated with Microsoft."));
         ui.add_space(6.0);
         ui.hyperlink_to(tl!("Community discussions on GitHub"), localslides_engine::links::COMMUNITY);
-        ui.hyperlink_to(tl!("github.com/Anon5T4R/local-slides"), localslides_engine::links::APP_PAGE);
+        ui.hyperlink_to(tl!("github.com/Styx-Studios/Local-Slides"), localslides_engine::links::APP_PAGE);
         ui.hyperlink_to(tl!("Source on GitHub"), localslides_engine::links::GITHUB);
         ui.add_space(6.0);
         ui.label(egui::RichText::new(tl!("MIT OR Apache-2.0 · © 2026 the Local Slides contributors")).size(11.0).color(t.text_faint));

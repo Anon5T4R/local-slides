@@ -8,7 +8,7 @@ que o script pode aplicar fica em `docs/UPSTREAM-MAP.toml`.
 
 - Upstream: `storytold/deckcraft`, commit **9bac60ff** (`v0.15.1`, "Release 0.15.1") — a árvore foi
   copiada do commit (Fase A, 2026-11-05), sem histórico.
-- Fork: `Anon5T4R/Local-Slides` (repo `local-slides`), versão própria `0.3.x` (numeração nova evita
+- Fork: `Styx-Studios/Local-Slides`, versão própria `0.3.x` (numeração nova evita
   auto-update falso para o upstream).
 - Formato nativo `.deckcraft` mantido byte-a-byte, inclusive o MIMETYPE
   `application/vnd.storyteller.deckcraft+zip`.
@@ -20,7 +20,7 @@ que o script pode aplicar fica em `docs/UPSTREAM-MAP.toml`.
 | Caminho | Origem | Rev |
 |---|---|---|
 | `libs/craft-libs` | `storytold/craft-libs` | `c5a1cbf` (com `vendor/krilla`) |
-| `libs/craft-libs/crates/update` | **`Anon5T4R/local-libs`** (fonte única da suíte) | espelho de `sync.ps1` |
+| `libs/craft-libs/crates/update` | **`Styx-Studios/local-libs`** (fonte única da suíte) | espelho de `sync.ps1` |
 | `libs/local-ai` | `underworld/local-ai` (BYOK da suíte) | fonte única |
 | `libs/egui` | `storytold/egui` | `6d518fc` |
 | `libs/winit` | `storytold/winit` | `a517b38` |
@@ -39,7 +39,7 @@ que o script pode aplicar fica em `docs/UPSTREAM-MAP.toml`.
 - CI próprio: sem `craft-common-actions`, sem sonarcloud; release por **tag** `vX.Y.Z` (o upstream
   usa a branch `release` + draft).
 - `libs/` e `assets/craft-fonts/` vendorizados (o upstream busca os dois por git no CI).
-- Links de comunidade e do projeto apontam só para `Anon5T4R/local-slides`
+- Links de comunidade e do projeto apontam só para `Styx-Studios/Local-Slides`
   (`crates/engine/src/links.rs`).
 - **Janelas:** uma janela nativa por apresentação desde a branch `port-multiwindow`
   (`crates/ui-egui/src/windows.rs`, driver `craft_window::Viewports`; o visor `doc_window.rs` do
