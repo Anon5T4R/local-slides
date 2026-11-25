@@ -16,8 +16,8 @@
 
 ## What it does
 
-- **Build the deck:** slide masters and the eleven standard layouts, with placeholders that inherit
-  position and formatting from the layout; eight built-in themes with their colour and font
+- **Build the deck:** slide masters and the standard PowerPoint layouts, with placeholders that
+  inherit position and formatting from the layout; built-in themes with their colour and font
   schemes, and further colour, font and effect schemes; sections, custom shows, speaker notes,
   comments with replies and a resolve state, headers and footers, custom slide sizes.
 - **Draw:** the Office preset shapes re-derived from ECMA-376, with adjust handles; connectors that
@@ -39,19 +39,17 @@
   ([docs/mcp.md](docs/mcp.md)).
 - **Interface:** English, Portuguese (Brazil) and Spanish; automatic, light or dark theme.
 
-What works well, what is weak and what is planned — PPTX fidelity against decks from elsewhere,
-SVG pictures, editing chart data, printing, the depth of the animation and Format Shape panels — is
-in the [roadmap](ROADMAP.md).
+What works well, what is weak and what is planned is in the [roadmap](ROADMAP.md).
 
 ## Formats
 
 | Format | Read | Write |
 |---|---|---|
 | `.pptx` | yes | yes |
-| `.potx` / `.ppsx` | yes | yes, as a template / slide show |
+| `.potx` / `.ppsx` | yes | yes, from `localslides-cli` and automation only (Save As offers `.pptx` and `.deckcraft`) |
 | `.deckcraft` (native; also reads `.slidecraft`) | yes | yes |
 | `.thmx` (Office theme) | colours, fonts and effects | no |
-| Outline `.txt` / `.md` / `.rtf` | yes (titles become slides, items become bullets) | `.txt` / `.rtf` |
+| Outline `.txt` / `.md` / `.rtf` | yes (titles become slides, items become bullets) | `.txt` / `.rtf` (`.md` too, from the CLI) |
 | PDF | — | slides, notes pages and handouts, with an invisible real-text layer |
 | PNG / JPEG | — | one file per slide |
 | Animated GIF | — | the deck (transitions and animations do not enter) |
@@ -120,6 +118,16 @@ The public key is also in [packaging/minisign.pub](packaging/minisign.pub). The 
 checks the download against the release's SHA-256; it also verifies the minisign signature, but for
 now a bad signature is only logged, not refused.
 
+## How it is made
+
+Local Slides follows the same rules as every Local app: local files and no account, Rust only
+(including the UI and the cryptography), one self-contained repository per app, forks with selective
+sync, governed dependencies, signed releases built from a tag, optional AI with your own provider,
+and MCP so agents can use the app. Most of the code is written by AI coding agents (Claude Code and
+OpenCode) from written plans, reviewed by the maintainer and held to the same checks and CI. The
+reasons for each decision:
+[How we make the Local apps](https://github.com/Styx-Studios/.github/blob/main/profile/README.md#how-we-make-the-local-apps).
+
 ## Build from source
 
 Rust 1.95 or newer.
@@ -136,27 +144,33 @@ On Linux the build also needs the ALSA headers for slide-show sound (`libasound2
 Ubuntu, `alsa-lib-devel` on Fedora, `alsa-lib` on Arch). Fonts are vendored in `assets/craft-fonts/`
 and embedded by the build.
 
-## How it is made
-
-Local Slides follows the same rules as every Local app: local files and no account, Rust only
-(including the UI and the cryptography), one self-contained repository per app, forks with selective
-sync, governed dependencies, signed releases built from a tag, optional AI with your own provider,
-and MCP so agents can use the app. Most of the code is written by AI coding agents (Claude Code and
-OpenCode) from written plans, reviewed by the maintainer and held to the same checks and CI. The
-reasons for each decision:
-[How we make the Local apps](https://github.com/Styx-Studios/.github/blob/main/profile/README.md#how-we-make-the-local-apps).
-
 ## AI
 
-The AI tab does nothing until you add a connection and your own key: any OpenAI-compatible service,
-or a local server such as llama.cpp or Ollama. The key lives in the OS keychain. It offers three
-deck actions — generate a presentation from a topic (up to 40 slides), rewrite one slide, correct
+The AI tab does nothing until you add a connection and your own key: any OpenAI-compatible endpoint,
+including a local server through the Custom (OpenAI-compatible) entry. The key lives in the OS
+keychain. It offers deck actions — generate a presentation from a topic, rewrite one slide, correct
 the text of one or several slides — and a chat panel that sends the deck's outline as context.
 Answers are applied through the app's own commands inside one undo group, so a failed apply rolls
 back, and the AI never writes the file itself.
 
 The only other network use is the update check on GitHub when the app starts, and there is no
 setting to turn it off yet. No account, analytics or crash reporting.
+
+## The Local apps
+
+[Local Word](https://github.com/Anon5T4R/local-office) ·
+[Local Sheets](https://github.com/Anon5T4R/local-sheets) ·
+[Local Slides](https://github.com/Anon5T4R/local-slides) ·
+[Local PDF](https://github.com/Anon5T4R/local-pdf) ·
+[Local Keys](https://github.com/Anon5T4R/Local-Keys) ·
+[Local Image](https://github.com/Anon5T4R/Local-Image) ·
+[Local Photo](https://github.com/Anon5T4R/Local-Photo) ·
+[Local Paint](https://github.com/Anon5T4R/Local-Paint) ·
+[Local Vector](https://github.com/Anon5T4R/Local-Vector) ·
+[Local Player](https://github.com/Anon5T4R/Local-Player) ·
+[Local Notebook](https://github.com/Anon5T4R/Local-Obsidian) ·
+[Local Mindmap](https://github.com/Anon5T4R/Local-Mind) ·
+[Local Utils](https://github.com/Anon5T4R/Local-Utils)
 
 ## License and credits
 
@@ -166,4 +180,4 @@ project and its team; this repository and its packages use only the Local Slides
 font, icon and image, with its author, source and licence, is in [ATTRIBUTION.md](ATTRIBUTION.md);
 release builds embed the fonts of
 [craft-fonts](https://github.com/storytold/craft-fonts/blob/main/ATTRIBUTION.md) (SIL Open Font
-License 1.1). Other Local apps: [the full list](https://github.com/Styx-Studios).
+License 1.1).
