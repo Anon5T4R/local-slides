@@ -17,10 +17,12 @@ the path to "ready for real work".
 - **Images.** SVG does not render (EMF/WMF do); pasting an image on Windows fails in some cases.
 - **Animations.** The panel covers part of PowerPoint's effects (timeline and Play From already
   exist).
-- **Charts.** Editing the data on the grid and the chart elements is missing.
+- **Charts.** The data can be edited on the grid (Edit Data); editing the chart elements (title,
+  axes, legend) is missing.
 - **Formatting.** The Format Shape pane is leaner than PowerPoint's; fonts only in the Regular,
   Bold and Italic faces.
-- **Printing.** It does not print.
+- **Printing.** It does not send to a printer. File > Print makes a PDF with the print options and
+  opens it in the system's PDF viewer.
 - **Deck video.** It exports animated GIF, not MP4/MOV.
 - **Presenting.** The presenter view does not position itself on the second screen.
 - **Performance.** The slides rasterize on the CPU, with no performance baseline.
@@ -36,7 +38,7 @@ the path to "ready for real work".
 | `.deckcraft` (native; also `.slidecraft`) | yes | yes, losslessly |
 | `.thmx` (Office theme) | colors, fonts and effects only (Design › Browse for Themes…) | no |
 | Macro PPTX (`.pptm`/`.potm`/`.ppsm`), `.ppt` 97–2003, `.odp` | no | no |
-| Outline `.txt`/`.rtf`/`.md` | yes (titles become slides, items become bullets) | `.txt`/`.rtf` |
+| Outline `.txt`/`.rtf`/`.md` | yes (titles become slides, items become bullets) | `.txt`/`.rtf`/`.md` |
 | PDF | — | yes (slides, notes, handouts); the slide art goes in rasterized |
 | PNG/JPEG per slide | — | yes (with optional transparent background) |
 | Animated GIF of the deck | — | yes (transitions and animations do not enter) |
