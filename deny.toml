@@ -62,15 +62,6 @@ ignore = [
     { id = "RUSTSEC-2026-0370", reason = "zvariant unmaintained; pilha D-Bus do Linux (portal/acessibilidade)" },
     { id = "RUSTSEC-2026-0371", reason = "zbus_names unmaintained; pilha D-Bus do Linux (portal/acessibilidade)" },
     { id = "RUSTSEC-2026-0372", reason = "zvariant_derive unmaintained; pilha D-Bus do Linux (portal/acessibilidade)" },
-    # zip 3.0 lê/escreve .pptx: só a feature `deflate` (sem AES/crypto) e o código nunca chama
-    # `ZipArchive::extract` nem `ZipStreamReader` (lê entradas por nome, em memória). Subir para o zip 9
-    # muda a API e é decisão de dependência separada.
-    { id = "RUSTSEC-2026-0367", reason = "zip 3.0: ZipArchive::extract nunca é chamado" },
-    { id = "RUSTSEC-2026-0368", reason = "zip 3.0: ZipArchive::extract nunca é chamado" },
-    { id = "RUSTSEC-2026-0369", reason = "zip 3.0: ZipArchive::extract/ZipStreamReader nunca são chamados" },
-    { id = "RUSTSEC-2026-0429", reason = "zip 3.0: ZipArchive::extract nunca é chamado" },
-    { id = "RUSTSEC-2026-0545", reason = "zip 3.0: sem a feature de AES (só deflate)" },
-    { id = "RUSTSEC-2026-0548", reason = "zip 3.0: ZipStreamReader nunca é usado" },
 ]
 
 # egui's default UI fonts (Ubuntu-Light, Hack, emoji-icon-font): font licences on the AGENTS.md
